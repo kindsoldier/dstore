@@ -13,6 +13,8 @@ EXTRA_dcnode_SOURCES = \
 	dcnode.go \
 	config/config.go
 
+#config/config.go: config/config.go.in
+#	./configure.status $<
 
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)
@@ -26,4 +28,3 @@ install-data-local:
 	test -z $(DESTDIR)$(SRV_LOGDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_LOGDIR)
 	test -z $(DESTDIR)$(SRV_RUNDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_RUNDIR)
 	test -z $(DESTDIR)$(SRV_DATADIR) || $(MKDIR_P) $(DESTDIR)$(SRV_DATADIR)
-

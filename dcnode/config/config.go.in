@@ -1,20 +1,24 @@
 package config
 
 import (
-    "encoding/json"
     "path/filepath"
     "os"
+
+    "github.com/go-yaml/yaml"
 )
 
 
-const configName string = "@srv_conf@"
+const configName string = "@srv_name@.conf"
 
 type Config struct {
-    Port        string      `json:"port"`
-    ConfDir     string      `json:"confdir"`
-    DataDir     string      `json:"datadir"`
-    LogDir      string      `json:"logdir"`
-    RunDir      string      `json:"rundir"`
+    Port        string      `json:"port"    yaml:"port"`
+    ConfDir     string      `json:"confdir" yaml:"confdir"`
+    DataDir     string      `json:"datadir" yaml:"datadir"`
+    LogDir      string      `json:"logdir"  yaml:"logdir"`
+    RunDir      string      `json:"rundir"  yaml:"rundir"`
+
+    LogName     string      `json:"-"       yaml:"-"`
+    PidName     string      `json:"-"       yaml:"-"`
 }
 
 func NewConfig() *Config {
@@ -24,6 +28,10 @@ func NewConfig() *Config {
     config.DataDir  = "@srv_datadir@"
     config.ConfDir  = "@srv_confdir@"
     config.Port     = "@srv_port@"
+
+    config.LogName  = "@srv_name@.log"
+    config.PidName  = "@srv_name@.pid"
+
     return &config
 }
 
@@ -31,7 +39,7 @@ func (this *Config) Read() error {
     var err error
     filename := filepath.Join(this.ConfDir, configName)
     confData, err := os.ReadFile(filename)
-    err = json.Unmarshal(confData, this)
+    err = yaml.Unmarshal(confData, this)
     if err != nil {
         return err
     }

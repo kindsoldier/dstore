@@ -734,6 +734,9 @@ uninstall-am: uninstall-sbinPROGRAMS
 .PRECIOUS: Makefile
 
 
+#config/config.go: config/config.go.in
+#	./configure.status $<
+
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)
 
