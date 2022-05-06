@@ -5,16 +5,14 @@ SUFFIXES = .go
 OBJEXT= none
 
 sbin_PROGRAMS = dcnode
-dcnode_SOURCES = dcnode.go
+dcnode_SOURCES = \
+	nodesrv/ndmain.go \
+	nodesrv/ndconfig.go
 
 GOFLAGS = -ldflags="-s -w"
 
 EXTRA_dcnode_SOURCES = \
-	dcnode.go \
-	config/config.go
-
-#config/config.go: config/config.go.in
-#	./configure.status $<
+	nodesrv/ndconfig.go.in
 
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)

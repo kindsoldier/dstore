@@ -13,21 +13,15 @@ import (
     "path/filepath"
     "strconv"
     "syscall"
-    "time"
     "io"
 
-    "dcstore/dcnode/config"
+    "dcstore/dcnode/nodeapi"
     "dcstore/dclog"
+    "dcstore/rdrpc"
 )
 
 const successExit   int = 0
 const errorExit     int = 1
-
-type Server struct {
-    config      *config.Config
-    background  bool
-    logFile     *os.File
-}
 
 
 func main() {
@@ -40,6 +34,13 @@ func main() {
         os.Exit(errorExit)
     }
 }
+
+type Server struct {
+    Params      *Config
+    background  bool
+    logFile     *os.File
+}
+
 
 func (server *Server) Execute() error {
     var err error
@@ -63,7 +64,6 @@ func (server *Server) Execute() error {
     if err != nil {
         return err
     }
-
     err = server.RedirLog()
     if err != nil {
         return err
@@ -87,14 +87,14 @@ func (server *Server) Execute() error {
 
 func NewServer() *Server {
     var server Server
-    server.config = config.NewConfig()
+    server.Params = NewConfig()
     server.background = false
     return &server
 }
 
 func (server *Server) ReadConf() error {
     var err error
-    err = server.config.Read()
+    err = server.Params.Read()
     if err != nil {
         return err
     }
@@ -105,7 +105,7 @@ func (server *Server) GetOptions() error {
     var err error
     exeName := filepath.Base(os.Args[0])
 
-    flag.StringVar(&server.config.Port, "p", server.config.Port, "listen port")
+    flag.StringVar(&server.Params.Port, "p", server.Params.Port, "listen port")
     flag.BoolVar(&server.background, "d", server.background, "run as daemon")
 
     help := func() {
@@ -168,8 +168,8 @@ func (server *Server) SavePid() error {
     const runDirPerm fs.FileMode = 0755
     const pidFilePerm fs.FileMode = 0644
 
-    pidFile := filepath.Join(server.config.RunDir, server.config.PidName)
-    runDir := server.config.RunDir
+    pidFile := filepath.Join(server.Params.RunDir, server.Params.PidName)
+    runDir := server.Params.RunDir
 
     err = os.MkdirAll(runDir, runDirPerm)
     if err != nil {
@@ -206,8 +206,8 @@ func (server *Server) RedirLog() error {
     const logDirPerm fs.FileMode = 0755
     const logFilePerm fs.FileMode = 0644
 
-    logFile := filepath.Join(server.config.LogDir, server.config.LogName)
-    logDir := server.config.LogDir
+    logFile := filepath.Join(server.Params.LogDir, server.Params.LogName)
+    logDir := server.Params.LogDir
 
     err = os.MkdirAll(logDir, logDirPerm)
     if err != nil {
@@ -294,21 +294,32 @@ func (server *Server) SetSHandler() error {
     return err
 }
 
-func (server *Server) RunService() error {
-    var err error
-
-    for {
-        dclog.LogDebug("run")
-        time.Sleep(1 * time.Second)
-    }
-    return err
-}
-
 func (server *Server) StopAll() error {
     var err error
     dclog.LogInfo("stop processes")
     if server.logFile != nil {
         server.logFile.Close()
     }
+    return err
+}
+
+
+func (server *Server) RunService() error {
+    var err error
+
+    serv := rdrpc.NewRadio()
+    cont := NewController()
+    serv.Handler(ndapi.HelloMethod, cont.HelloHandler)
+
+    serv.PreMiddleware(rdrpc.LogRequest)
+    serv.PostMiddleware(rdrpc.LogResponse)
+    serv.PostMiddleware(rdrpc.LogAccess)
+
+    listenParam := fmt.Sprintf(":%s", server.Params.Port)
+    err = serv.Listen(listenParam)
+    if err != nil {
+        return err
+    }
+
     return err
 }
