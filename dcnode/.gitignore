@@ -13,3 +13,5 @@ run/
 dat/
 dcnode
 config.go
+ndsrv/ndsrv
+ndcli/ndcli

@@ -99,7 +99,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = nodesrv/ndconfig.go
+CONFIG_CLEAN_FILES = ndsrv/ndconfig.go
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
@@ -162,7 +162,7 @@ CTAGS = ctags
 CSCOPE = cscope
 AM_RECURSIVE_TARGETS = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/nodesrv/ndconfig.go.in config.guess config.sub \
+	$(top_srcdir)/ndsrv/ndconfig.go.in config.guess config.sub \
 	install-sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -287,12 +287,13 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT = none
 dcnode_SOURCES = \
-	nodesrv/ndmain.go \
-	nodesrv/ndconfig.go
+	ndsrv/ndmain.go \
+	ndsrv/ndcont.go \
+	ndsrv/ndconfig.go
 
 GOFLAGS = -ldflags="-s -w"
 EXTRA_dcnode_SOURCES = \
-	nodesrv/ndconfig.go.in
+	ndsrv/ndconfig.go.in
 
 all: all-am
 
@@ -331,7 +332,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
-nodesrv/ndconfig.go: $(top_builddir)/config.status $(top_srcdir)/nodesrv/ndconfig.go.in
+ndsrv/ndconfig.go: $(top_builddir)/config.status $(top_srcdir)/ndsrv/ndconfig.go.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)

@@ -271,5 +271,5 @@ AC_SUBST(srv_port, 5001)
 
 AC_OUTPUT([
 Makefile
-nodesrv/ndconfig.go
+ndsrv/ndconfig.go
 ])

@@ -5,9 +5,8 @@
 package main
 
 import (
-    "dcstore/dcnode/nodeapi"
-    "dcstore/dclog"
-    "dcstore/rdrpc"
+    "dcstore/dcnode/ndapi"
+    "dcstore/dcrpc"
 )
 
 
@@ -18,15 +17,13 @@ func NewController() *Controller {
     return &Controller{}
 }
 
-func (cont *Controller) HelloHandler(context *rdrpc.Context) error {
+func (cont *Controller) HelloHandler(context *dcrpc.Context) error {
     var err error
     params := ndapi.NewHelloParams()
     err = context.BindParams(params)
     if err != nil {
         return err
     }
-
-    dclog.LogDebug("hello params:", string(params.JSON()))
 
     result := ndapi.NewHelloResult()
     result.Message = "hello!"

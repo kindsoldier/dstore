@@ -16,12 +16,12 @@ func NewRequest() *Request {
     return req
 }
 
-func (this *Request) JSON() []byte {
-    jBytes, _ := json.Marshal(this)
-    return jBytes
-}
-
 func (this *Request) Pack() ([]byte, error) {
     rBytes, err := json.Marshal(this)
     return rBytes, err
+}
+
+func (this *Request) JSON() []byte {
+    jBytes, _ := json.Marshal(this)
+    return jBytes
 }

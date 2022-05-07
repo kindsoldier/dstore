@@ -17,7 +17,8 @@ type Config struct {
     LogDir      string      `json:"logdir"  yaml:"logdir"`
     RunDir      string      `json:"rundir"  yaml:"rundir"`
 
-    LogName     string      `json:"-"       yaml:"-"`
+    AccName     string      `json:"-"       yaml:"-"`
+    MsgName     string      `json:"-"       yaml:"-"`
     PidName     string      `json:"-"       yaml:"-"`
 }
 
@@ -29,8 +30,9 @@ func NewConfig() *Config {
     config.ConfDir  = "@srv_confdir@"
     config.Port     = "@srv_port@"
 
-    config.LogName  = "@srv_name@.log"
     config.PidName  = "@srv_name@.pid"
+    config.MsgName  = "message.log"
+    config.AccName  = "access.log"
 
     return &config
 }

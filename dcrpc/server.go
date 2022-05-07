@@ -161,7 +161,7 @@ func (context *Context) BindMethod() error {
     return err
 }
 
-func (context *Context) BindParams(params interface{}) error {
+func (context *Context) BindParams(params any) error {
     var err error
     context.reqBody.Params = params
     err = json.Unmarshal(context.reqPacket.body, context.reqBody)
@@ -171,7 +171,7 @@ func (context *Context) BindParams(params interface{}) error {
     return err
 }
 
-func (context *Context) SendResult(result interface{}) error {
+func (context *Context) SendResult(result any) error {
     var err error
     context.resBody.Result = result
 

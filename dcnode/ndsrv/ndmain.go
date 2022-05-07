@@ -15,9 +15,9 @@ import (
     "syscall"
     "io"
 
-    "dcstore/dcnode/nodeapi"
+    "dcstore/dcnode/ndapi"
     "dcstore/dclog"
-    "dcstore/rdrpc"
+    "dcstore/dcrpc"
 )
 
 const successExit   int = 0
@@ -36,9 +36,8 @@ func main() {
 }
 
 type Server struct {
-    Params      *Config
-    background  bool
-    logFile     *os.File
+    Params  *Config
+    Backgr  bool
 }
 
 
@@ -54,15 +53,15 @@ func (server *Server) Execute() error {
         return err
     }
 
-    if server.background {
+    if server.Backgr {
         err = server.ForkCmd()
         if err != nil {
             return err
         }
-    }
-    err = server.CloseIO()
-    if err != nil {
-        return err
+        err = server.CloseIO()
+        if err != nil {
+            return err
+        }
     }
     err = server.RedirLog()
     if err != nil {
@@ -88,7 +87,7 @@ func (server *Server) Execute() error {
 func NewServer() *Server {
     var server Server
     server.Params = NewConfig()
-    server.background = false
+    server.Backgr = false
     return &server
 }
 
@@ -106,7 +105,7 @@ func (server *Server) GetOptions() error {
     exeName := filepath.Base(os.Args[0])
 
     flag.StringVar(&server.Params.Port, "p", server.Params.Port, "listen port")
-    flag.BoolVar(&server.background, "d", server.background, "run as daemon")
+    flag.BoolVar(&server.Backgr, "d", server.Backgr, "run as daemon")
 
     help := func() {
         fmt.Println("")
@@ -206,7 +205,6 @@ func (server *Server) RedirLog() error {
     const logDirPerm fs.FileMode = 0755
     const logFilePerm fs.FileMode = 0644
 
-    logFile := filepath.Join(server.Params.LogDir, server.Params.LogName)
     logDir := server.Params.LogDir
 
     err = os.MkdirAll(logDir, logDirPerm)
@@ -217,15 +215,26 @@ func (server *Server) RedirLog() error {
     if err != nil {
             return err
     }
-    openMode := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-    file, err := os.OpenFile(logFile, openMode, logFilePerm)
+
+    logOpenMode := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+    msgFileName := filepath.Join(server.Params.LogDir, server.Params.MsgName)
+    msgFile, err := os.OpenFile(msgFileName, logOpenMode, logFilePerm)
     if err != nil {
             return err
     }
-    server.logFile = file
-    writer := io.MultiWriter(os.Stdout, file)
-    dclog.SetOutput(writer)
 
+    logWriter := io.MultiWriter(os.Stdout, msgFile)
+    dclog.SetOutput(logWriter)
+    dcrpc.SetMessageWriter(logWriter)
+
+    accFileName := filepath.Join(server.Params.LogDir, server.Params.AccName)
+    accFile, err := os.OpenFile(accFileName, logOpenMode, logFilePerm)
+    if err != nil {
+            return err
+    }
+
+    accWriter := io.MultiWriter(os.Stdout, accFile)
+    dcrpc.SetAccessWriter(accWriter)
     return err
 }
 
@@ -272,7 +281,7 @@ func (server *Server) SetSHandler() error {
 
                 case syscall.SIGHUP:
                     switch {
-                        case server.background:
+                        case server.Backgr:
                             dclog.LogInfo("restart server")
 
                             err = server.StopAll()
@@ -297,9 +306,9 @@ func (server *Server) SetSHandler() error {
 func (server *Server) StopAll() error {
     var err error
     dclog.LogInfo("stop processes")
-    if server.logFile != nil {
-        server.logFile.Close()
-    }
+    //if server.logFile != nil {
+    //    server.logFile.Close()
+    //}
     return err
 }
 
@@ -307,13 +316,13 @@ func (server *Server) StopAll() error {
 func (server *Server) RunService() error {
     var err error
 
-    serv := rdrpc.NewRadio()
+    serv := dcrpc.NewRadio()
     cont := NewController()
     serv.Handler(ndapi.HelloMethod, cont.HelloHandler)
 
-    serv.PreMiddleware(rdrpc.LogRequest)
-    serv.PostMiddleware(rdrpc.LogResponse)
-    serv.PostMiddleware(rdrpc.LogAccess)
+    serv.PreMiddleware(dcrpc.LogRequest)
+    serv.PostMiddleware(dcrpc.LogResponse)
+    serv.PostMiddleware(dcrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

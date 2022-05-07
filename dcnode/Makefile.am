@@ -6,13 +6,14 @@ OBJEXT= none
 
 sbin_PROGRAMS = dcnode
 dcnode_SOURCES = \
-	nodesrv/ndmain.go \
-	nodesrv/ndconfig.go
+	ndsrv/ndmain.go \
+	ndsrv/ndcont.go \
+	ndsrv/ndconfig.go
 
 GOFLAGS = -ldflags="-s -w"
 
 EXTRA_dcnode_SOURCES = \
-	nodesrv/ndconfig.go.in
+	ndsrv/ndconfig.go.in
 
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)
