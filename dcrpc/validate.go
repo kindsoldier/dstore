@@ -48,7 +48,7 @@ func (context *Context) WriteLocalRequest(method string, param, result interface
     return err
 }
 
-func (this *Radio) HandleLocal(reqReader io.Reader, resWriter io.Writer) error {
+func (this *Service) HandleLocal(reqReader io.Reader, resWriter io.Writer) error {
     var err error
 
     context := CreateLocalContext(resWriter, reqReader)

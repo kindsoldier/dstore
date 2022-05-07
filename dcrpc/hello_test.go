@@ -51,7 +51,7 @@ func servHello() error {
 
     //SetAccessWriter(io.Discard)
     //SetMessageWriter(io.Discard)
-    serv := NewRadio()
+    serv := NewService()
 
     cont := NewController()
     serv.Handler(HelloMethod, cont.HelloHandler)

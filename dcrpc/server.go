@@ -11,7 +11,7 @@ import (
 
 type HandlerFunc =  func(*Context) error
 
-type Radio struct {
+type Service struct {
     handlers map[string]HandlerFunc
     ctx     context.Context
     cancel  context.CancelFunc
@@ -20,8 +20,8 @@ type Radio struct {
     postMw  []HandlerFunc
 }
 
-func NewRadio() *Radio {
-    rdrpc := &Radio{}
+func NewService() *Service {
+    rdrpc := &Service{}
     rdrpc.handlers = make(map[string]HandlerFunc)
     ctx, cancel := context.WithCancel(context.Background())
     rdrpc.ctx = ctx
@@ -34,20 +34,20 @@ func NewRadio() *Radio {
     return rdrpc
 }
 
-func (this *Radio) PreMiddleware(mw HandlerFunc) {
+func (this *Service) PreMiddleware(mw HandlerFunc) {
     this.preMw = append(this.preMw, mw)
 }
 
-func (this *Radio) PostMiddleware(mw HandlerFunc) {
+func (this *Service) PostMiddleware(mw HandlerFunc) {
     this.postMw = append(this.postMw, mw)
 }
 
 
-func (this *Radio) Handler(method string, handler HandlerFunc) {
+func (this *Service) Handler(method string, handler HandlerFunc) {
     this.handlers[method] = handler
 }
 
-func (this *Radio) Listen(address string) error {
+func (this *Service) Listen(address string) error {
     var err error
     logInfo("server listen:", address)
     listener, err := net.Listen("tcp", address)
@@ -77,14 +77,14 @@ func notFound(context *Context) error {
     return err
 }
 
-func (this *Radio) Stop() error {
+func (this *Service) Stop() error {
     var err error
     this.cancel()
     this.wg.Wait()
     return err
 }
 
-func (this *Radio) handleConn(conn net.Conn) {
+func (this *Service) handleConn(conn net.Conn) {
     var err error
 
     context := CreateContext(conn)
@@ -128,7 +128,7 @@ func (this *Radio) handleConn(conn net.Conn) {
     return
 }
 
-func (this *Radio) Route(context *Context) error {
+func (this *Service) Route(context *Context) error {
     handler, ok := this.handlers[context.reqBody.Method]
     if ok {
         return handler(context)

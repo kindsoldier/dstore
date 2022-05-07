@@ -23,7 +23,7 @@ func localHello() error {
     auth := CreateAuth([]byte("qwert"), []byte("12345"))
     context.WriteLocalRequest(HelloMethod, params, result, auth)
 
-    serv := NewRadio()
+    serv := NewService()
 
     cont := NewController()
     serv.Handler(HelloMethod, cont.HelloHandler)
