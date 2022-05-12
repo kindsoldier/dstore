@@ -51,7 +51,11 @@ func (util *Util) Exec() error {
     return err
 }
 
-const helloCmd string = "hello"
+const helpCmd   string = "help"
+const helloCmd  string = "hello"
+const getCmd    string = "get"
+const putCmd    string = "put"
+
 
 func (util *Util) GetOpt() error {
     var err error
@@ -87,6 +91,8 @@ func (util *Util) GetOpt() error {
         subArgs = args[1:]
     }
     switch subCommand {
+        case helloCmd:
+            help()
         case helloCmd:
             flagSet := flag.NewFlagSet(helloCmd, flag.ContinueOnError)
             flagSet.StringVar(&util.Message, "m", util.Message, "message")

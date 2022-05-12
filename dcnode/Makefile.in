@@ -295,6 +295,12 @@ GOFLAGS = -ldflags="-s -w"
 EXTRA_dcnode_SOURCES = \
 	ndsrv/ndconfig.go.in
 
+PATH := $(PATH):$(HOME)/go/bin
+CVCMD = go-callvis -nostd  -skipbrowser -graphviz
+CVIGNORE = dcstore/dclog
+CVDIR = .
+GOMAIN = dcstore/dcnode/ndsrv
+GOROOT = dcstore
 all: all-am
 
 .SUFFIXES:
@@ -749,6 +755,16 @@ install-data-local:
 	test -z $(DESTDIR)$(SRV_LOGDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_LOGDIR)
 	test -z $(DESTDIR)$(SRV_RUNDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_RUNDIR)
 	test -z $(DESTDIR)$(SRV_DATADIR) || $(MKDIR_P) $(DESTDIR)$(SRV_DATADIR)
+
+instvis:
+	$(GO) get github.com/ofabry/go-callvis
+	$(GO) install github.com/ofabry/go-callvis
+
+graph:
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcnode/ndsrv -file $(CVDIR)/dcnode $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcrpc -file $(CVDIR)/dcrpc $(GOMAIN)
+
+	rm -f $(CVDIR)/*.gv
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

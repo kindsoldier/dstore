@@ -4,6 +4,8 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT= none
 
+
+
 sbin_PROGRAMS = dcnode
 dcnode_SOURCES = \
 	ndsrv/ndmain.go \
@@ -27,3 +29,24 @@ install-data-local:
 	test -z $(DESTDIR)$(SRV_LOGDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_LOGDIR)
 	test -z $(DESTDIR)$(SRV_RUNDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_RUNDIR)
 	test -z $(DESTDIR)$(SRV_DATADIR) || $(MKDIR_P) $(DESTDIR)$(SRV_DATADIR)
+
+PATH := $(PATH):$(HOME)/go/bin
+
+instvis:
+	$(GO) get github.com/ofabry/go-callvis
+	$(GO) install github.com/ofabry/go-callvis
+
+CVCMD = go-callvis -nostd  -skipbrowser -graphviz
+CVIGNORE = dcstore/dclog
+CVDIR = .
+GOMAIN = dcstore/dcnode/ndsrv
+GOROOT = dcstore
+
+graph:
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcnode/ndsrv -file $(CVDIR)/dcnode $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcrpc -file $(CVDIR)/dcrpc $(GOMAIN)
+
+EXTRA_DIST += \
+	dcnode.svg \
+	dcrpc.svg
+	rm -f $(CVDIR)/*.gv

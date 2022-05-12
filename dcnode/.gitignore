@@ -1,5 +1,6 @@
 *.geany
 *~
+*.svg
 *.png
 *.jpg
 *.gif
@@ -12,6 +13,7 @@ log/
 run/
 dat/
 dcnode
+dcnodecli
 config.go
 ndsrv/ndsrv
 ndcli/ndcli
