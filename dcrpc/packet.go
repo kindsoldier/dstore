@@ -4,9 +4,11 @@ import (
     "encoding/json"
 )
 
+// Packet is used to store intermediate data
+// on Context for debugging purposes
 type Packet struct {
-    header  []byte
-    body    []byte
+    header      []byte
+    rcpPayload  []byte
 }
 
 func NewPacket() *Packet {

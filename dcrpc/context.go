@@ -9,16 +9,19 @@ import (
 type Context struct {
     start       time.Time
     remoteHost  string
-    reader      io.Reader
-    writer      io.Writer
+    sockReader  io.Reader
+    sockWriter  io.Writer
 
-    reqPacket   *Packet
     reqHeader   *Header
-    reqBody     *Request
+    reqRPC      *Request
+    reqPacket   *Packet
 
     resPacket   *Packet
     resHeader   *Header
-    resBody     *Response
+    resRPC      *Response
+
+    binReader   io.Reader
+    binWriter   io.Writer
 }
 
 
@@ -28,55 +31,54 @@ func NewContext() *Context {
     return context
 }
 
-
 func CreateContext(conn net.Conn) *Context {
     context := &Context{}
     context.start = time.Now()
-    context.reader = conn
-    context.writer = conn
+    context.sockReader = conn
+    context.sockWriter = conn
 
     context.reqPacket = NewPacket()
     context.resPacket = NewPacket()
 
     context.reqHeader = NewHeader()
-    context.reqBody   = NewRequest()
+    context.reqRPC   = NewRequest()
 
     context.resHeader = NewHeader()
-    context.resBody = NewResponse()
-    context.resBody = NewResponse()
+    context.resRPC = NewResponse()
+    context.resRPC = NewResponse()
 
     return context
 }
 
 func (context *Context) Request() *Request  {
-    return context.reqBody
+    return context.reqRPC
 }
 
 
 func (context *Context) SetAuthIdent(ident []byte)  {
-    context.reqBody.Auth.Ident = ident
+    context.reqRPC.Auth.Ident = ident
 }
 
 func (context *Context) SetAuthSalt(salt []byte)  {
-    context.reqBody.Auth.Salt = salt
+    context.reqRPC.Auth.Salt = salt
 }
 
 func (context *Context) SetAuthHash(hash []byte)  {
-    context.reqBody.Auth.Hash = hash
+    context.reqRPC.Auth.Hash = hash
 }
 
 func (context *Context) AuthIdent() []byte {
-    return context.reqBody.Auth.Ident
+    return context.reqRPC.Auth.Ident
 }
 
 func (context *Context) AuthSalt() []byte {
-    return context.reqBody.Auth.Salt
+    return context.reqRPC.Auth.Salt
 }
 
 func (context *Context) AuthHash() []byte {
-    return context.reqBody.Auth.Hash
+    return context.reqRPC.Auth.Hash
 }
 
 func (context *Context) Auth() *Auth {
-    return context.reqBody.Auth
+    return context.reqRPC.Auth
 }

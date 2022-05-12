@@ -6,7 +6,7 @@ import (
 
 type Request struct {
     Method  string      `json:"method"           msgpack:"method"`
-    Params  interface{} `json:"params,omitempty" msgpack:"params,omitempty"`
+    Params  any         `json:"params,omitempty" msgpack:"params,omitempty"`
     Auth    *Auth       `json:"auth,omitempty"   msgpack:"auth,omitempty"`
 }
 

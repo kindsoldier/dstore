@@ -7,7 +7,7 @@ import (
 
 type Response struct {
     Error   string      `json:"error,omitempty" msgpack:"error,omitempty"`
-    Result  interface{} `json:"result,omitemty" msgpack:"result,omitemty"`
+    Result  any         `json:"result,omitemty" msgpack:"result,omitemty"`
 }
 
 func NewResponse() *Response {

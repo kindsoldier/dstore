@@ -1,12 +1,15 @@
+
 package dcrpc
 
 import (
     "errors"
     "net"
     "encoding/json"
+    "io"
 )
 
-func Exec(address, method string, param, result interface{}, auth *Auth) error {
+
+func Put(address string, method string, reader io.Reader, size int64, param, result any, auth *Auth) error {
     var err error
 
     conn, err := net.Dial("tcp", address)
@@ -16,13 +19,18 @@ func Exec(address, method string, param, result interface{}, auth *Auth) error {
     defer conn.Close()
 
     context := CreateContext(conn)
-    context.reqBody.Method = method
-    context.reqBody.Params = param
-    context.reqBody.Auth = auth
-    context.resBody.Result = result
+    context.reqRPC.Method = method
+    context.reqRPC.Params = param
+    context.reqRPC.Auth = auth
+    context.resRPC.Result = result
 
-    if context.reqBody.Params == nil {
-        context.reqBody.Params = NewEmpty()
+    context.binReader = reader
+    context.binWriter = conn
+
+    context.reqHeader.binSize = size
+
+    if context.reqRPC.Params == nil {
+        context.reqRPC.Params = NewEmpty()
     }
 
     err = context.CreateRequest()
@@ -30,6 +38,11 @@ func Exec(address, method string, param, result interface{}, auth *Auth) error {
         return err
     }
     err = context.WriteRequest()
+    if err != nil {
+        return err
+    }
+
+    err = context.UploadBin()
     if err != nil {
         return err
     }
@@ -45,15 +58,98 @@ func Exec(address, method string, param, result interface{}, auth *Auth) error {
     return err
 }
 
-func (context *Context) CreateRequest() error {
+func Get(address string, method string, writer io.Writer, param, result any, auth *Auth) error {
     var err error
 
-    context.reqPacket.body, err = context.reqBody.Pack()
+    conn, err := net.Dial("tcp", address)
     if err != nil {
         return err
     }
-    bodySize := int64(len(context.reqPacket.body))
-    context.reqHeader.BodySize = bodySize
+    defer conn.Close()
+
+    context := CreateContext(conn)
+    context.reqRPC.Method = method
+    context.reqRPC.Params = param
+    context.reqRPC.Auth = auth
+    context.resRPC.Result = result
+
+    context.binReader = conn
+    context.binWriter = writer
+
+    if context.reqRPC.Params == nil {
+        context.reqRPC.Params = NewEmpty()
+    }
+    err = context.CreateRequest()
+    if err != nil {
+        return err
+    }
+    err = context.WriteRequest()
+    if err != nil {
+        return err
+    }
+    err = context.ReadResponse()
+    if err != nil {
+        return err
+    }
+    err = context.DownloadBin()
+    if err != nil {
+        return err
+    }
+    err = context.BindResponse()
+    if err != nil {
+        return err
+    }
+    return err
+}
+
+
+func Exec(address, method string, param any, result any, auth *Auth) error {
+    var err error
+
+    conn, err := net.Dial("tcp", address)
+    if err != nil {
+        return err
+    }
+    defer conn.Close()
+
+    context := CreateContext(conn)
+    context.reqRPC.Method = method
+    context.reqRPC.Params = param
+    context.reqRPC.Auth = auth
+    context.resRPC.Result = result
+
+    if context.reqRPC.Params == nil {
+        context.reqRPC.Params = NewEmpty()
+    }
+
+    err = context.CreateRequest()
+    if err != nil {
+        return err
+    }
+    err = context.WriteRequest()
+    if err != nil {
+        return err
+    }
+    err = context.ReadResponse()
+    if err != nil {
+        return err
+    }
+    err = context.BindResponse()
+    if err != nil {
+        return err
+    }
+    return err
+}
+
+func (context *Context) CreateRequest() error {
+    var err error
+
+    context.reqPacket.rcpPayload, err = context.reqRPC.Pack()
+    if err != nil {
+        return err
+    }
+    rpcSize := int64(len(context.reqPacket.rcpPayload))
+    context.reqHeader.rpcSize = rpcSize
 
     context.reqPacket.header, err = context.reqHeader.Pack()
     if err != nil {
@@ -64,21 +160,27 @@ func (context *Context) CreateRequest() error {
 
 func (context *Context) WriteRequest() error {
     var err error
-    _, err = context.writer.Write(context.reqPacket.header)
+    _, err = context.sockWriter.Write(context.reqPacket.header)
     if err != nil {
         return err
     }
-    _, err = context.writer.Write(context.reqPacket.body)
+    _, err = context.sockWriter.Write(context.reqPacket.rcpPayload)
     if err != nil {
         return err
     }
     return err
 }
 
+func (context *Context) UploadBin() error {
+    var err error
+    _, err = CopyBytes(context.binReader, context.binWriter, context.reqHeader.binSize)
+    return err
+}
+
 func (context *Context) ReadResponse() error {
     var err error
 
-    context.resPacket.header, err = ReadBytes(context.reader, headerSize)
+    context.resPacket.header, err = ReadBytes(context.sockReader, headerSize)
     if err != nil {
         return err
     }
@@ -86,23 +188,29 @@ func (context *Context) ReadResponse() error {
     if err != nil {
         return err
     }
-    bodySize := context.resHeader.BodySize
-    context.resPacket.body, err = ReadBytes(context.reader, bodySize)
+    rpcSize := context.resHeader.rpcSize
+    context.resPacket.rcpPayload, err = ReadBytes(context.sockReader, rpcSize)
     if err != nil {
         return err
     }
     return err
 }
 
+func (context *Context) DownloadBin() error {
+    var err error
+    _, err = CopyBytes(context.binReader, context.binWriter, context.resHeader.binSize)
+    return err
+}
+
 func (context *Context) BindResponse() error {
     var err error
 
-    err = json.Unmarshal(context.resPacket.body, context.resBody)
+    err = json.Unmarshal(context.resPacket.rcpPayload, context.resRPC)
     if err != nil {
         return err
     }
-    if len(context.resBody.Error) > 0 {
-        return errors.New(context.resBody.Error)
+    if len(context.resRPC.Error) > 0 {
+        return errors.New(context.resRPC.Error)
     }
     return err
 }

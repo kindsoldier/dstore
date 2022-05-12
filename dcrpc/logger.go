@@ -14,24 +14,24 @@ import (
 var messageWriter io.Writer = os.Stdout
 var accessWriter io.Writer = os.Stdout
 
-func logDebug(messages ...interface{}) {
+func logDebug(messages ...any) {
     stamp := time.Now().Format(time.RFC3339Nano)
     fmt.Fprintln(messageWriter, stamp, "debug", messages)
 }
 
-func logInfo(messages ...interface{}) {
+func logInfo(messages ...any) {
     stamp := time.Now().Format(time.RFC3339Nano)
     fmt.Fprintln(messageWriter, stamp, "info", messages)
 }
 
-func logError(messages ...interface{}) {
+func logError(messages ...any) {
     stamp := time.Now().Format(time.RFC3339Nano)
     fmt.Fprintln(messageWriter, stamp, "error", messages)
 }
 
-func logAccess(messages ...interface{}) {
+func logAccess(messages ...any) {
     stamp := time.Now().Format(time.RFC3339Nano)
-    fmt.Fprintln(messageWriter, stamp, messages)
+    fmt.Fprintln(messageWriter, stamp, "access", messages)
 }
 
 func SetAccessWriter(writer io.Writer) {

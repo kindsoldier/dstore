@@ -6,13 +6,13 @@ import (
     "bytes"
 )
 
-const headerSize    int64   = 8
+const headerSize    int64   = 16
 const sizeOfInt64   int     = 8
 
 
 type Header struct {
-    BodySize int64          `json:"bodySize"`
-
+    rpcSize int64          `json:"rpcSize"`
+    binSize int64          `json:"binSize"`
 }
 
 func NewHeader() *Header {
@@ -30,8 +30,11 @@ func (this *Header) Pack() ([]byte, error) {
     headerBytes := make([]byte, 0, headerSize)
     headerBuffer := bytes.NewBuffer(headerBytes)
 
-    bodySizeBytes := encoderI64(this.BodySize)
-    headerBuffer.Write(bodySizeBytes)
+    rpcSizeBytes := encoderI64(this.rpcSize)
+    headerBuffer.Write(rpcSizeBytes)
+
+    binSizeBytes := encoderI64(this.binSize)
+    headerBuffer.Write(binSizeBytes)
 
     return headerBuffer.Bytes(), err
 }
@@ -41,9 +44,13 @@ func UnpackHeader(headerBytes []byte) (*Header, error) {
     header := NewHeader()
     headerReader := bytes.NewReader(headerBytes)
 
-    bodySizeBytes := make([]byte, sizeOfInt64)
-    headerReader.Read(bodySizeBytes)
-    header.BodySize = decoderI64(bodySizeBytes)
+    rcpSizeBytes := make([]byte, sizeOfInt64)
+    headerReader.Read(rcpSizeBytes)
+    header.rpcSize = decoderI64(rcpSizeBytes)
+
+    binSizeBytes := make([]byte, sizeOfInt64)
+    headerReader.Read(binSizeBytes)
+    header.binSize = decoderI64(binSizeBytes)
 
     return header, err
 }

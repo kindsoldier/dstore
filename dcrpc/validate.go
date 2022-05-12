@@ -9,32 +9,32 @@ func CreateLocalContext(writer io.Writer, reader io.Reader) *Context {
     context := &Context{}
     context.start = time.Now()
 
-    context.writer = writer
-    context.reader = reader
+    context.sockWriter = writer
+    context.sockReader = reader
 
     context.reqPacket = NewPacket()
     context.resPacket = NewPacket()
 
     context.reqHeader = NewHeader()
-    context.reqBody = NewRequest()
+    context.reqRPC = NewRequest()
 
     context.resHeader = NewHeader()
-    context.resBody = NewResponse()
-    context.resBody = NewResponse()
+    context.resRPC = NewResponse()
+    context.resRPC = NewResponse()
 
     return context
 }
 
-func (context *Context) WriteLocalRequest(method string, param, result interface{}, auth *Auth) error {
+func (context *Context) WriteLocalRequest(method string, param, result any, auth *Auth) error {
     var err error
 
-    context.reqBody.Method = method
-    context.reqBody.Params = param
-    context.reqBody.Auth = auth
-    context.resBody.Result = result
+    context.reqRPC.Method = method
+    context.reqRPC.Params = param
+    context.reqRPC.Auth = auth
+    context.resRPC.Result = result
 
-    if context.reqBody.Params == nil {
-        context.reqBody.Params = NewEmpty()
+    if context.reqRPC.Params == nil {
+        context.reqRPC.Params = NewEmpty()
     }
 
     err = context.CreateRequest()
