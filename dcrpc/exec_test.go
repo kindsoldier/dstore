@@ -8,6 +8,8 @@ import (
     "math/rand"
     "testing"
     "time"
+
+    "github.com/stretchr/testify/assert"
 )
 
 func TestLocalExec(t *testing.T) {
@@ -18,23 +20,14 @@ func TestLocalExec(t *testing.T) {
 
     auth := CreateAuth([]byte("qwert"), []byte("12345"))
 
-    var binSize int64 = 16
-    rand.Seed(time.Now().UnixNano())
-    binBytes := make([]byte, binSize)
-    rand.Read(binBytes)
-
     err = LocalExec(HelloMethod, params, result, auth, helloHandler)
-    if err != nil {
-        logError("method err:", err)
-        t.Error(err)
-    }
+    assert.NoError(t, err)
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
 }
 
 
 func TestLocalSave(t *testing.T) {
-
     var err error
 
     params := NewSaveParams()
@@ -50,10 +43,8 @@ func TestLocalSave(t *testing.T) {
     reader := bytes.NewReader(binBytes)
 
     err = LocalPut(SaveMethod, reader, binSize, params, result, auth, saveHandler)
-    if err != nil {
-        logError("method err:", err)
-        t.Error(err)
-    }
+    assert.NoError(t, err)
+
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
 }
@@ -71,10 +62,8 @@ func TestLocalLoad(t *testing.T) {
     writer := bytes.NewBuffer(binBytes)
 
     err = LocalGet(LoadMethod, writer, params, result, auth, loadHandler)
-    if err != nil {
-        logError("method err:", err)
-        t.Error(err)
-    }
+    assert.NoError(t, err)
+
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
     logDebug("bin size:", len(writer.Bytes()))
@@ -85,28 +74,22 @@ func TestNetExec(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientHello()
-    if err != nil {
-        t.Error(err)
-    }
+
+    assert.NoError(t, err)
 }
 
 func TestNetSave(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientSave()
-    if err != nil {
-        t.Error(err)
-    }
-
+    assert.NoError(t, err)
 }
 
 func TestNetLoad(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientLoad()
-    if err != nil {
-        t.Error(err)
-    }
+    assert.NoError(t, err)
 }
 
 func BenchmarkNetPut(b *testing.B) {

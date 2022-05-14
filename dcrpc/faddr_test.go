@@ -22,9 +22,7 @@ func TestFConn0(t *testing.T) {
 
         sData := make([]byte, len(cData))
         rc, err := sConn.Read(sData)
-        if err != nil {
-            t.Error(err)
-        }
+        assert.NoError(t, err)
         assert.Equal(t, rc, len(cData))
         assert.Equal(t, cData, sData)
     }
@@ -46,9 +44,7 @@ func TestFConn1(t *testing.T) {
 
         sData := make([]byte, len(cData))
         rc, err := sConn.Read(sData)
-        if err != nil {
-            t.Error(err)
-        }
+        assert.NoError(t, err)
         assert.Equal(t, rc, len(cData))
         assert.Equal(t, cData, sData)
     }

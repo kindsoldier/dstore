@@ -160,6 +160,14 @@ func (context *Context) ReadRequest() error {
     return err
 }
 
+func (context *Context) BinReader() io.Reader {
+    return context.sockReader
+}
+
+func (context *Context) BinSize() int64 {
+    return context.reqHeader.binSize
+}
+
 func (context *Context) ReadBin(writer io.Writer) error {
     var err error
     _, err = CopyBytes(context.sockReader, writer, context.reqHeader.binSize)
