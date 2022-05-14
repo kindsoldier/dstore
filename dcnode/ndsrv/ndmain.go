@@ -18,6 +18,8 @@ import (
     "dcstore/dcnode/ndapi"
     "dcstore/dclog"
     "dcstore/dcrpc"
+    "dcstore/dcnode/ndsrv/ndcontr"
+    "dcstore/dcnode/ndsrv/ndstore"
 )
 
 const successExit   int = 0
@@ -316,9 +318,12 @@ func (server *Server) StopAll() error {
 func (server *Server) RunService() error {
     var err error
 
-    serv := dcrpc.NewRadio()
-    cont := NewController()
-    serv.Handler(ndapi.HelloMethod, cont.HelloHandler)
+    serv := dcrpc.NewService()
+
+    contr := ndcontr.NewContr()
+    contr.Store = ndstore.NewStore()
+
+    serv.Handler(ndapi.HelloMethod, contr.HelloHandler)
 
     serv.PreMiddleware(dcrpc.LogRequest)
     serv.PostMiddleware(dcrpc.LogResponse)
