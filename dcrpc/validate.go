@@ -6,7 +6,7 @@ import (
     "net"
 )
 
-func SimpleExec(method string, param any, result any, auth *Auth, handler HandlerFunc) error {
+func LocalExec(method string, param any, result any, auth *Auth, handler HandlerFunc) error {
     var err error
 
     cliConn, srvConn := NewFConn()
@@ -30,7 +30,7 @@ func SimpleExec(method string, param any, result any, auth *Auth, handler Handle
         return err
     }
 
-    err = SimpleService(srvConn, handler)
+    err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
@@ -47,7 +47,7 @@ func SimpleExec(method string, param any, result any, auth *Auth, handler Handle
     return err
 }
 
-func SimplePut(method string, reader io.Reader, size int64, param, result any, auth *Auth, handler HandlerFunc) error {
+func LocalPut(method string, reader io.Reader, size int64, param, result any, auth *Auth, handler HandlerFunc) error {
 
     var err error
 
@@ -82,7 +82,7 @@ func SimplePut(method string, reader io.Reader, size int64, param, result any, a
         return err
     }
 
-    err = SimpleService(srvConn, handler)
+    err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
@@ -99,7 +99,7 @@ func SimplePut(method string, reader io.Reader, size int64, param, result any, a
 }
 
 
-func SimpleGet(method string, writer io.Writer, param, result any, auth *Auth, handler HandlerFunc) error {
+func LocalGet(method string, writer io.Writer, param, result any, auth *Auth, handler HandlerFunc) error {
     var err error
 
     cliConn, srvConn := NewFConn()
@@ -125,7 +125,7 @@ func SimpleGet(method string, writer io.Writer, param, result any, auth *Auth, h
         return err
     }
 
-    err = SimpleService(srvConn, handler)
+    err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
@@ -146,7 +146,7 @@ func SimpleGet(method string, writer io.Writer, param, result any, auth *Auth, h
 }
 
 
-func SimpleService(conn net.Conn, handler HandlerFunc) error {
+func LocalService(conn net.Conn, handler HandlerFunc) error {
     var err error
     context := CreateContext(conn)
 

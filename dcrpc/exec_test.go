@@ -23,7 +23,7 @@ func TestLocalExec(t *testing.T) {
     binBytes := make([]byte, binSize)
     rand.Read(binBytes)
 
-    err = SimpleExec(HelloMethod, params, result, auth, helloHandler)
+    err = LocalExec(HelloMethod, params, result, auth, helloHandler)
     if err != nil {
         logError("method err:", err)
         t.Error(err)
@@ -49,7 +49,7 @@ func TestLocalSave(t *testing.T) {
 
     reader := bytes.NewReader(binBytes)
 
-    err = SimplePut(SaveMethod, reader, binSize, params, result, auth, saveHandler)
+    err = LocalPut(SaveMethod, reader, binSize, params, result, auth, saveHandler)
     if err != nil {
         logError("method err:", err)
         t.Error(err)
@@ -70,7 +70,7 @@ func TestLocalLoad(t *testing.T) {
     binBytes := make([]byte, 0)
     writer := bytes.NewBuffer(binBytes)
 
-    err = SimpleGet(LoadMethod, writer, params, result, auth, loadHandler)
+    err = LocalGet(LoadMethod, writer, params, result, auth, loadHandler)
     if err != nil {
         logError("method err:", err)
         t.Error(err)
