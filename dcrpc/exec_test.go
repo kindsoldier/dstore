@@ -1,17 +1,87 @@
 package dcrpc
 
 import (
+    "bytes"
     "encoding/json"
     "errors"
+    "io"
+    "math/rand"
     "testing"
     "time"
-    "math/rand"
-    "bytes"
-    "io"
 )
 
+func TestLocalExec(t *testing.T) {
+    var err error
+    params := NewHelloParams()
+    params.Message = "hello server!"
+    result := NewHelloResult()
 
-func TestExec(t *testing.T) {
+    auth := CreateAuth([]byte("qwert"), []byte("12345"))
+
+    var binSize int64 = 16
+    rand.Seed(time.Now().UnixNano())
+    binBytes := make([]byte, binSize)
+    rand.Read(binBytes)
+
+    err = SimpleExec(HelloMethod, params, result, auth, helloHandler)
+    if err != nil {
+        logError("method err:", err)
+        t.Error(err)
+    }
+    resultJSON, _ := json.Marshal(result)
+    logDebug("method result:", string(resultJSON))
+}
+
+
+func TestLocalSave(t *testing.T) {
+
+    var err error
+
+    params := NewSaveParams()
+    params.Message = "save data!"
+    result := NewHelloResult()
+    auth := CreateAuth([]byte("qwert"), []byte("12345"))
+
+    var binSize int64 = 16
+    rand.Seed(time.Now().UnixNano())
+    binBytes := make([]byte, binSize)
+    rand.Read(binBytes)
+
+    reader := bytes.NewReader(binBytes)
+
+    err = SimplePut(SaveMethod, reader, binSize, params, result, auth, saveHandler)
+    if err != nil {
+        logError("method err:", err)
+        t.Error(err)
+    }
+    resultJSON, _ := json.Marshal(result)
+    logDebug("method result:", string(resultJSON))
+}
+
+
+func TestLocalLoad(t *testing.T) {
+    var err error
+
+    params := NewLoadParams()
+    params.Message = "load data!"
+    result := NewHelloResult()
+    auth := CreateAuth([]byte("qwert"), []byte("12345"))
+
+    binBytes := make([]byte, 0)
+    writer := bytes.NewBuffer(binBytes)
+
+    err = SimpleGet(LoadMethod, writer, params, result, auth, loadHandler)
+    if err != nil {
+        logError("method err:", err)
+        t.Error(err)
+    }
+    resultJSON, _ := json.Marshal(result)
+    logDebug("method result:", string(resultJSON))
+    logDebug("bin size:", len(writer.Bytes()))
+}
+
+
+func TestNetExec(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientHello()
@@ -20,7 +90,7 @@ func TestExec(t *testing.T) {
     }
 }
 
-func TestSave(t *testing.T) {
+func TestNetSave(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientSave()
@@ -30,7 +100,7 @@ func TestSave(t *testing.T) {
 
 }
 
-func TestLoad(t *testing.T) {
+func TestNetLoad(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientLoad()
@@ -39,7 +109,7 @@ func TestLoad(t *testing.T) {
     }
 }
 
-func BenchmarkPut(b *testing.B) {
+func BenchmarkNetPut(b *testing.B) {
     go testServ(true)
     time.Sleep(10 * time.Millisecond)
     clientSave()
@@ -52,8 +122,6 @@ func BenchmarkPut(b *testing.B) {
     b.SetParallelism(10)
     b.RunParallel(pBench)
 }
-
-
 
 func clientHello() error {
     var err error

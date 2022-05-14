@@ -2,10 +2,10 @@
 package dcrpc
 
 import (
-    "errors"
-    "net"
     "encoding/json"
+    "errors"
     "io"
+    "net"
 )
 
 
@@ -18,6 +18,12 @@ func Put(address string, method string, reader io.Reader, size int64, param, res
     }
     defer conn.Close()
 
+    return ConnPut(conn, method, reader, size, param, result, auth)
+}
+
+
+func ConnPut(conn net.Conn, method string, reader io.Reader, size int64, param, result any, auth *Auth) error {
+    var err error
     context := CreateContext(conn)
     context.reqRPC.Method = method
     context.reqRPC.Params = param
@@ -67,6 +73,12 @@ func Get(address string, method string, writer io.Writer, param, result any, aut
     }
     defer conn.Close()
 
+    return ConnGet(conn, method, writer, param, result, auth)
+}
+
+func ConnGet(conn net.Conn, method string, writer io.Writer, param, result any, auth *Auth) error {
+    var err error
+
     context := CreateContext(conn)
     context.reqRPC.Method = method
     context.reqRPC.Params = param
@@ -102,7 +114,6 @@ func Get(address string, method string, writer io.Writer, param, result any, aut
     return err
 }
 
-
 func Exec(address, method string, param any, result any, auth *Auth) error {
     var err error
 
@@ -111,6 +122,17 @@ func Exec(address, method string, param any, result any, auth *Auth) error {
         return err
     }
     defer conn.Close()
+
+    err = ConnExec(conn, method, param, result, auth)
+    if err != nil {
+        return err
+    }
+    return err
+}
+
+
+func ConnExec(conn net.Conn, method string, param any, result any, auth *Auth) error {
+    var err error
 
     context := CreateContext(conn)
     context.reqRPC.Method = method
@@ -140,6 +162,7 @@ func Exec(address, method string, param any, result any, auth *Auth) error {
     }
     return err
 }
+
 
 func (context *Context) CreateRequest() error {
     var err error

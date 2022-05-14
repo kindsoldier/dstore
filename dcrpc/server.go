@@ -2,11 +2,11 @@ package dcrpc
 
 import (
     "context"
+    "encoding/json"
     "errors"
+    "io"
     "net"
     "sync"
-    "io"
-    "encoding/json"
 )
 
 type HandlerFunc =  func(*Context) error
