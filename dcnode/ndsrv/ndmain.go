@@ -218,7 +218,7 @@ func (server *Server) RedirLog() error {
             return err
     }
 
-    logOpenMode := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+    logOpenMode := os.O_WRONLY|os.O_CREATE|os.O_APPEND
     msgFileName := filepath.Join(server.Params.LogDir, server.Params.MsgName)
     msgFile, err := os.OpenFile(msgFileName, logOpenMode, logFilePerm)
     if err != nil {
@@ -322,6 +322,7 @@ func (server *Server) RunService() error {
 
     contr := ndcontr.NewContr()
     contr.Store = ndstore.NewStore()
+    contr.Store.Root = server.DataDir
 
     serv.Handler(ndapi.HelloMethod, contr.HelloHandler)
 

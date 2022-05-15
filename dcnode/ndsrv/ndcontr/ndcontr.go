@@ -36,21 +36,24 @@ func (contr *Contr) HelloHandler(context *dcrpc.Context) error {
     return err
 }
 
-
 func (contr *Contr) SaveHandler(context *dcrpc.Context) error {
     var err error
     params := ndapi.NewSaveParams()
+
     err = context.BindParams(params)
     if err != nil {
         return err
     }
 
-    blockSize := context.BinSize()
+    blockSize   := context.BinSize()
     blockReader := context.BinReader()
 
-    contr.Store.SaveBlock(blockReader, blockSize)
-
-    err = context.ReadBin(io.Discard)
+    clusterId   := params.ClusterId
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+    err = contr.Store.SaveBlock(clusterId, fileId, batchId, blockId,
+                                                blockReader, blockSize)
     if err != nil {
         context.SendError(err)
         return err
@@ -72,6 +75,13 @@ func (contr *Contr) LoadHandler(context *dcrpc.Context) error {
         return err
     }
 
+    clusterId   := params.ClusterId
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+
+    blockWriter := context.BinWriter()
+
     err = context.ReadBin(io.Discard)
     if err != nil {
         context.SendError(err)
@@ -79,6 +89,39 @@ func (contr *Contr) LoadHandler(context *dcrpc.Context) error {
     }
 
     result := ndapi.NewLoadResult()
+    err = context.SendResult(result)
+    if err != nil {
+        return err
+    }
+
+    err = contr.Store.LoadBlock(clusterId, fileId, batchId, blockId, blockWriter)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+    return err
+}
+
+func (contr *Contr) DeleteHandler(context *dcrpc.Context) error {
+    var err error
+    params := ndapi.NewDeleteParams()
+
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+    clusterId   := params.ClusterId
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+
+    err = contr.Store.DeleteBlock(clusterId, fileId, batchId, blockId)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+
+    result := ndapi.NewDeleteResult()
     err = context.SendResult(result)
     if err != nil {
         return err

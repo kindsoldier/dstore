@@ -160,6 +160,10 @@ func (context *Context) ReadRequest() error {
     return err
 }
 
+func (context *Context) BinWriter() io.Writer {
+    return context.sockWriter
+}
+
 func (context *Context) BinReader() io.Reader {
     return context.sockReader
 }

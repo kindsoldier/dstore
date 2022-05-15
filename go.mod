@@ -4,6 +4,9 @@ go 1.18
 
 require (
 	github.com/go-yaml/yaml v2.1.0+incompatible
+	github.com/google/uuid v1.3.0
+	github.com/jmoiron/sqlx v1.3.5
+	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.2.2
 )
