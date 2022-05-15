@@ -9,5 +9,4 @@ autom4te.cache
 Makefile
 config.status
 works/
-tools/
 vendor/
