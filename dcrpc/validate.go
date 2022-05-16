@@ -145,7 +145,6 @@ func LocalGet(method string, writer io.Writer, param, result any, auth *Auth, ha
     return err
 }
 
-
 func LocalService(conn net.Conn, handler HandlerFunc) error {
     var err error
     context := CreateContext(conn)

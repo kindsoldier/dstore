@@ -195,33 +195,7 @@ func (context *Context) BindParams(params any) error {
     return err
 }
 
-func (context *Context) SendResult(result any) error {
-    var err error
-    context.resRPC.Result = result
-
-    context.resPacket.rcpPayload, err = context.resRPC.Pack()
-    if err != nil {
-        return err
-    }
-    context.resHeader.rpcSize = int64(len(context.resPacket.rcpPayload))
-
-    context.resPacket.header, err = context.resHeader.Pack()
-    if err != nil {
-        return err
-    }
-    _, err = context.sockWriter.Write(context.resPacket.header)
-    if err != nil {
-        return err
-    }
-    _, err = context.sockWriter.Write(context.resPacket.rcpPayload)
-    if err != nil {
-        return err
-    }
-    return err
-}
-
-
-func (context *Context) SendBin(reader io.Reader, binSize int64, result any) error {
+func (context *Context) SendResult(result any, binSize int64) error {
     var err error
     context.resRPC.Result = result
 
@@ -244,12 +218,6 @@ func (context *Context) SendBin(reader io.Reader, binSize int64, result any) err
     if err != nil {
         return err
     }
-
-    _, err = CopyBytes(reader, context.sockWriter, context.resHeader.binSize)
-    if err != nil {
-        return err
-    }
-
     return err
 }
 

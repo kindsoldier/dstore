@@ -252,7 +252,7 @@ func helloHandler(context *Context) error {
     result := NewHelloResult()
     result.Message = "hello, client!"
 
-    err = context.SendResult(result)
+    err = context.SendResult(result, 0)
     if err != nil {
         return err
     }
@@ -280,7 +280,7 @@ func saveHandler(context *Context) error {
     result := NewSaveResult()
     result.Message = "saved successfully!"
 
-    err = context.SendResult(result)
+    err = context.SendResult(result, 0)
     if err != nil {
         return err
     }
@@ -312,10 +312,16 @@ func loadHandler(context *Context) error {
     result := NewSaveResult()
     result.Message = "load successfully!"
 
-    err = context.SendBin(binReader, binSize, result)
+    err = context.SendResult(result, binSize)
     if err != nil {
         return err
     }
+    binWriter := context.BinWriter()
+    _, err = CopyBytes(binReader, binWriter, binSize)
+    if err != nil {
+        return err
+    }
+
     return err
 }
 
