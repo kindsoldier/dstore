@@ -5,7 +5,7 @@
 
 package ndapi
 
-const LoadMethod string = "hello"
+const LoadMethod string = "load"
 
 type LoadParams struct {
     ClusterId   int64           `json:"clusterId"`
@@ -23,4 +23,3 @@ func NewLoadResult() *LoadResult {
 func NewLoadParams() *LoadParams {
     return &LoadParams{}
 }
-

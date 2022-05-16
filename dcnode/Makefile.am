@@ -8,17 +8,23 @@ OBJEXT= none
 
 sbin_PROGRAMS = dcnode
 dcnode_SOURCES = \
-	ndsrv/ndmain.go \
-	ndsrv/ndcont.go \
-	ndsrv/ndconfig.go
-
-GOFLAGS = -ldflags="-s -w"
+	ndsrv/ndmain.go ndsrv/ndconfig.go
 
 EXTRA_dcnode_SOURCES = \
-	ndsrv/ndconfig.go.in
+	ndsrv/ndconfig.go.in \
+	ndsrv/ndconfig.go \
+	ndsrv/ndstore/ndstore.go \
+	ndsrv/ndcontr/ndcontr.go \
+	ndsrv/ndreg/ndreg.go
+
+
+#GOFLAGS = -ldflags="-s -w"
 
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)
+
+EXTRA_DIST = \
+	dcnode.conf
 
 clean-local:
 	rm -rf autom4te.cache

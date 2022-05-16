@@ -2,10 +2,12 @@ package ndcontr
 
 import (
     "bytes"
+    "math/rand"
     "testing"
+
     "dcstore/dcnode/ndapi"
-    "dcstore/dcrpc"
     "dcstore/dcnode/ndsrv/ndstore"
+    "dcstore/dcrpc"
 
     "github.com/stretchr/testify/assert"
 )
@@ -22,7 +24,7 @@ func TestHello(t *testing.T) {
 
 
     contr := NewContr()
-    store := ndstore.NewStore("/tmp")
+    store := ndstore.NewStore(t.TempDir())
     err = store.OpenReg()
     assert.NoError(t, err)
 
@@ -34,10 +36,11 @@ func TestHello(t *testing.T) {
     assert.Equal(t, helloResp, result.Message)
 }
 
-func TestSave(t *testing.T) {
+func TestSLD(t *testing.T) {
     var err error
 
-    params := ndapi.NewSaveParams()
+    params := ndapi.NewSaveParams()    assert.Equal(t, len(data), len(writer.Bytes()))
+
     params.ClusterId    = 1
     params.FileId       = 2
     params.BatchId      = 3
@@ -45,16 +48,28 @@ func TestSave(t *testing.T) {
     result := ndapi.NewSaveResult()
 
     contr := NewContr()
-    store := ndstore.NewStore("/tmp")
+    store := ndstore.NewStore(t.TempDir())
     err = store.OpenReg()
     assert.NoError(t, err)
 
     contr.Store = store
 
-    data := []byte("qwerty")
+    data := make([]byte, 1024 * 1024)
+    rand.Read(data)
+
     reader := bytes.NewReader(data)
     size := int64(len(data))
 
     err = dcrpc.LocalPut(ndapi.SaveMethod, reader, size, params, result, nil, contr.SaveHandler)
+    assert.NoError(t, err)
+
+    writer := bytes.NewBuffer(make([]byte, 0))
+
+    err = dcrpc.LocalGet(ndapi.LoadMethod, writer, params, result, nil, contr.LoadHandler)
+    assert.NoError(t, err)
+    assert.Equal(t, len(data), len(writer.Bytes()))
+    assert.Equal(t, data, writer.Bytes())
+
+    err = dcrpc.LocalExec(ndapi.DeleteMethod, params, result, nil, contr.DeleteHandler)
     assert.NoError(t, err)
 }

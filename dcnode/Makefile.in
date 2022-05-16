@@ -287,14 +287,16 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT = none
 dcnode_SOURCES = \
-	ndsrv/ndmain.go \
-	ndsrv/ndcont.go \
-	ndsrv/ndconfig.go
+	ndsrv/ndmain.go ndsrv/ndconfig.go
 
-GOFLAGS = -ldflags="-s -w"
 EXTRA_dcnode_SOURCES = \
-	ndsrv/ndconfig.go.in
+	ndsrv/ndconfig.go.in \
+	ndsrv/ndconfig.go \
+	ndsrv/ndstore/ndstore.go \
+	ndsrv/ndcontr/ndcontr.go \
+	ndsrv/ndreg/ndreg.go
 
+EXTRA_DIST = dcnode.conf dcnode.svg dcrpc.svg
 PATH := $(PATH):$(HOME)/go/bin
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
 CVIGNORE = dcstore/dclog
@@ -743,6 +745,8 @@ uninstall-am: uninstall-sbinPROGRAMS
 .PRECIOUS: Makefile
 
 
+#GOFLAGS = -ldflags="-s -w"
+
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)
 
@@ -763,7 +767,6 @@ instvis:
 graph:
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcnode/ndsrv -file $(CVDIR)/dcnode $(GOMAIN)
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dcrpc -file $(CVDIR)/dcrpc $(GOMAIN)
-
 	rm -f $(CVDIR)/*.gv
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

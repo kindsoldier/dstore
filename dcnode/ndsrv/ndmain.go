@@ -321,10 +321,18 @@ func (server *Server) RunService() error {
     serv := dcrpc.NewService()
 
     contr := ndcontr.NewContr()
-    contr.Store = ndstore.NewStore()
-    contr.Store.Root = server.DataDir
+    dclog.LogDebug("data dir is", server.Params.DataDir)
+    store := ndstore.NewStore(server.Params.DataDir)
+    err = store.OpenReg()
+    if err != nil {
+        return err
+    }
+    contr.Store = store
 
     serv.Handler(ndapi.HelloMethod, contr.HelloHandler)
+    serv.Handler(ndapi.SaveMethod, contr.SaveHandler)
+    serv.Handler(ndapi.LoadMethod, contr.LoadHandler)
+    serv.Handler(ndapi.DeleteMethod, contr.DeleteHandler)
 
     serv.PreMiddleware(dcrpc.LogRequest)
     serv.PostMiddleware(dcrpc.LogResponse)

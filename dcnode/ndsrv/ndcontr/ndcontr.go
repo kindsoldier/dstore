@@ -29,7 +29,7 @@ func (contr *Contr) HelloHandler(context *dcrpc.Context) error {
 
     result := ndapi.NewHelloResult()
     result.Message = "hello!"
-    err = context.SendResult(result)
+    err = context.SendResult(result, 0)
     if err != nil {
         return err
     }
@@ -60,7 +60,7 @@ func (contr *Contr) SaveHandler(context *dcrpc.Context) error {
     }
 
     result := ndapi.NewSaveResult()
-    err = context.SendResult(result)
+    err = context.SendResult(result, 0)
     if err != nil {
         return err
     }
@@ -88,15 +88,19 @@ func (contr *Contr) LoadHandler(context *dcrpc.Context) error {
         return err
     }
 
+    blockSize, err := contr.Store.BlockExists(clusterId, fileId, batchId, blockId)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
     result := ndapi.NewLoadResult()
-    err = context.SendResult(result)
+    err = context.SendResult(result, blockSize)
     if err != nil {
         return err
     }
 
     err = contr.Store.LoadBlock(clusterId, fileId, batchId, blockId, blockWriter)
     if err != nil {
-        context.SendError(err)
         return err
     }
     return err
@@ -120,9 +124,8 @@ func (contr *Contr) DeleteHandler(context *dcrpc.Context) error {
         context.SendError(err)
         return err
     }
-
     result := ndapi.NewDeleteResult()
-    err = context.SendResult(result)
+    err = context.SendResult(result, 0)
     if err != nil {
         return err
     }

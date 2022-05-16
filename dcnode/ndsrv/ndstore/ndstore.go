@@ -66,8 +66,9 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
     dirPath := filepath.Join(store.dataRoot, subdirName)
     os.MkdirAll(dirPath, dirPerm)
 
-    filePath := filepath.Join(dirPath, fileName)
-    blockFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, filePerm)
+    fullFilePath := filepath.Join(dirPath, fileName)
+
+    blockFile, err := os.OpenFile(fullFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
     defer blockFile.Close()
     if err != nil {
         return err
@@ -76,6 +77,8 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
     if err != nil {
         return err
     }
+
+    filePath := filepath.Join(subdirName, fileName)
     err = store.reg.AddBlock(clusterId, fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
         os.Remove(filePath)
@@ -83,6 +86,23 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
     }
     return err
 }
+
+func (store *Store) BlockExists(clusterId, fileId, batchId, blockId int64) (int64, error) {
+    var err error
+    var filePath string
+    filePath, blockSize, err := store.reg.GetBlock(clusterId, fileId, batchId, blockId)
+    if err != nil {
+        return blockSize, err
+    }
+    filePath = filepath.Join(store.dataRoot, filePath)
+    blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
+    defer blockFile.Close()
+    if err != nil {
+        return blockSize, err
+    }
+    return blockSize, err
+}
+
 
 func (store *Store) LoadBlock(clusterId, fileId, batchId, blockId int64,
                                                     blockWriter io.Writer) error {
@@ -105,7 +125,6 @@ func (store *Store) LoadBlock(clusterId, fileId, batchId, blockId int64,
     return err
 }
 
-
 func (store *Store) DeleteBlock(clusterId, fileId, batchId, blockId int64) error {
     var err error
     var filePath string
@@ -124,7 +143,6 @@ func (store *Store) DeleteBlock(clusterId, fileId, batchId, blockId int64) error
     }
     return err
 }
-
 
 func MakeBlockName(clusterId, fileId, batchId, blockId int64) string {
     var fileName string

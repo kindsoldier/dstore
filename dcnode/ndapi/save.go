@@ -5,7 +5,7 @@
 
 package ndapi
 
-const SaveMethod string = "hello"
+const SaveMethod string = "save"
 
 type SaveParams struct {
     ClusterId   int64           `json:"clusterId"`
@@ -23,4 +23,3 @@ func NewSaveResult() *SaveResult {
 func NewSaveParams() *SaveParams {
     return &SaveParams{}
 }
-

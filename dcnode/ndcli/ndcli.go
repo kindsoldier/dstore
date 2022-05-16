@@ -9,6 +9,7 @@ import (
     "fmt"
     "flag"
     "os"
+    "io/fs"
     "path/filepath"
     "errors"
 
@@ -36,6 +37,8 @@ type Util struct {
     FileId      int64
     BatchId     int64
     BlockId     int64
+
+    FilePath    string
 }
 
 func NewUtil() *Util {
@@ -100,13 +103,15 @@ func (util *Util) GetOpt() error {
                 fmt.Printf("\n")
             }
             flagSet.Parse(subArgs)
-            util.SubCmd = helloCmd
+            util.SubCmd = subCmd
         case saveCmd, loadCmd:
             flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
             flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
             flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
+            flagSet.StringVar(&util.FilePath, "n", util.FilePath, "block file name")
+
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
@@ -116,7 +121,7 @@ func (util *Util) GetOpt() error {
                 fmt.Printf("\n")
             }
             flagSet.Parse(subArgs)
-            util.SubCmd = helloCmd
+            util.SubCmd = subCmd
         default:
             help()
             return errors.New("unknown command")
@@ -165,9 +170,25 @@ func (util *Util) SaveCmd() error {
     var err error
 
     params := ndapi.NewSaveParams()
+    params.ClusterId    = util.ClusterId
+    params.FileId       = util.FileId
+    params.BatchId      = util.BatchId
+    params.BlockId      = util.BlockId
+
     result := ndapi.NewSaveResult()
 
-    err = dcrpc.Exec(util.URI, ndapi.SaveMethod, params, result, nil)
+    blockFile, err := os.OpenFile(util.FilePath, os.O_RDONLY, 0)
+    defer blockFile.Close()
+    if err != nil {
+        return err
+    }
+    fileInfo, err := blockFile.Stat()
+    if err != nil {
+        return err
+    }
+    fileSize := fileInfo.Size()
+
+    err = dcrpc.Put(util.URI, ndapi.SaveMethod, blockFile, fileSize, params, result, nil)
     if err != nil {
         return err
     }
@@ -175,13 +196,26 @@ func (util *Util) SaveCmd() error {
     return err
 }
 
+const dirPerm   fs.FileMode = 0755
+const filePerm  fs.FileMode = 0644
+
 func (util *Util) LoadCmd() error {
     var err error
 
     params := ndapi.NewLoadParams()
+    params.ClusterId    = util.ClusterId
+    params.FileId       = util.FileId
+    params.BatchId      = util.BatchId
+    params.BlockId      = util.BlockId
+
     result := ndapi.NewLoadResult()
 
-    err = dcrpc.Exec(util.URI, ndapi.LoadMethod, params, result, nil)
+    blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
+    defer blockFile.Close()
+    if err != nil {
+        return err
+    }
+    err = dcrpc.Get(util.URI, ndapi.LoadMethod, blockFile, params, result, nil)
     if err != nil {
         return err
     }
