@@ -6,11 +6,11 @@ package tools
 
 import (
     "encoding/hex"
-    "crypto/sha256"
+    "crypto/sha1"
 )
 
 func Raw2HashBytes(rawBytes []byte) []byte {
-    hasher := sha256.New()
+    hasher := sha1.New()
     hasher.Write(rawBytes)
     hashBytes := hasher.Sum(nil)
     hexBytes := make([]byte, hex.EncodedLen(len(hashBytes)))
@@ -19,7 +19,7 @@ func Raw2HashBytes(rawBytes []byte) []byte {
 }
 
 func Raw2HashString(rawBytes []byte) string {
-    hasher := sha256.New()
+    hasher := sha1.New()
     hasher.Write(rawBytes)
     hashBytes := hasher.Sum(nil)
     hexBytes := make([]byte, hex.EncodedLen(len(hashBytes)))
