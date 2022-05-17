@@ -6,6 +6,7 @@
 package main
 
 import (
+    "encoding/json"
     "fmt"
     "flag"
     "os"
@@ -53,6 +54,7 @@ const helpCmd   string = "help"
 const helloCmd  string = "hello"
 const saveCmd   string = "save"
 const loadCmd   string = "load"
+const listCmd   string = "list"
 
 func (util *Util) GetOpt() error {
     var err error
@@ -122,6 +124,20 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
+        case listCmd:
+            flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
+            flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
+
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
         default:
             help()
             return errors.New("unknown command")
@@ -129,6 +145,14 @@ func (util *Util) GetOpt() error {
     return err
 }
 
+type Response struct {
+    Error   error      `json:"error"`
+    Result  any        `json:"result,omitempty"`
+}
+
+func NewResponse(result any, err error) *Response {
+    return &Response{ Result: result, Error: err }
+}
 
 func (util *Util) Exec() error {
     var err error
@@ -138,20 +162,30 @@ func (util *Util) Exec() error {
     }
     util.URI = fmt.Sprintf("%s:%s", util.Address, util.Port)
 
+    resp := NewResponse(nil, nil)
+
     switch util.SubCmd {
         case helloCmd:
-            err = util.HelloCmd()
+            result, err := util.HelloCmd()
+            resp = NewResponse(result, err)
         case saveCmd:
-            err = util.SaveCmd()
+            result, err := util.SaveCmd()
+            resp = NewResponse(result, err)
         case loadCmd:
-            err = util.LoadCmd()
+            result, err := util.LoadCmd()
+            resp = NewResponse(result, err)
+        case listCmd:
+            result, err := util.ListCmd()
+            resp = NewResponse(result, err)
         default:
-            fmt.Printf("%s\n", util.SubCmd)
     }
+    respJSON, _ := json.Marshal(resp)
+    fmt.Printf("%s\n", string(respJSON))
+    err = nil
     return err
 }
 
-func (util *Util) HelloCmd() error {
+func (util *Util) HelloCmd() (*ndapi.HelloResult, error) {
     var err error
 
     params := ndapi.NewHelloParams()
@@ -160,13 +194,12 @@ func (util *Util) HelloCmd() error {
 
     err = dcrpc.Exec(util.URI, ndapi.HelloMethod, params, result, nil)
     if err != nil {
-        return err
+        return result, err
     }
-    fmt.Printf("result: %s\n", result.Message)
-    return err
+    return result, err
 }
 
-func (util *Util) SaveCmd() error {
+func (util *Util) SaveCmd() (*ndapi.SaveResult, error) {
     var err error
 
     params := ndapi.NewSaveParams()
@@ -180,26 +213,25 @@ func (util *Util) SaveCmd() error {
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDONLY, 0)
     defer blockFile.Close()
     if err != nil {
-        return err
+        return result, err
     }
     fileInfo, err := blockFile.Stat()
     if err != nil {
-        return err
+        return result, err
     }
     fileSize := fileInfo.Size()
 
     err = dcrpc.Put(util.URI, ndapi.SaveMethod, blockFile, fileSize, params, result, nil)
     if err != nil {
-        return err
+        return result, err
     }
-    fmt.Printf("result: ok\n")
-    return err
+    return result, err
 }
 
 const dirPerm   fs.FileMode = 0755
 const filePerm  fs.FileMode = 0644
 
-func (util *Util) LoadCmd() error {
+func (util *Util) LoadCmd() (*ndapi.LoadResult, error) {
     var err error
 
     params := ndapi.NewLoadParams()
@@ -213,12 +245,24 @@ func (util *Util) LoadCmd() error {
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
     defer blockFile.Close()
     if err != nil {
-        return err
+        return result, err
     }
     err = dcrpc.Get(util.URI, ndapi.LoadMethod, blockFile, params, result, nil)
     if err != nil {
-        return err
+        return result, err
     }
-    fmt.Printf("result: ok\n")
-    return err
+    return result, err
+}
+
+
+func (util *Util) ListCmd() (*ndapi.ListResult, error) {
+    var err error
+    params := ndapi.NewListParams()
+    params.ClusterId = util.ClusterId
+    result := ndapi.NewListResult()
+    err = dcrpc.Exec(util.URI, ndapi.ListMethod, params, result, nil)
+    if err != nil {
+        return result, err
+    }
+    return result, err
 }
