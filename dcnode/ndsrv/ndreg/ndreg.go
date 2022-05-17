@@ -8,6 +8,8 @@ import (
 
     "github.com/jmoiron/sqlx"
     _ "github.com/mattn/go-sqlite3"
+
+    "dcstore/dccom"
 )
 
 const schema = `
@@ -30,17 +32,7 @@ const schema = `
 
 var ErrorNilRef error = errors.New("db ref is nil")
 
-type Block struct {
-    ClusterId   int64     `db:"cluster_id"  json:"clusterId"`
-    FileId      int64     `db:"file_id"     json:"fileId"`
-    BatchId     int64     `db:"batch_id"    json:"batchId"`
-    BlockId     int64     `db:"block_id"    json:"blockId"`
-    BlockSize   int64     `db:"block_size"  json:"blockSize"`
-    FileName    string    `db:"file_path"   json:"filePath"`
-    HashAlg     string    `db:"hash_alg"    json:"hashAlg"`
-    HashSum     string    `db:"hash_sum"    json:"hashSum"`
-    HashInit    string    `db:"hash_init"   json:"hashInit"`
-}
+type Block = dccom.Block
 
 type Reg struct {
     db *sqlx.DB
@@ -162,6 +154,7 @@ func (reg *Reg) GetBlock(clusterId, fileId, batchId, blockId int64) (string, int
     return filePath, blockSize, err
 }
 
+
 func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, error) {
     var err error
     var exists bool
@@ -186,6 +179,22 @@ func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, er
         exists = true
     }
     return exists, err
+}
+
+func (reg *Reg) ListBlocks(clusterId int64) ([]Block, error) {
+    var err error
+    blocks := make([]Block, 0)
+    if reg.db == nil {
+        return blocks, ErrorNilRef
+    }
+    request := `SELECT file_path
+                FROM blocks
+                WHERE cluster_id = $1`
+    err = reg.db.Select(&blocks, request, clusterId)
+    if err != nil {
+        return blocks, err
+    }
+    return blocks, err
 }
 
 func (reg *Reg) DeleteBlock(clusterId, fileId, batchId, blockId int64) error {

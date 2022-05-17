@@ -131,3 +131,26 @@ func (contr *Contr) DeleteHandler(context *dcrpc.Context) error {
     }
     return err
 }
+
+func (contr *Contr) ListHandler(context *dcrpc.Context) error {
+    var err error
+    params := ndapi.NewListParams()
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+    clusterId   := params.ClusterId
+
+    blocks, err := contr.Store.ListBlocks(clusterId)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+    result := ndapi.NewListResult()
+    result.Blocks = blocks
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return err
+    }
+    return err
+}

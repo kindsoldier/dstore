@@ -55,6 +55,11 @@ func (server *Server) Execute() error {
         return err
     }
 
+    err = server.PrepareEnv()
+    if err != nil {
+        return err
+    }
+
     if server.Backgr {
         err = server.ForkCmd()
         if err != nil {
@@ -163,15 +168,14 @@ func (server *Server) ForkCmd() error {
     return err
 }
 
-func (server *Server) SavePid() error {
+func (server *Server) PrepareEnv() error {
     var err error
 
     const runDirPerm fs.FileMode = 0755
-    const pidFilePerm fs.FileMode = 0644
+    const logDirPerm fs.FileMode = 0755
+    const dataDirPerm fs.FileMode = 0755
 
-    pidFile := filepath.Join(server.Params.RunDir, server.Params.PidName)
     runDir := server.Params.RunDir
-
     err = os.MkdirAll(runDir, runDirPerm)
     if err != nil {
             return err
@@ -180,6 +184,36 @@ func (server *Server) SavePid() error {
     if err != nil {
             return err
     }
+
+    logDir := server.Params.LogDir
+    err = os.MkdirAll(logDir, logDirPerm)
+    if err != nil {
+            return err
+    }
+    err = os.Chmod(logDir, logDirPerm)
+    if err != nil {
+            return err
+    }
+
+    dataDir := server.Params.DataDir
+    err = os.MkdirAll(dataDir, dataDirPerm)
+    if err != nil {
+            return err
+    }
+    err = os.Chmod(dataDir, dataDirPerm)
+    if err != nil {
+            return err
+    }
+
+    return err
+}
+
+func (server *Server) SavePid() error {
+    var err error
+
+    const pidFilePerm fs.FileMode = 0644
+
+    pidFile := filepath.Join(server.Params.RunDir, server.Params.PidName)
 
     openMode := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
     file, err := os.OpenFile(pidFile, openMode, pidFilePerm)
@@ -204,19 +238,7 @@ func (server *Server) SavePid() error {
 func (server *Server) RedirLog() error {
     var err error
 
-    const logDirPerm fs.FileMode = 0755
     const logFilePerm fs.FileMode = 0644
-
-    logDir := server.Params.LogDir
-
-    err = os.MkdirAll(logDir, logDirPerm)
-    if err != nil {
-            return err
-    }
-    err = os.Chmod(logDir, logDirPerm)
-    if err != nil {
-            return err
-    }
 
     logOpenMode := os.O_WRONLY|os.O_CREATE|os.O_APPEND
     msgFileName := filepath.Join(server.Params.LogDir, server.Params.MsgName)
@@ -333,6 +355,7 @@ func (server *Server) RunService() error {
     serv.Handler(ndapi.SaveMethod, contr.SaveHandler)
     serv.Handler(ndapi.LoadMethod, contr.LoadHandler)
     serv.Handler(ndapi.DeleteMethod, contr.DeleteHandler)
+    serv.Handler(ndapi.ListMethod, contr.ListHandler)
 
     serv.PreMiddleware(dcrpc.LogRequest)
     serv.PostMiddleware(dcrpc.LogResponse)

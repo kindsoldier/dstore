@@ -10,8 +10,10 @@ import (
     "io"
     "path/filepath"
     "os"
+    "errors"
 
     "dcstore/dcrpc"
+    "dcstore/dccom"
     "dcstore/tools"
     "dcstore/dcnode/ndsrv/ndreg"
 )
@@ -19,17 +21,19 @@ import (
 const blockFileExt string = ".blk"
 const storeDBName  string = "reg.db"
 
-const dirPerm   fs.FileMode = 0777
-const filePerm  fs.FileMode = 0644
 
 type Store struct {
     dataRoot string
     reg *ndreg.Reg
+    dirPerm   fs.FileMode
+    filePerm  fs.FileMode
 }
 
 func NewStore(dataRoot string) *Store {
     var store Store
-    store.dataRoot = dataRoot
+    store.dataRoot  = dataRoot
+    store.dirPerm   = 0755
+    store.filePerm  = 0644
     return &store
 }
 
@@ -61,14 +65,22 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
                                 blockReader io.Reader, blockSize int64) error {
     var err error
 
+    blockExists, err := store.reg.BlockExists(clusterId, fileId, batchId, blockId)
+    if err != nil {
+        return err
+    }
+    if blockExists {
+        return errors.New("block yet exists")
+    }
+
     fileName := MakeBlockName(clusterId, fileId, batchId, blockId)
     subdirName := MakeDirName(fileName)
     dirPath := filepath.Join(store.dataRoot, subdirName)
-    os.MkdirAll(dirPath, dirPerm)
+    os.MkdirAll(dirPath, store.dirPerm)
 
     fullFilePath := filepath.Join(dirPath, fileName)
 
-    blockFile, err := os.OpenFile(fullFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
+    blockFile, err := os.OpenFile(fullFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, store.filePerm)
     defer blockFile.Close()
     if err != nil {
         return err
@@ -143,6 +155,16 @@ func (store *Store) DeleteBlock(clusterId, fileId, batchId, blockId int64) error
     }
     return err
 }
+
+func (store *Store) ListBlocks(clusterId int64) ([]dccom.Block, error) {
+    var err error
+    blocks, err := store.reg.ListBlocks(clusterId)
+    if err != nil {
+        return blocks, err
+    }
+    return blocks, err
+}
+
 
 func MakeBlockName(clusterId, fileId, batchId, blockId int64) string {
     var fileName string

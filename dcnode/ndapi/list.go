@@ -5,6 +5,10 @@
 
 package ndapi
 
+import (
+    "dcstore/dccom"
+)
+
 const ListMethod string = "list"
 
 type ListParams struct {
@@ -12,6 +16,7 @@ type ListParams struct {
 }
 
 type ListResult struct {
+    Blocks      []dccom.Block   `json:"blocks"`
 }
 
 func NewListResult() *ListResult {
