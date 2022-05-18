@@ -14,7 +14,7 @@ run/
 dat/
 dcnode
 dcnodecli
-config.go
+ndconf.go
 ndsrv/ndsrv
 ndcli/ndcli
 vendor/

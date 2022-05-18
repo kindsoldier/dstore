@@ -99,7 +99,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = ndsrv/ndconfig.go
+CONFIG_CLEAN_FILES = ndsrv/ndconf/ndconf.go
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
@@ -162,8 +162,8 @@ CTAGS = ctags
 CSCOPE = cscope
 AM_RECURSIVE_TARGETS = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/ndsrv/ndconfig.go.in config.guess config.sub \
-	install-sh missing
+	$(top_srcdir)/ndsrv/ndconf/ndconf.go.in config.guess \
+	config.sub install-sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -286,16 +286,15 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT = none
-dcnode_SOURCES = \
-	ndsrv/ndmain.go ndsrv/ndconfig.go
-
+dcnode_SOURCES = ndsrv/ndmain.go
 EXTRA_dcnode_SOURCES = \
-	ndsrv/ndconfig.go.in \
-	ndsrv/ndconfig.go \
+	ndsrv/ndconf/ndconf.go \
+	ndsrv/ndconf/ndconf.go.in \
 	ndsrv/ndstore/ndstore.go \
 	ndsrv/ndcontr/ndcontr.go \
 	ndsrv/ndreg/ndreg.go
 
+GOFLAGS = -ldflags="-s -w"
 EXTRA_DIST = dcnode.conf dcnode.svg dcrpc.svg
 PATH := $(PATH):$(HOME)/go/bin
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
@@ -340,7 +339,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
-ndsrv/ndconfig.go: $(top_builddir)/config.status $(top_srcdir)/ndsrv/ndconfig.go.in
+ndsrv/ndconf/ndconf.go: $(top_builddir)/config.status $(top_srcdir)/ndsrv/ndconf/ndconf.go.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
@@ -744,8 +743,6 @@ uninstall-am: uninstall-sbinPROGRAMS
 
 .PRECIOUS: Makefile
 
-
-#GOFLAGS = -ldflags="-s -w"
 
 dcnode$(EXEEXT): $(dcnode_SOURCES) $(EXTRA_dcnode_SOURCES)
 	$(GO) build $(GOFLAGS) -o dcnode$(EXEEXT) $(dcnode_SOURCES)

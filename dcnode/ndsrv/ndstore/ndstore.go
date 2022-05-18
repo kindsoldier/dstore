@@ -37,6 +37,11 @@ func NewStore(dataRoot string) *Store {
     return &store
 }
 
+func (store *Store) SetPerm(dirPerm, filePerm fs.FileMode) {
+    store.dirPerm = dirPerm
+    store.filePerm = filePerm
+}
+
 func (store *Store) OpenReg() error {
     var err error
     reg := ndreg.NewReg()

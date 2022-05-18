@@ -18,6 +18,7 @@ import (
     "dcstore/dcnode/ndapi"
     "dcstore/dclog"
     "dcstore/dcrpc"
+    "dcstore/dcnode/ndsrv/ndconf"
     "dcstore/dcnode/ndsrv/ndcontr"
     "dcstore/dcnode/ndsrv/ndstore"
 )
@@ -38,7 +39,7 @@ func main() {
 }
 
 type Server struct {
-    Params  *Config
+    Params  *ndconf.Config
     Backgr  bool
 }
 
@@ -93,7 +94,7 @@ func (server *Server) Execute() error {
 
 func NewServer() *Server {
     var server Server
-    server.Params = NewConfig()
+    server.Params = ndconf.NewConfig()
     server.Backgr = false
     return &server
 }
@@ -111,8 +112,12 @@ func (server *Server) GetOptions() error {
     var err error
     exeName := filepath.Base(os.Args[0])
 
-    flag.StringVar(&server.Params.Port, "p", server.Params.Port, "listen port")
-    flag.BoolVar(&server.Backgr, "d", server.Backgr, "run as daemon")
+    flag.StringVar(&server.Params.RunDir, "run", server.Params.RunDir, "run direcory")
+    flag.StringVar(&server.Params.LogDir, "log", server.Params.LogDir, "log direcory")
+    flag.StringVar(&server.Params.DataDir, "data", server.Params.DataDir, "data directory")
+
+    flag.StringVar(&server.Params.Port, "port", server.Params.Port, "listen port")
+    flag.BoolVar(&server.Backgr, "daemon", server.Backgr, "run as daemon")
 
     help := func() {
         fmt.Println("")
@@ -171,9 +176,9 @@ func (server *Server) ForkCmd() error {
 func (server *Server) PrepareEnv() error {
     var err error
 
-    const runDirPerm fs.FileMode = 0755
-    const logDirPerm fs.FileMode = 0755
-    const dataDirPerm fs.FileMode = 0755
+    var runDirPerm fs.FileMode = server.Params.DirPerm
+    var logDirPerm fs.FileMode = server.Params.DirPerm
+    var dataDirPerm fs.FileMode = server.Params.DirPerm
 
     runDir := server.Params.RunDir
     err = os.MkdirAll(runDir, runDirPerm)
@@ -204,14 +209,13 @@ func (server *Server) PrepareEnv() error {
     if err != nil {
             return err
     }
-
     return err
 }
 
 func (server *Server) SavePid() error {
     var err error
 
-    const pidFilePerm fs.FileMode = 0644
+    var pidFilePerm fs.FileMode = server.Params.DirPerm
 
     pidFile := filepath.Join(server.Params.RunDir, server.Params.PidName)
 
@@ -238,7 +242,7 @@ func (server *Server) SavePid() error {
 func (server *Server) RedirLog() error {
     var err error
 
-    const logFilePerm fs.FileMode = 0644
+    var logFilePerm fs.FileMode = server.Params.FilePerm
 
     logOpenMode := os.O_WRONLY|os.O_CREATE|os.O_APPEND
     msgFileName := filepath.Join(server.Params.LogDir, server.Params.MsgName)
@@ -345,6 +349,7 @@ func (server *Server) RunService() error {
     contr := ndcontr.NewContr()
     dclog.LogDebug("data dir is", server.Params.DataDir)
     store := ndstore.NewStore(server.Params.DataDir)
+    store.SetPerm(server.Params.DirPerm, server.Params.FilePerm)
     err = store.OpenReg()
     if err != nil {
         return err
