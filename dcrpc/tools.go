@@ -29,7 +29,7 @@ func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error
     var err error
     var bSize int64 = 1024 * 4
     var total int64 = 0
-    var expect int64 = dataSize
+    var remains int64 = dataSize
     buffer := make([]byte, bSize)
 
     for {
@@ -39,11 +39,11 @@ func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error
         if writer == nil {
             return total, NewErr("writer is nil")
         }
-        if expect == 0 {
+        if remains == 0 {
             return total, err
         }
-        if expect < bSize {
-            bSize = expect
+        if remains < bSize {
+            bSize = remains
         }
         received, err := reader.Read(buffer[0:bSize])
         if err != nil {
@@ -57,7 +57,7 @@ func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error
             return total, NewErr("write error")
         }
         total += int64(recorded)
-        expect -= int64(recorded)
+        remains -= int64(recorded)
     }
     return total, err
 }
