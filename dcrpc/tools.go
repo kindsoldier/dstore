@@ -1,10 +1,13 @@
+/*
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ */
+
 package dcrpc
 
 import (
     "errors"
     "io"
     "fmt"
-
 )
 
 func ReadBytes(reader io.Reader, size int64) ([]byte, error) {

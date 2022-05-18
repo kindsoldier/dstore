@@ -1,11 +1,15 @@
+/*
+ *
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ *
+ */
+
 package dcrpc
 
 import (
     "encoding/json"
 )
 
-// Packet is used to store intermediate data
-// on Context for debugging purposes
 type Packet struct {
     header      []byte
     rcpPayload  []byte

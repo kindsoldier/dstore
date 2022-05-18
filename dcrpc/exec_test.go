@@ -1,3 +1,9 @@
+/*
+ *
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ *
+ */
+
 package dcrpc
 
 import (
@@ -243,11 +249,11 @@ func helloHandler(context *Context) error {
         return err
     }
 
-    //err = context.ReadBin(io.Discard)
-    //if err != nil {
-    //    context.SendError(err)
-    //    return err
-    //}
+    err = context.ReadBin(io.Discard)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
 
     result := NewHelloResult()
     result.Message = "hello, client!"
