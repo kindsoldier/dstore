@@ -2,16 +2,10 @@ package dcfile
 
 
 import (
-    //"errors"
-    //"fmt"
     "io"
-    //"io/fs"
-    "os"
-    //"path/filepath"
 )
 
 type Batch struct {
-    file        *os.File
     baseDir     string
     fileId      int64
     batchId     int64
@@ -46,30 +40,59 @@ func (batch *Batch) Open() error {
 
 func (batch *Batch) Write(reader io.Reader) (int64, error) {
     var err error
-    var recorded int64
+    var written int64
     for i := int64(0); i < batch.capacity; i++ {
         blockWritten, err := batch.blocks[i].Write(reader)
+        written += blockWritten
         if err != nil {
-            return recorded, err
+            return written, err
         }
-        recorded += blockWritten
     }
-    return recorded, err
+    return written, err
 }
 
 func (batch *Batch) Read(writer io.Writer) (int64, error) {
     var err error
     var read int64
+    for i := int64(0); i < batch.capacity; i++ {
+        blockRead, err := batch.blocks[i].Read(writer)
+        read += blockRead
+        if err != nil {
+            return read, err
+        }
+    }
     return read, err
 }
 
 func (batch *Batch) Close() error {
     var err error
+    for i := int64(0); i < batch.capacity; i++ {
+        err := batch.blocks[i].Close()
+        if err != nil {
+            return err
+        }
+    }
     return err
 }
 
-
 func (batch *Batch) Truncate() error {
     var err error
+    for i := int64(0); i < batch.capacity; i++ {
+        err := batch.blocks[i].Truncate()
+        if err != nil {
+            return err
+        }
+    }
+    return err
+}
+
+func (batch *Batch) Purge() error {
+    var err error
+    for i := int64(0); i < batch.capacity; i++ {
+        err := batch.blocks[i].Purge()
+        if err != nil {
+            return err
+        }
+    }
     return err
 }

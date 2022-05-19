@@ -8,14 +8,14 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestBlockWriteReadLess(t *testing.T) {
+func TestBlockSmallWriteRead(t *testing.T) {
     var err error
     var fileId  int64 = 1
     var batchId int64 = 2
     var blockId int64 = 3
     var bCap int64 = 1024
 
-    baseDir := "./"
+    baseDir := t.TempDir()
     block := NewBlock(baseDir, fileId, batchId, blockId, bCap)
     err = block.Open()
     assert.NoError(t, err)
@@ -46,16 +46,17 @@ func TestBlockWriteReadLess(t *testing.T) {
     assert.NoError(t, err)
 
     assert.Equal(t, data[0:written], writer.Bytes())
+    block.Purge()
 }
 
-func TestBlockWriteReadMore(t *testing.T) {
+func TestBlockOverWriteRead(t *testing.T) {
     var err error
-    var fileId  int64 = 1
-    var batchId int64 = 2
-    var blockId int64 = 3
+    var fileId  int64 = 11
+    var batchId int64 = 12
+    var blockId int64 = 13
     var bCap int64 = 1024
 
-    baseDir := "./"
+    baseDir := t.TempDir()
     block := NewBlock(baseDir, fileId, batchId, blockId, bCap)
     err = block.Open()
     assert.NoError(t, err)
@@ -85,4 +86,5 @@ func TestBlockWriteReadMore(t *testing.T) {
     assert.NoError(t, err)
 
     assert.Equal(t, data[0:written], writer.Bytes())
+    block.Purge()
 }
