@@ -31,10 +31,13 @@ func aTestBlockSmallWriteRead(t *testing.T) {
     written, err := block.Write(reader)
     assert.Equal(t, err, io.EOF)
     assert.Equal(t, dataSize, written)
-    err = block.Close()
 
-    block = NewBlock(baseDir, fileId, batchId, blockId, bCap)
-    err = block.Open()
+    //err = block.Close()
+    //block = NewBlock(baseDir, fileId, batchId, blockId, bCap)
+    //err = block.Open()
+    //assert.NoError(t, err)
+
+    err = block.ToBegin()
     assert.NoError(t, err)
 
     blockSize, _ := block.Size()

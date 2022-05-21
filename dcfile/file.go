@@ -2,8 +2,21 @@ package dcfile
 
 import (
     "io"
-    "fmt"
 )
+
+type FileMeta struct {
+    FileId      int64           `json:"fileId"`
+    BatchSize   int64           `json:"batchSize"`
+    BlockSize   int64           `json:"blockSize"`
+    BatchCount  int64           `json:"batchCount"`
+    Batchs      []*BatchMeta    `json:"batchs"`
+}
+
+func NewFileMeta() *FileMeta {
+    var fileMeta FileMeta
+    fileMeta.Batchs = make([]*BatchMeta, 0)
+    return &fileMeta
+}
 
 type File struct {
     baseDir     string
@@ -13,13 +26,40 @@ type File struct {
     batchs      []*Batch
 }
 
-func NewFile(basedir string, fileId, batchSize, blockSize int64) *File {
+func NewFile(baseDir string, fileId, batchSize, blockSize int64) *File {
     var file File
-    file.batchs = make([]*Batch, 0)
-    file.fileId = fileId
-    file.batchSize = batchSize
-    file.blockSize = blockSize
+    file.batchs     = make([]*Batch, 0)
+    file.fileId     = fileId
+    file.batchSize  = batchSize
+    file.blockSize  = blockSize
+    file.baseDir    = baseDir
     return &file
+}
+
+func RenewFile(baseDir string, meta *FileMeta) *File {
+    var file File
+    file.baseDir    = baseDir
+    file.fileId     = meta.FileId
+    file.batchSize  = meta.BatchSize
+    file.blockSize  = meta.BlockSize
+    for i := int64(0); i < meta.BatchCount; i++ {
+        batch := NewBatch(file.baseDir, file.fileId, i, file.batchSize, file.blockSize)
+        file.batchs = append(file.batchs, batch)
+    }
+    return &file
+}
+
+func (file *File) Meta() *FileMeta {
+    fileMeta := NewFileMeta()
+    fileMeta.FileId     = file.fileId
+    fileMeta.BatchCount = file.batchCount()
+    fileMeta.BatchSize  = file.batchSize
+    fileMeta.BlockSize  = file.blockSize
+    for i := range file.batchs {
+        batchMeta := file.batchs[i].Meta()
+        fileMeta.Batchs = append(fileMeta.Batchs, batchMeta)
+    }
+    return fileMeta
 }
 
 func (file *File) Open() error {
@@ -55,7 +95,6 @@ func (file *File) Write(reader io.Reader) (int64, error) {
         }
         batchWritten, err := batch.Write(reader)
         written += batchWritten
-        fmt.Println(batchNumber, written)
         if err != nil {
             return written, err
         }
@@ -120,6 +159,28 @@ func (file *File) Size() (int64, error) {
         }
     }
     return size, err
+}
+
+func (file *File) ToBegin() error {
+    var err error
+    for i := int64(0); i < file.batchCount(); i++ {
+        err := file.batchs[i].ToBegin()
+        if err != nil {
+            return err
+        }
+    }
+    return err
+}
+
+func (file *File) ToEnd() error {
+    var err error
+    for i := int64(0); i < file.batchCount(); i++ {
+        err := file.batchs[i].ToEnd()
+        if err != nil {
+            return err
+        }
+    }
+    return err
 }
 
 func (file *File) batchCount() int64 {

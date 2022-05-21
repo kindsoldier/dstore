@@ -5,6 +5,18 @@ import (
     "io"
 )
 
+
+type BatchMeta struct {
+    Blocks      []*BlockMeta    `json:"blocks"`
+}
+
+func NewBatchMeta() *BatchMeta {
+    var batchMeta BatchMeta
+    batchMeta.Blocks = make([]*BlockMeta, 0)
+    return &batchMeta
+}
+
+
 type Batch struct {
     baseDir     string
     fileId      int64
@@ -12,6 +24,7 @@ type Batch struct {
     batchSize   int64
     blocks      []*Block
 }
+
 
 func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batch {
     var batch Batch
@@ -26,6 +39,16 @@ func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batc
     }
     return &batch
 }
+
+func (batch *Batch) Meta() *BatchMeta {
+    batchMeta := NewBatchMeta()
+    for i := range batch.blocks {
+        blockMeta := batch.blocks[i].Meta()
+        batchMeta.Blocks = append(batchMeta.Blocks, blockMeta)
+    }
+    return batchMeta
+}
+
 
 func (batch *Batch) Open() error {
     var err error
@@ -108,4 +131,26 @@ func (batch *Batch) Size() (int64, error) {
         }
     }
     return size, err
+}
+
+func (batch *Batch) ToBegin() error {
+    var err error
+    for i := int64(0); i < batch.batchSize; i++ {
+        err := batch.blocks[i].ToBegin()
+        if err != nil {
+            return err
+        }
+    }
+    return err
+}
+
+func (batch *Batch) ToEnd() error {
+    var err error
+    for i := int64(0); i < batch.batchSize; i++ {
+        err := batch.blocks[i].ToEnd()
+        if err != nil {
+            return err
+        }
+    }
+    return err
 }

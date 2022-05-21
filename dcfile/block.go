@@ -14,6 +14,15 @@ import (
     "github.com/minio/highwayhash"
 )
 
+type BlockMeta struct {
+    FileName      string
+}
+
+func NewBlockMeta() *BlockMeta {
+    var blockMeta BlockMeta
+    return &blockMeta
+}
+
 
 type Block struct {
     file        *os.File
@@ -45,6 +54,12 @@ func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *
     block.hasher = hasher
 
     return &block
+}
+
+func (block *Block) Meta() *BlockMeta {
+    meta := NewBlockMeta()
+    meta.FileName = block.filePath()
+    return meta
 }
 
 func (block *Block) Open() error {
@@ -96,7 +111,6 @@ func (block *Block) Write(reader io.Reader) (int64, error) {
     hexBytes := make([]byte, hex.EncodedLen(len(hashBytes)))
     hex.Encode(hexBytes, hashBytes)
     block.hexHash = hexBytes
-    fmt.Printf("%s\n", string(block.hexHash))
     return written, err
 }
 
@@ -154,6 +168,22 @@ func (block *Block) Truncate() error {
     return err
 }
 
+func (block *Block) Seek(offset int64) error {
+    _, err := block.file.Seek(offset, 0)
+    return err
+}
+
+func (block *Block) ToBegin() error {
+    _, err := block.file.Seek(0, 0)
+    return err
+}
+
+func (block *Block) ToEnd() error {
+    _, err := block.file.Seek(0, 2)
+    return err
+}
+
+
 func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     var err error
     var bufSize int64 = 1024 * 4
@@ -186,7 +216,7 @@ func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
 }
 
 func (block *Block) filePath() string {
-    fileName := fmt.Sprintf("%02d-%02d-%02d.bin", block.fileId, block.batchId, block.blockId)
+    fileName := fmt.Sprintf("%020d-%00d-%020d.blk", block.fileId, block.batchId, block.blockId)
     filePath := filepath.Join(block.baseDir, fileName)
     return filePath
 }

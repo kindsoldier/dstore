@@ -15,8 +15,8 @@ func aTestBatchSmallWriteRead(t *testing.T) {
     var batchSize        int64 = 5
     var blockSize   int64 = 1024
 
-    baseDir := "./"
-    //baseDir := t.TempDir()
+    //baseDir := "./"
+    baseDir := t.TempDir()
 
     batch := NewBatch(baseDir, fileId, batchId, batchSize, blockSize)
 
