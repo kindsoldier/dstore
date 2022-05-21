@@ -2,11 +2,16 @@ package dcfile
 
 import (
     "errors"
+    "encoding/hex"
+    "hash"
     "fmt"
     "io"
     "io/fs"
     "os"
     "path/filepath"
+    "math/rand"
+
+    "github.com/minio/highwayhash"
 )
 
 
@@ -16,20 +21,28 @@ type Block struct {
     fileId      int64
     batchId     int64
     blockId     int64
-    capacity    int64
-    //written    int
+    blockSize    int64
+    hasher      hash.Hash
+    hexHash     []byte
 }
 
 const fileMode fs.FileMode = 0644
 var ErrorNilFile = errors.New("block file ref is nil")
 
-func NewBlock(baseDir string, fileId, batchId, blockId int64, capacity int64) *Block {
+func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *Block {
     var block Block
     block.baseDir   = baseDir
     block.fileId    = fileId
     block.batchId   = batchId
     block.blockId   = blockId
-    block.capacity  = capacity
+    block.blockSize  = blockSize
+    block.hexHash   = make([]byte, 0)
+
+    initBytes := make([]byte, 32)
+    rand.Read(initBytes)
+
+    hasher, _ := highwayhash.New(initBytes)
+    block.hasher = hasher
 
     return &block
 }
@@ -72,11 +85,18 @@ func (block *Block) Write(reader io.Reader) (int64, error) {
     if err != nil {
             return written, err
     }
-    remains := block.capacity - size
-    written, err = copyBytes(reader, block.file, remains)
+    remains := block.blockSize - size
+    multiWriter := io.MultiWriter(block.file, block.hasher)
+    written, err = copyBytes(reader, multiWriter, remains)
     if err != nil {
             return written, err
     }
+
+    hashBytes := block.hasher.Sum(nil)
+    hexBytes := make([]byte, hex.EncodedLen(len(hashBytes)))
+    hex.Encode(hexBytes, hashBytes)
+    block.hexHash = hexBytes
+    fmt.Printf("%s\n", string(block.hexHash))
     return written, err
 }
 

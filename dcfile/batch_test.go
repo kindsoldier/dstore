@@ -8,16 +8,17 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestBatchSmallWriteRead(t *testing.T) {
+func aTestBatchSmallWriteRead(t *testing.T) {
     var err error
     var fileId      int64 = 1
     var batchId     int64 = 2
-    var capa        int64 = 5
+    var batchSize        int64 = 5
     var blockSize   int64 = 1024
 
-    baseDir := t.TempDir()
+    baseDir := "./"
+    //baseDir := t.TempDir()
 
-    batch := NewBatch(baseDir, fileId, batchId, capa, blockSize)
+    batch := NewBatch(baseDir, fileId, batchId, batchSize, blockSize)
 
     err = batch.Open()
     assert.NoError(t, err)
@@ -25,7 +26,7 @@ func TestBatchSmallWriteRead(t *testing.T) {
     err = batch.Truncate()
     assert.NoError(t, err)
 
-    var dataSize int64 = blockSize * capa - 2
+    var dataSize int64 = blockSize * (batchSize - 1) - 8
     data := make([]byte, dataSize)
     rand.Read(data)
     reader := bytes.NewReader(data)
@@ -38,10 +39,13 @@ func TestBatchSmallWriteRead(t *testing.T) {
     err = batch.Close()
     assert.NoError(t, err)
 
-    batch = NewBatch(baseDir, fileId, batchId, capa, blockSize)
+    batch = NewBatch(baseDir, fileId, batchId, batchSize, blockSize)
 
     err = batch.Open()
     assert.NoError(t, err)
+
+    batchDataSize, _ := batch.Size()
+    assert.Equal(t, written, batchDataSize)
 
     writer := bytes.NewBuffer(make([]byte, 0))
     read, err := batch.Read(writer)
@@ -53,5 +57,5 @@ func TestBatchSmallWriteRead(t *testing.T) {
 
     assert.Equal(t, data[0:written], writer.Bytes())
 
-    batch.Purge()
+    //batch.Purge()
 }
