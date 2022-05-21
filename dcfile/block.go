@@ -15,14 +15,16 @@ import (
 )
 
 type BlockMeta struct {
-    FileName      string
+    FileName    string      `json:"fileName"`
+    HashSum     string      `json:"hashSum"`
+    HashInit    string      `json:"hashInit"`
+    Size        int64       `json:"size"`
 }
 
 func NewBlockMeta() *BlockMeta {
     var blockMeta BlockMeta
     return &blockMeta
 }
-
 
 type Block struct {
     file        *os.File
@@ -31,8 +33,10 @@ type Block struct {
     batchId     int64
     blockId     int64
     blockSize    int64
+
     hasher      hash.Hash
-    hexHash     []byte
+    hashSum     []byte
+    hashInit    []byte
 }
 
 const fileMode fs.FileMode = 0644
@@ -44,21 +48,24 @@ func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *
     block.fileId    = fileId
     block.batchId   = batchId
     block.blockId   = blockId
-    block.blockSize  = blockSize
-    block.hexHash   = make([]byte, 0)
+    block.blockSize = blockSize
+    block.hashSum   = make([]byte, 0)
 
-    initBytes := make([]byte, 32)
-    rand.Read(initBytes)
+    hashInit := make([]byte, 32)
+    rand.Read(hashInit)
+    hasher, _ := highwayhash.New(hashInit)
 
-    hasher, _ := highwayhash.New(initBytes)
+    block.hashInit  = hashInit
     block.hasher = hasher
-
     return &block
 }
 
 func (block *Block) Meta() *BlockMeta {
     meta := NewBlockMeta()
-    meta.FileName = block.filePath()
+    meta.FileName = block.fileName()
+    meta.HashInit = hex.EncodeToString(block.hashInit)
+    meta.HashSum = hex.EncodeToString(block.hashSum)
+    meta.Size, _ = block.Size()
     return meta
 }
 
@@ -103,14 +110,11 @@ func (block *Block) Write(reader io.Reader) (int64, error) {
     remains := block.blockSize - size
     multiWriter := io.MultiWriter(block.file, block.hasher)
     written, err = copyBytes(reader, multiWriter, remains)
+    block.hashSum = block.hasher.Sum(nil)
     if err != nil {
             return written, err
     }
 
-    hashBytes := block.hasher.Sum(nil)
-    hexBytes := make([]byte, hex.EncodedLen(len(hashBytes)))
-    hex.Encode(hexBytes, hashBytes)
-    block.hexHash = hexBytes
     return written, err
 }
 
@@ -215,8 +219,12 @@ func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     return total, err
 }
 
+func (block *Block) fileName() string {
+    fileName := fmt.Sprintf("%020d-%020d-%020d.blk", block.fileId, block.batchId, block.blockId)
+    return fileName
+}
+
 func (block *Block) filePath() string {
-    fileName := fmt.Sprintf("%020d-%00d-%020d.blk", block.fileId, block.batchId, block.blockId)
-    filePath := filepath.Join(block.baseDir, fileName)
+    filePath := filepath.Join(block.baseDir, block.fileName())
     return filePath
 }

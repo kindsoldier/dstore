@@ -8,14 +8,13 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func aTestBatchSmallWriteRead(t *testing.T) {
+func TestBatchSmallWriteCloseRead(t *testing.T) {
     var err error
     var fileId      int64 = 1
     var batchId     int64 = 2
     var batchSize        int64 = 5
     var blockSize   int64 = 1024
 
-    //baseDir := "./"
     baseDir := t.TempDir()
 
     batch := NewBatch(baseDir, fileId, batchId, batchSize, blockSize)
@@ -57,5 +56,5 @@ func aTestBatchSmallWriteRead(t *testing.T) {
 
     assert.Equal(t, data[0:written], writer.Bytes())
 
-    //batch.Purge()
+    batch.Purge()
 }

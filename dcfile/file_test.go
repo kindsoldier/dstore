@@ -1,6 +1,9 @@
 package dcfile
 
 import (
+    //"encoding/json"
+    //"fmt"
+
     "bytes"
     "math/rand"
     "io"
@@ -87,6 +90,9 @@ func TestFileWriteMetaRead(t *testing.T) {
     assert.Equal(t, dataSize, written)
 
     meta := file.Meta()
+
+    //metaJSON, _ := json.MarshalIndent(meta, " ", "    ")
+    //fmt.Println(string(metaJSON))
 
     err = file.Close()
     assert.NoError(t, err)
