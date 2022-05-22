@@ -14,7 +14,7 @@ import (
 
     "ndstore/dsrpc"
     "ndstore/dscom"
-    "ndstore/tools"
+    "ndstore/xtools.
     "ndstore/fstore/fssrv/fsreg"
 )
 
@@ -174,13 +174,13 @@ func (store *Store) ListBlocks(clusterId int64) ([]dscom.Block, error) {
 func MakeBlockName(clusterId, fileId, batchId, blockId int64) string {
     var fileName string
     fileName = fmt.Sprintf("%020d-%020d-%020d-%020d", clusterId, fileId, batchId, blockId)
-    fileName = tools.Raw2HashString([]byte(fileName))
+    fileName = xtools.Raw2HashString([]byte(fileName))
     fileName = fileName + blockFileExt
     return fileName
 }
 
 func MakeDirName(fileName string) string {
-    hash := tools.Raw2HashBytes([]byte(fileName))
+    hash := xtools.Raw2HashBytes([]byte(fileName))
     l1 := string(hash[0:1])
     l2 := string(hash[2:3])
     dirName := filepath.Join(l1, l2)

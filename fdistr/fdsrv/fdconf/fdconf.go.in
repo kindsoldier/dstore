@@ -1,4 +1,4 @@
-package fsconf
+package fdconf
 
 import (
     "path/filepath"
