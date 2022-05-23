@@ -653,14 +653,14 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_silent_rules
-enable_fdistr
 enable_fstore
+enable_bstore
 '
       ac_precious_vars='build_alias
 host_alias
 target_alias'
-ac_subdirs_all='fdistr
-fstore'
+ac_subdirs_all='fstore
+bstore'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1276,8 +1276,8 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
-  --disable-fdistr        disable fdistr module
   --disable-fstore        disable fstore module
+  --disable-bstore        disable bstore module
 
 Report bugs to the package provider.
 _ACEOF
@@ -2316,24 +2316,24 @@ END
 fi
 
 
-# Check whether --enable-fdistr was given.
-if test "${enable_fdistr+set}" = set; then :
-  enableval=$enable_fdistr;
+# Check whether --enable-fstore was given.
+if test "${enable_fstore+set}" = set; then :
+  enableval=$enable_fstore;
 else
   enable_option_checking=no
 
 
-subdirs="$subdirs fdistr"
+subdirs="$subdirs fstore"
 
 
 fi
 
 
-# Check whether --enable-fstore was given.
-if test "${enable_fstore+set}" = set; then :
-  enableval=$enable_fstore;
+# Check whether --enable-bstore was given.
+if test "${enable_bstore+set}" = set; then :
+  enableval=$enable_bstore;
 else
-  subdirs="$subdirs fstore"
+  subdirs="$subdirs bstore"
 
 
 fi

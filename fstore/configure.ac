@@ -1,8 +1,8 @@
-AC_INIT(fdistr,0.0.1)
+AC_INIT(fstore,0.0.1)
 AM_INIT_AUTOMAKE
 AC_PREFIX_DEFAULT(/usr/local)
 
-PACKAGE=fdistr
+PACKAGE=fstore
 
 AC_CHECK_PROG(HAVE_GO, go, true, false, /bin /usr/local/bin /usr/bin)
 if test "x$HAVE_GO" = "xfalse"; then
@@ -271,5 +271,5 @@ AC_SUBST(srv_port, 5001)
 
 AC_OUTPUT([
 Makefile
-fdsrv/fdconf/fdconf.go
+fssrv/fsconf/fsconf.go
 ])

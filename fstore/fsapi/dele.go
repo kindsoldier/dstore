@@ -3,7 +3,7 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package fdapi
+package fsapi
 
 const DeleteMethod string = "delete"
 

@@ -4,27 +4,27 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT= none
 
-sbin_PROGRAMS = fdistrd fdistrcli
-fdistrd_SOURCES = fdsrv/fdmain.go
+sbin_PROGRAMS = fstored fstorecli
+fstored_SOURCES = fssrv/fsmain.go
 
-EXTRA_fdistrd_SOURCES = \
-	fdsrv/fdconf/fdconf.go \
-	fdsrv/fdconf/fdconf.go.in \
-	fdsrv/fdcont/fdcont.go
+EXTRA_fstored_SOURCES = \
+	fssrv/fsconf/fsconf.go \
+	fssrv/fsconf/fsconf.go.in \
+	fssrv/fscont/fscont.go
 
-fdistrcli_SOURCES = fdcli/fdcli.go
+fstorecli_SOURCES = fscli/fscli.go
 
 
 GOFLAGS = -ldflags="-s -w"
 
-fdistrd$(EXEEXT): $(fdistrd_SOURCES) $(EXTRA_fdistrd_SOURCES)
-	$(GO) build $(GOFLAGS) -o fdistrd$(EXEEXT) $(fdistrd_SOURCES)
+fstored$(EXEEXT): $(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES)
 
-fdistrcli$(EXEEXT): $(fdistrcli_SOURCES) $(EXTRA_fdistrcli_SOURCES)
-	$(GO) build $(GOFLAGS) -o fdistrcli$(EXEEXT) $(fdistrcli_SOURCES)
+fstorecli$(EXEEXT): $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstorecli$(EXEEXT) $(fstorecli_SOURCES)
 
 EXTRA_DIST = \
-	fdistr.conf
+	fstore.conf
 
 clean-local:
 	rm -rf autom4te.cache
@@ -45,13 +45,13 @@ instvis:
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
 CVIGNORE = nsstore/dslog
 CVDIR = .
-GOMAIN = ndstore/fdistr/fdsrv
+GOMAIN = ndstore/fstore/fssrv
 GOROOT = ndstore
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fdistr/ndsrv -file $(CVDIR)/fdistr $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/ndsrv -file $(CVDIR)/fstore $(GOMAIN)
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
 
 EXTRA_DIST += \
-	fdistr.svg \
+	fstore.svg \
 	dsrpc.svg

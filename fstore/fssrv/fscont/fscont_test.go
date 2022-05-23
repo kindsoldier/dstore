@@ -5,8 +5,8 @@ import (
     "math/rand"
     "testing"
 
-    "ndstore/fdistr/fdapi"
-    "ndstore/fdistr/fdsrv/fdrec"
+    "ndstore/fstore/fsapi"
+    "ndstore/fstore/fssrv/fsrec"
     "ndstore/dsrpc"
 
     "github.com/stretchr/testify/assert"
@@ -17,10 +17,10 @@ func TestHello(t *testing.T) {
     var err error
     helloResp := HelloMsg
 
-    params := fdapi.NewHelloParams()
+    params := fsapi.NewHelloParams()
     params.Message = HelloMsg
 
-    result := fdapi.NewHelloResult()
+    result := fsapi.NewHelloResult()
 
     contr := NewContr()
     store := fdrec.NewStore(t.TempDir())
@@ -29,7 +29,7 @@ func TestHello(t *testing.T) {
 
     contr.Store = store
 
-    err = dsrpc.LocalExec(fdapi.HelloMethod, params, result, nil, contr.HelloHandler)
+    err = dsrpc.LocalExec(fsapi.HelloMethod, params, result, nil, contr.HelloHandler)
 
     assert.NoError(t, err)
     assert.Equal(t, helloResp, result.Message)
@@ -38,10 +38,10 @@ func TestHello(t *testing.T) {
 func TestSaveLoadDelete(t *testing.T) {
     var err error
 
-    params := fdapi.NewSaveParams()
+    params := fsapi.NewSaveParams()
     params.FilePath = "qwert.txt"
 
-    result := fdapi.NewSaveResult()
+    result := fsapi.NewSaveResult()
 
     contr := NewContr()
     store := fdrec.NewStore(t.TempDir())
@@ -56,16 +56,16 @@ func TestSaveLoadDelete(t *testing.T) {
     reader := bytes.NewReader(data)
     size := int64(len(data))
 
-    err = dsrpc.LocalPut(fdapi.SaveMethod, reader, size, params, result, nil, contr.SaveHandler)
+    err = dsrpc.LocalPut(fsapi.SaveMethod, reader, size, params, result, nil, contr.SaveHandler)
     assert.NoError(t, err)
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
-    err = dsrpc.LocalGet(fdapi.LoadMethod, writer, params, result, nil, contr.LoadHandler)
+    err = dsrpc.LocalGet(fsapi.LoadMethod, writer, params, result, nil, contr.LoadHandler)
     assert.NoError(t, err)
     assert.Equal(t, len(data), len(writer.Bytes()))
     assert.Equal(t, data, writer.Bytes())
 
-    err = dsrpc.LocalExec(fdapi.DeleteMethod, params, result, nil, contr.DeleteHandler)
+    err = dsrpc.LocalExec(fsapi.DeleteMethod, params, result, nil, contr.DeleteHandler)
     assert.NoError(t, err)
 }

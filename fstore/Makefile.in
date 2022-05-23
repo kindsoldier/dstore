@@ -88,7 +88,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-sbin_PROGRAMS = fdistrd$(EXEEXT) fdistrcli$(EXEEXT)
+sbin_PROGRAMS = fstored$(EXEEXT) fstorecli$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -99,16 +99,16 @@ DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = fdsrv/fdconf/fdconf.go
+CONFIG_CLEAN_FILES = fssrv/fsconf/fsconf.go
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(sbindir)"
 PROGRAMS = $(sbin_PROGRAMS)
-am_fdistrcli_OBJECTS =
-fdistrcli_OBJECTS = $(am_fdistrcli_OBJECTS)
-fdistrcli_LDADD = $(LDADD)
-am_fdistrd_OBJECTS =
-fdistrd_OBJECTS = $(am_fdistrd_OBJECTS)
-fdistrd_LDADD = $(LDADD)
+am_fstorecli_OBJECTS =
+fstorecli_OBJECTS = $(am_fstorecli_OBJECTS)
+fstorecli_LDADD = $(LDADD)
+am_fstored_OBJECTS =
+fstored_OBJECTS = $(am_fstored_OBJECTS)
+fstored_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -136,10 +136,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(fdistrcli_SOURCES) $(fdistrd_SOURCES) \
-	$(EXTRA_fdistrd_SOURCES)
-DIST_SOURCES = $(fdistrcli_SOURCES) $(fdistrd_SOURCES) \
-	$(EXTRA_fdistrd_SOURCES)
+SOURCES = $(fstorecli_SOURCES) $(fstored_SOURCES) \
+	$(EXTRA_fstored_SOURCES)
+DIST_SOURCES = $(fstorecli_SOURCES) $(fstored_SOURCES) \
+	$(EXTRA_fstored_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -167,7 +167,7 @@ CTAGS = ctags
 CSCOPE = cscope
 AM_RECURSIVE_TARGETS = cscope
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/fdsrv/fdconf/fdconf.go.in config.guess \
+	$(top_srcdir)/fssrv/fsconf/fsconf.go.in config.guess \
 	config.sub install-sh missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -291,20 +291,20 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUFFIXES = .go
 OBJEXT = none
-fdistrd_SOURCES = fdsrv/fdmain.go
-EXTRA_fdistrd_SOURCES = \
-	fdsrv/fdconf/fdconf.go \
-	fdsrv/fdconf/fdconf.go.in \
-	fdsrv/fdcont/fdcont.go
+fstored_SOURCES = fssrv/fsmain.go
+EXTRA_fstored_SOURCES = \
+	fssrv/fsconf/fsconf.go \
+	fssrv/fsconf/fsconf.go.in \
+	fssrv/fscont/fscont.go
 
-fdistrcli_SOURCES = fdcli/fdcli.go
+fstorecli_SOURCES = fscli/fscli.go
 GOFLAGS = -ldflags="-s -w"
-EXTRA_DIST = fdistr.conf fdistr.svg dsrpc.svg
+EXTRA_DIST = fstore.conf fstore.svg dsrpc.svg
 PATH := $(PATH):$(HOME)/go/bin
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
 CVIGNORE = nsstore/dslog
 CVDIR = .
-GOMAIN = ndstore/fdistr/fdsrv
+GOMAIN = ndstore/fstore/fssrv
 GOROOT = ndstore
 all: all-am
 
@@ -343,7 +343,7 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
-fdsrv/fdconf/fdconf.go: $(top_builddir)/config.status $(top_srcdir)/fdsrv/fdconf/fdconf.go.in
+fssrv/fsconf/fsconf.go: $(top_builddir)/config.status $(top_srcdir)/fssrv/fsconf/fsconf.go.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
@@ -748,11 +748,11 @@ uninstall-am: uninstall-sbinPROGRAMS
 .PRECIOUS: Makefile
 
 
-fdistrd$(EXEEXT): $(fdistrd_SOURCES) $(EXTRA_fdistrd_SOURCES)
-	$(GO) build $(GOFLAGS) -o fdistrd$(EXEEXT) $(fdistrd_SOURCES)
+fstored$(EXEEXT): $(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES)
 
-fdistrcli$(EXEEXT): $(fdistrcli_SOURCES) $(EXTRA_fdistrcli_SOURCES)
-	$(GO) build $(GOFLAGS) -o fdistrcli$(EXEEXT) $(fdistrcli_SOURCES)
+fstorecli$(EXEEXT): $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstorecli$(EXEEXT) $(fstorecli_SOURCES)
 
 clean-local:
 	rm -rf autom4te.cache
@@ -769,7 +769,7 @@ instvis:
 	$(GO) install github.com/ofabry/go-callvis
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fdistr/ndsrv -file $(CVDIR)/fdistr $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/ndsrv -file $(CVDIR)/fstore $(GOMAIN)
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

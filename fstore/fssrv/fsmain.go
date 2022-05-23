@@ -15,9 +15,9 @@ import (
     "syscall"
     "io"
 
-    "ndstore/fdistr/fdapi"
-    "ndstore/fdistr/fdsrv/fdconf"
-    "ndstore/fdistr/fdsrv/fdcont"
+    "ndstore/fstore/fsapi"
+    "ndstore/fstore/fssrv/fsconf"
+    "ndstore/fstore/fssrv/fscont"
     "ndstore/dslog"
     "ndstore/dsrpc"
 )
@@ -346,7 +346,7 @@ func (server *Server) RunService() error {
     contr := fdcont.NewContr()
     dslog.LogDebug("data dir is", server.Params.DataDir)
 
-    serv.Handler(fdapi.HelloMethod, contr.HelloHandler)
+    serv.Handler(fsapi.HelloMethod, contr.HelloHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

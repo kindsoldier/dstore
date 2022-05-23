@@ -14,7 +14,7 @@ import (
     "path/filepath"
     "errors"
 
-    "ndstore/fdtore/fdapi"
+    "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
 )
 
