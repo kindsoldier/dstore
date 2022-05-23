@@ -15,11 +15,12 @@ import (
     "syscall"
     "io"
 
-    "ndstore/fdistr/fdapi"
-    "ndstore/fdistr/fdsrv/fdconf"
-    "ndstore/fdistr/fdsrv/fdcont"
+    "ndstore/bstore/bsapi"
     "ndstore/dslog"
     "ndstore/dsrpc"
+    "ndstore/bstore/bssrv/bsconf"
+    "ndstore/bstore/bssrv/bscont"
+    "ndstore/bstore/bssrv/bsrec"
 )
 
 const successExit   int = 0
@@ -38,9 +39,10 @@ func main() {
 }
 
 type Server struct {
-    Params  *fdconf.Config
+    Params  *bsconf.Config
     Backgr  bool
 }
+
 
 func (server *Server) Execute() error {
     var err error
@@ -92,17 +94,19 @@ func (server *Server) Execute() error {
 
 func NewServer() *Server {
     var server Server
-    server.Params = fdconf.NewConfig()
+    server.Params = bsconf.NewConfig()
     server.Backgr = false
     return &server
 }
 
 func (server *Server) ReadConf() error {
     var err error
+
     err = server.Params.Read()
     if err != nil {
         return err
     }
+
     return err
 }
 
@@ -117,13 +121,15 @@ func (server *Server) GetOptions() error {
     flag.StringVar(&server.Params.Port, "port", server.Params.Port, "listen port")
     flag.BoolVar(&server.Backgr, "daemon", server.Backgr, "run as daemon")
 
+    flag.StringVar(&server.Params.ConfPath, "conf", server.Params.ConfPath, "config file")
+
     help := func() {
-        fmt.Println("")
+        fmt.Printf("\n")
         fmt.Printf("usage: %s [option]\n", exeName)
-        fmt.Println("")
-        fmt.Println("options:")
+        fmt.Printf("\n")
+        fmt.Printf("options:\n")
         flag.PrintDefaults()
-        fmt.Println("")
+        fmt.Printf("\n")
     }
     flag.Usage = help
     flag.Parse()
@@ -338,15 +344,27 @@ func (server *Server) StopAll() error {
     return err
 }
 
+
 func (server *Server) RunService() error {
     var err error
 
     serv := dsrpc.NewService()
 
-    contr := fdcont.NewContr()
+    contr := bscont.NewContr()
     dslog.LogDebug("data dir is", server.Params.DataDir)
+    store := bsrec.NewStore(server.Params.DataDir)
+    store.SetPerm(server.Params.DirPerm, server.Params.FilePerm)
+    err = store.OpenReg()
+    if err != nil {
+        return err
+    }
+    contr.Store = store
 
-    serv.Handler(fdapi.HelloMethod, contr.HelloHandler)
+    serv.Handler(bsapi.HelloMethod, contr.HelloHandler)
+    serv.Handler(bsapi.SaveMethod, contr.SaveHandler)
+    serv.Handler(bsapi.LoadMethod, contr.LoadHandler)
+    serv.Handler(bsapi.DeleteMethod, contr.DeleteHandler)
+    serv.Handler(bsapi.ListMethod, contr.ListHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

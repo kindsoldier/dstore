@@ -3,7 +3,7 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package fdapi
+package bsapi
 
 import (
     "ndstore/dscom"
@@ -12,11 +12,11 @@ import (
 const ListMethod string = "list"
 
 type ListParams struct {
-    DirPath     string      `json:"dirPath"`
+    ClusterId   int64           `json:"clusterId"`
 }
 
 type ListResult struct {
-    Files   []*dscom.CFile   `json:"cFiles"`
+    Blocks      []dscom.Block   `json:"blocks"`
 }
 
 func NewListResult() *ListResult {

@@ -3,12 +3,15 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package fdapi
+package bsapi
 
 const SaveMethod string = "save"
 
 type SaveParams struct {
-    FilePath    string      `json:"filePath"`
+    ClusterId   int64           `json:"clusterId"`
+    FileId      int64           `json:"fileId"`
+    BatchId     int64           `json:"batchId"`
+    BlockId     int64           `json:"blockId"`
 }
 
 type SaveResult struct {
