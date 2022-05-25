@@ -1,21 +1,9 @@
-package fdfile
-
+package fsfile
 
 import (
     "io"
+    "ndstore/dscom"
 )
-
-
-type BatchMeta struct {
-    Blocks      []*BlockMeta    `json:"blocks"`
-}
-
-func NewBatchMeta() *BatchMeta {
-    var batchMeta BatchMeta
-    batchMeta.Blocks = make([]*BlockMeta, 0)
-    return &batchMeta
-}
-
 
 type Batch struct {
     baseDir     string
@@ -24,7 +12,6 @@ type Batch struct {
     batchSize   int64
     blocks      []*Block
 }
-
 
 func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batch {
     var batch Batch
@@ -40,8 +27,8 @@ func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batc
     return &batch
 }
 
-func (batch *Batch) Meta() *BatchMeta {
-    batchMeta := NewBatchMeta()
+func (batch *Batch) Meta() *dscom.BatchMI {
+    batchMeta := dscom.NewBatchMI()
     for i := range batch.blocks {
         blockMeta := batch.blocks[i].Meta()
         batchMeta.Blocks = append(batchMeta.Blocks, blockMeta)

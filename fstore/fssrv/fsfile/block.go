@@ -1,4 +1,4 @@
-package fdfile
+package fsfile
 
 import (
     "errors"
@@ -12,19 +12,10 @@ import (
     "math/rand"
 
     "github.com/minio/highwayhash"
+
+    "ndstore/dscom"
 )
 
-type BlockMeta struct {
-    FileName    string      `json:"fileName"`
-    HashSum     string      `json:"hashSum"`
-    HashInit    string      `json:"hashInit"`
-    Size        int64       `json:"size"`
-}
-
-func NewBlockMeta() *BlockMeta {
-    var blockMeta BlockMeta
-    return &blockMeta
-}
 
 type Block struct {
     file        *os.File
@@ -32,7 +23,7 @@ type Block struct {
     fileId      int64
     batchId     int64
     blockId     int64
-    blockSize    int64
+    blockSize   int64
 
     hasher      hash.Hash
     hashSum     []byte
@@ -60,12 +51,12 @@ func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *
     return &block
 }
 
-func (block *Block) Meta() *BlockMeta {
-    meta := NewBlockMeta()
+func (block *Block) Meta() *dscom.BlockMI {
+    meta := dscom.NewBlockMI()
     meta.FileName = block.fileName()
     meta.HashInit = hex.EncodeToString(block.hashInit)
     meta.HashSum = hex.EncodeToString(block.hashSum)
-    meta.Size, _ = block.Size()
+    //meta.Size, _ = block.Size()
     return meta
 }
 

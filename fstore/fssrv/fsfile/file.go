@@ -1,22 +1,9 @@
-package fdfile
+package fsfile
 
 import (
     "io"
+    "ndstore/dscom"
 )
-
-type FileMeta struct {
-    FileId      int64           `json:"fileId"`
-    BatchSize   int64           `json:"batchSize"`
-    BlockSize   int64           `json:"blockSize"`
-    BatchCount  int64           `json:"batchCount"`
-    Batchs      []*BatchMeta    `json:"batchs"`
-}
-
-func NewFileMeta() *FileMeta {
-    var fileMeta FileMeta
-    fileMeta.Batchs = make([]*BatchMeta, 0)
-    return &fileMeta
-}
 
 type File struct {
     baseDir     string
@@ -36,7 +23,7 @@ func NewFile(baseDir string, fileId, batchSize, blockSize int64) *File {
     return &file
 }
 
-func RenewFile(baseDir string, meta *FileMeta) *File {
+func RenewFile(baseDir string, meta *dscom.FileMI) *File {
     var file File
     file.baseDir    = baseDir
     file.fileId     = meta.FileId
@@ -49,8 +36,8 @@ func RenewFile(baseDir string, meta *FileMeta) *File {
     return &file
 }
 
-func (file *File) Meta() *FileMeta {
-    fileMeta := NewFileMeta()
+func (file *File) Meta() *dscom.FileMI {
+    fileMeta := dscom.NewFileMI()
     fileMeta.FileId     = file.fileId
     fileMeta.BatchCount = file.batchCount()
     fileMeta.BatchSize  = file.batchSize

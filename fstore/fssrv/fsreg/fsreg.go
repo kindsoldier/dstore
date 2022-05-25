@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
-package bsreg
+package fsreg
 
 import (
     "errors"
@@ -11,6 +11,23 @@ import (
 
     "ndstore/dscom"
 )
+
+
+type Client struct {
+    Id      int64       `json:"id"`
+    RoleId  int64       `json:"roleId"`
+    Name    string      `json:"name"`
+    Pass    string      `json:"pass"`
+}
+
+type CFile struct {
+    Name        string      `json:"name"`
+    Path        string      `json:"path"`
+    ClientId    int64       `json:"clientId"`
+    FileId      int64       `json:"fileId"`
+}
+
+
 
 const schema = `
     DROP TABLE IF EXISTS blocks;
@@ -32,7 +49,7 @@ const schema = `
 
 var ErrorNilRef error = errors.New("db ref is nil")
 
-type Block = dscom.BlockMI
+type Block = dscom.Block
 
 type Reg struct {
     db *sqlx.DB

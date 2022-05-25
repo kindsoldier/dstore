@@ -1,4 +1,4 @@
-package fdfile
+package fsfile
 
 import (
     "bytes"

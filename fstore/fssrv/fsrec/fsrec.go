@@ -2,13 +2,14 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package fdrec
+package fsrec
 
 import (
     "io/fs"
     "io"
 
     "ndstore/dscom"
+    "ndstore/fstore/fssrv/fsfile"
 )
 
 const blockFileExt string = ".blk"
@@ -36,6 +37,14 @@ func (store *Store) SetPerm(dirPerm, filePerm fs.FileMode) {
 
 func (store *Store) SaveFile(fileName string, fileReader io.Reader, fileSize int64) error {
     var err error
+    var fileId      int64 = 15
+    var batchSize   int64 = 5
+    var blockSize   int64 = 1024
+    file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
+    file.Open()
+    defer file.Close()
+
+    file.Write(fileReader)
     return err
 }
 
@@ -45,8 +54,17 @@ func (store *Store) FileExists(fileName string) (int64, error) {
     return fileSize, err
 }
 
-func (store *Store) LoadFile(fileName string, blockWriter io.Writer) error {
+func (store *Store) LoadFile(fileName string, fileWriter io.Writer) error {
     var err error
+
+    var fileId      int64 = 15
+    var batchSize   int64 = 5
+    var blockSize   int64 = 1024
+    file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
+    file.Open()
+    defer file.Close()
+
+    file.Read(fileWriter)
     return err
 }
 

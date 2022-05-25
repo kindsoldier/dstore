@@ -23,7 +23,7 @@ func TestHello(t *testing.T) {
     result := fsapi.NewHelloResult()
 
     contr := NewContr()
-    store := fdrec.NewStore(t.TempDir())
+    store := fsrec.NewStore(t.TempDir())
     //err = store.OpenReg()
     assert.NoError(t, err)
 
@@ -44,7 +44,8 @@ func TestSaveLoadDelete(t *testing.T) {
     result := fsapi.NewSaveResult()
 
     contr := NewContr()
-    store := fdrec.NewStore(t.TempDir())
+    //store := fsrec.NewStore(t.TempDir())
+    store := fsrec.NewStore("./")
     //err = store.OpenReg()
     assert.NoError(t, err)
 

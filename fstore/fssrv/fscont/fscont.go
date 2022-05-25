@@ -13,7 +13,7 @@ import (
 
 
 type Contr struct {
-    Store  *fdrec.Store
+    Store  *fsrec.Store
 }
 
 func NewContr() *Contr {
