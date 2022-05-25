@@ -360,11 +360,11 @@ func (server *Server) RunService() error {
     }
     contr.Store = store
 
-    serv.Handler(bsapi.HelloMethod, contr.HelloHandler)
-    serv.Handler(bsapi.SaveMethod, contr.SaveHandler)
-    serv.Handler(bsapi.LoadMethod, contr.LoadHandler)
-    serv.Handler(bsapi.DeleteMethod, contr.DeleteHandler)
-    serv.Handler(bsapi.ListMethod, contr.ListHandler)
+    serv.Handler(bsapi.GetHelloMethod, contr.GetHelloHandler)
+    serv.Handler(bsapi.SaveBlockMethod, contr.SaveBlockHandler)
+    serv.Handler(bsapi.LoadBlockMethod, contr.LoadBlockHandler)
+    serv.Handler(bsapi.DeleteBlockMethod, contr.DeleteBlockHandler)
+    serv.Handler(bsapi.ListBlocksMethod, contr.ListBlocksHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

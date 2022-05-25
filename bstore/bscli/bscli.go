@@ -165,16 +165,16 @@ func (util *Util) Exec() error {
 
     switch util.SubCmd {
         case helloCmd:
-            result, err := util.HelloCmd()
+            result, err := util.GetHelloCmd()
             resp = NewResponse(result, err)
         case saveCmd:
-            result, err := util.SaveCmd()
+            result, err := util.SaveBlockCmd()
             resp = NewResponse(result, err)
         case loadCmd:
-            result, err := util.LoadCmd()
+            result, err := util.LoadBlockCmd()
             resp = NewResponse(result, err)
         case listCmd:
-            result, err := util.ListCmd()
+            result, err := util.ListBlocksCmd()
             resp = NewResponse(result, err)
         default:
     }
@@ -184,29 +184,29 @@ func (util *Util) Exec() error {
     return err
 }
 
-func (util *Util) HelloCmd() (*bsapi.HelloResult, error) {
+func (util *Util) GetHelloCmd() (*bsapi.GetHelloResult, error) {
     var err error
 
-    params := bsapi.NewHelloParams()
+    params := bsapi.NewGetHelloParams()
     params.Message = util.Message
-    result := bsapi.NewHelloResult()
+    result := bsapi.NewGetHelloResult()
 
-    err = dsrpc.Exec(util.URI, bsapi.HelloMethod, params, result, nil)
+    err = dsrpc.Exec(util.URI, bsapi.GetHelloMethod, params, result, nil)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-func (util *Util) SaveCmd() (*bsapi.SaveResult, error) {
+func (util *Util) SaveBlockCmd() (*bsapi.SaveBlockResult, error) {
     var err error
 
-    params := bsapi.NewSaveParams()
+    params := bsapi.NewSaveBlockParams()
     params.FileId   = util.FileId
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
 
-    result := bsapi.NewSaveResult()
+    result := bsapi.NewSaveBlockResult()
 
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDONLY, 0)
     defer blockFile.Close()
@@ -219,7 +219,7 @@ func (util *Util) SaveCmd() (*bsapi.SaveResult, error) {
     }
     fileSize := fileInfo.Size()
 
-    err = dsrpc.Put(util.URI, bsapi.SaveMethod, blockFile, fileSize, params, result, nil)
+    err = dsrpc.Put(util.URI, bsapi.SaveBlockMethod, blockFile, fileSize, params, result, nil)
     if err != nil {
         return result, err
     }
@@ -229,34 +229,33 @@ func (util *Util) SaveCmd() (*bsapi.SaveResult, error) {
 const dirPerm   fs.FileMode = 0755
 const filePerm  fs.FileMode = 0644
 
-func (util *Util) LoadCmd() (*bsapi.LoadResult, error) {
+func (util *Util) LoadBlockCmd() (*bsapi.LoadBlockResult, error) {
     var err error
 
-    params := bsapi.NewLoadParams()
+    params := bsapi.NewLoadBlockParams()
     params.FileId   = util.FileId
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
 
-    result := bsapi.NewLoadResult()
+    result := bsapi.NewLoadBlockResult()
 
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
     defer blockFile.Close()
     if err != nil {
         return result, err
     }
-    err = dsrpc.Get(util.URI, bsapi.LoadMethod, blockFile, params, result, nil)
+    err = dsrpc.Get(util.URI, bsapi.LoadBlockMethod, blockFile, params, result, nil)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-
-func (util *Util) ListCmd() (*bsapi.ListResult, error) {
+func (util *Util) ListBlocksCmd() (*bsapi.ListBlocksResult, error) {
     var err error
-    params := bsapi.NewListParams()
-    result := bsapi.NewListResult()
-    err = dsrpc.Exec(util.URI, bsapi.ListMethod, params, result, nil)
+    params := bsapi.NewListBlocksParams()
+    result := bsapi.NewListBlocksResult()
+    err = dsrpc.Exec(util.URI, bsapi.ListBlocksMethod, params, result, nil)
     if err != nil {
         return result, err
     }

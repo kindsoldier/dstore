@@ -11,7 +11,7 @@ import (
     "ndstore/bstore/bssrv/bsrec"
 )
 
-const HelloMsg string = "hello"
+const GetHelloMsg string = "hello"
 
 type Contr struct {
     Store   *bsrec.Store
@@ -21,16 +21,16 @@ func NewContr() *Contr {
     return &Contr{}
 }
 
-func (contr *Contr) HelloHandler(context *dsrpc.Context) error {
+func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewHelloParams()
+    params := bsapi.NewGetHelloParams()
     err = context.BindParams(params)
     if err != nil {
         return err
     }
 
-    result := bsapi.NewHelloResult()
-    result.Message = HelloMsg
+    result := bsapi.NewGetHelloResult()
+    result.Message = GetHelloMsg
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -38,9 +38,9 @@ func (contr *Contr) HelloHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
+func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewSaveParams()
+    params := bsapi.NewSaveBlockParams()
 
     err = context.BindParams(params)
     if err != nil {
@@ -59,7 +59,7 @@ func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
         return err
     }
 
-    result := bsapi.NewSaveResult()
+    result := bsapi.NewSaveBlockResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -67,9 +67,9 @@ func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
+func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewLoadParams()
+    params := bsapi.NewLoadBlockParams()
     err = context.BindParams(params)
     if err != nil {
         return err
@@ -92,7 +92,7 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-    result := bsapi.NewLoadResult()
+    result := bsapi.NewLoadBlockResult()
     err = context.SendResult(result, blockSize)
     if err != nil {
         return err
@@ -105,9 +105,9 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
+func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewDeleteParams()
+    params := bsapi.NewDeleteBlockParams()
 
     err = context.BindParams(params)
     if err != nil {
@@ -122,7 +122,7 @@ func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-    result := bsapi.NewDeleteResult()
+    result := bsapi.NewDeleteBlockResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -130,9 +130,9 @@ func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) ListHandler(context *dsrpc.Context) error {
+func (contr *Contr) ListBlocksHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewListParams()
+    params := bsapi.NewListBlocksParams()
     err = context.BindParams(params)
     if err != nil {
         return err
@@ -143,7 +143,7 @@ func (contr *Contr) ListHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-    result := bsapi.NewListResult()
+    result := bsapi.NewListBlocksResult()
     result.Blocks = blocks
     err = context.SendResult(result, 0)
     if err != nil {

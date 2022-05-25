@@ -19,9 +19,9 @@ import (
 )
 
 const blockFileExt string = ".blk"
-const storeDBName  string = "reg.db"
+const storeDBName  string = "blocks.db"
 
-type Block = dscom.BlockMI
+type Block = dscom.BlockDescr
 
 
 type Store struct {

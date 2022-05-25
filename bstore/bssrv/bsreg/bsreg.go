@@ -31,8 +31,6 @@ const schema = `
 
 var ErrorNilRef error = errors.New("db ref is nil")
 
-type Block = dscom.BlockMI
-
 type Reg struct {
     db *sqlx.DB
 }
@@ -139,12 +137,12 @@ func (reg *Reg) GetBlock(fileId, batchId, blockId int64) (string, int64, error) 
                     AND block_id = $4
                 LIMIT 1`
 
-    var block Block
+    var block dscom.BlockDescr
     err = reg.db.Get(&block, request, fileId, batchId, blockId)
     if err != nil {
         return filePath, blockSize, err
     }
-    filePath    = block.FileName
+    filePath    = block.FilePath
     blockSize   = block.BlockSize
     return filePath, blockSize, err
 }
@@ -164,7 +162,7 @@ func (reg *Reg) BlockExists(fileId, batchId, blockId int64) (bool, error) {
                     AND block_id = $4
                 LIMIT 1`
 
-    blocks := make([]Block, 0)
+    blocks := make([]dscom.BlockDescr, 0)
     err = reg.db.Select(&blocks, request, fileId, batchId, blockId)
     if err != nil {
         return exists, err
@@ -175,15 +173,15 @@ func (reg *Reg) BlockExists(fileId, batchId, blockId int64) (bool, error) {
     return exists, err
 }
 
-func (reg *Reg) ListBlocks() ([]Block, error) {
+func (reg *Reg) ListBlocks() ([]dscom.BlockDescr, error) {
     var err error
-    blocks := make([]Block, 0)
+    blocks := make([]dscom.BlockDescr, 0)
     if reg.db == nil {
         return blocks, ErrorNilRef
     }
     request := `SELECT file_path
                 FROM blocks`
-    err = reg.db.Select(&blocks, request)
+    err = reg.db.Select(blocks, request)
     if err != nil {
         return blocks, err
     }

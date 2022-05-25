@@ -13,14 +13,14 @@ import (
 )
 
 
-func TestHello(t *testing.T) {
+func TestGetHello(t *testing.T) {
     var err error
-    helloResp := HelloMsg
+    helloResp := GetHelloMsg
 
-    params := bsapi.NewHelloParams()
-    params.Message = HelloMsg
+    params := bsapi.NewGetHelloParams()
+    params.Message = GetHelloMsg
 
-    result := bsapi.NewHelloResult()
+    result := bsapi.NewGetHelloResult()
 
     contr := NewContr()
     store := bsrec.NewStore(t.TempDir())
@@ -29,7 +29,7 @@ func TestHello(t *testing.T) {
 
     contr.Store = store
 
-    err = dsrpc.LocalExec(bsapi.HelloMethod, params, result, nil, contr.HelloHandler)
+    err = dsrpc.LocalExec(bsapi.GetHelloMethod, params, result, nil, contr.GetHelloHandler)
 
     assert.NoError(t, err)
     assert.Equal(t, helloResp, result.Message)
@@ -38,12 +38,12 @@ func TestHello(t *testing.T) {
 func TestSaveLoadDelete(t *testing.T) {
     var err error
 
-    params := bsapi.NewSaveParams()
+    params := bsapi.NewSaveBlockParams()
 
     params.FileId       = 2
     params.BatchId      = 3
     params.BlockId      = 4
-    result := bsapi.NewSaveResult()
+    result := bsapi.NewSaveBlockResult()
 
     contr := NewContr()
     store := bsrec.NewStore(t.TempDir())
@@ -58,16 +58,16 @@ func TestSaveLoadDelete(t *testing.T) {
     reader := bytes.NewReader(data)
     size := int64(len(data))
 
-    err = dsrpc.LocalPut(bsapi.SaveMethod, reader, size, params, result, nil, contr.SaveHandler)
+    err = dsrpc.LocalPut(bsapi.SaveBlockMethod, reader, size, params, result, nil, contr.SaveBlockHandler)
     assert.NoError(t, err)
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
-    err = dsrpc.LocalGet(bsapi.LoadMethod, writer, params, result, nil, contr.LoadHandler)
+    err = dsrpc.LocalGet(bsapi.LoadBlockMethod, writer, params, result, nil, contr.LoadBlockHandler)
     assert.NoError(t, err)
     assert.Equal(t, len(data), len(writer.Bytes()))
     assert.Equal(t, data, writer.Bytes())
 
-    err = dsrpc.LocalExec(bsapi.DeleteMethod, params, result, nil, contr.DeleteHandler)
+    err = dsrpc.LocalExec(bsapi.DeleteBlockMethod, params, result, nil, contr.DeleteBlockHandler)
     assert.NoError(t, err)
 }
