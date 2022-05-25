@@ -20,3 +20,5 @@ fdsrv/fsmain
 fdsli/fscli
 vendor/
 data/
+*.blk
+*.dsc

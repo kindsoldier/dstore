@@ -5,6 +5,7 @@ package fsreg
 
 import (
     "errors"
+    "fmt"
 
     "github.com/jmoiron/sqlx"
     _ "github.com/mattn/go-sqlite3"
@@ -13,43 +14,44 @@ import (
 )
 
 
-type Client struct {
-    Id      int64       `json:"id"`
-    RoleId  int64       `json:"roleId"`
-    Name    string      `json:"name"`
-    Pass    string      `json:"pass"`
-}
-
-type CFile struct {
-    Name        string      `json:"name"`
-    Path        string      `json:"path"`
-    ClientId    int64       `json:"clientId"`
-    FileId      int64       `json:"fileId"`
-}
-
-
-
 const schema = `
+    DROP TABLE IF EXISTS entries;
+    CREATE TABLE IF NOT EXISTS entries (
+        entry_dir   TEXT,
+        entry_name  TEXT,
+        file_id     INTEGER
+    );
+
+    DROP TABLE IF EXISTS files;
+    CREATE TABLE IF NOT EXISTS files (
+        file_id     INTEGER,
+        batch_count INTEGER,
+        batch_size  INTEGER,
+        block_size  INTEGER,
+        file_size   INTEGER
+    );
+
+    DROP TABLE IF EXISTS batchs;
+    CREATE TABLE IF NOT EXISTS batchs (
+        file_id     INTEGER,
+        batch_id    INTEGER,
+        batch_size  INTEGER,
+        block_size  INTEGER
+    );
+
     DROP TABLE IF EXISTS blocks;
     CREATE TABLE IF NOT EXISTS blocks (
-        cluster_id  INTEGER,
         file_id     INTEGER,
         batch_id    INTEGER,
         block_id    INTEGER,
         block_size  INTEGER,
         file_path   TEXT,
-        hash_alg    TEXT,
+        hash_init   TEXT,
         hash_sum    TEXT,
-        hash_init   TEXT
-    );
-    DROP INDEX IF EXISTS block_idx;
-    CREATE UNIQUE INDEX IF NOT EXISTS block_idx
-        ON blocks (cluster_id, file_id, batch_id, block_id);
-    `
+        data_size  INTEGER
+    );`
 
 var ErrorNilRef error = errors.New("db ref is nil")
-
-type Block = dscom.Block
 
 type Reg struct {
     db *sqlx.DB
@@ -95,45 +97,42 @@ func (reg *Reg) MigrateDB() error {
     return err
 }
 
-func (reg *Reg) AddBlock(clusterId, fileId, batchId, blockId, blockSize int64,
-                                                                    filePath string) error {
+func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
-    request := `
-        INSERT
-            INTO blocks(cluster_id, file_id, batch_id, block_id, block_size, file_path)
-        VALUES ($1, $2, $3, $4, $5, $6)`
-    _, err = reg.db.Exec(request, clusterId, fileId, batchId, blockId, blockSize, filePath)
-    if err != nil {
-        return err
-    }
-    return err
-}
 
-
-func (reg *Reg) UpdateBlock(clusterId, fileId, batchId, blockId, blockSize int64,
-                                                                    filePath string) error {
-    var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     tx, err := reg.db.Begin()
-    var request string
-    request = `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
-                    AND batch_id = $3
-                    AND block_id = $4`
-    _, err = tx.Exec(request, clusterId, fileId, batchId, blockId)
-    if err != nil {
-        return err
+
+    blockRequest := `
+        INSERT INTO blocks(file_id, batch_id, block_id, block_size, file_path,
+                                                                hash_init, hash_sum, data_size)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+
+    for _, batch := range file.Batchs {
+        for _, block := range batch.Blocks {
+            _, err = tx.Exec(blockRequest, block.FileId, block.BatchId, block.BlockId,
+                                             block.BlockSize, block.FilePath, block.HashInit,
+                                                                  block.HashSum, block.DataSize)
+            if err != nil {
+                return err
+            }
+        }
     }
-    request = `INSERT
-                INTO blocks(cluster_id, file_id, batch_id, block_id, block_size, file_path)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)`
-    _, err = tx.Exec(request, clusterId, fileId, batchId, blockId, blockSize, filePath)
+
+    batchRequest := `
+        INSERT INTO batchs(file_id, batch_id, batch_size, block_size)
+        VALUES ($1, $2, $3, $4)`
+    for _, batch := range file.Batchs {
+        _, err = tx.Exec(batchRequest, batch.FileId, batch.BatchId, batch.BatchSize, batch.BlockSize)
+        if err != nil {
+            return err
+        }
+    }
+
+    fileRequest := `
+        INSERT INTO files(file_id, batch_count, batch_size, block_size, file_size)
+        VALUES ($1, $2, $3, $4, $5)`
+    _, err = tx.Exec(fileRequest, file.FileId, file.BatchCount, file.BatchSize,
+                                                            file.BlockSize, file.FileSize)
     if err != nil {
         return err
     }
@@ -145,117 +144,57 @@ func (reg *Reg) UpdateBlock(clusterId, fileId, batchId, blockId, blockSize int64
     return err
 }
 
-func (reg *Reg) GetBlock(clusterId, fileId, batchId, blockId int64) (string, int64, error) {
+func (reg *Reg) GetFileDescr(fileId int64) (*dscom.FileDescr, error) {
     var err error
-    var filePath string
-    var blockSize int64
 
-    if reg.db == nil {
-        return filePath, blockSize, ErrorNilRef
-    }
-    request := `SELECT file_path, block_size
-                FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
-                    AND batch_id = $3
-                    AND block_id = $4
-                LIMIT 1`
+    fileRequest := `
+        SELECT file_id, batch_count, batch_size, block_size, file_size
+        FROM files
+        WHERE file_id = $1
+        LIMIT 1`
 
-    var block Block
-    err = reg.db.Get(&block, request, clusterId, fileId, batchId, blockId)
+    file := dscom.NewFileDescr()
+    err = reg.db.Get(file, fileRequest, fileId)
     if err != nil {
-        return filePath, blockSize, err
+        return file, err
     }
-    filePath    = block.FileName
-    blockSize   = block.BlockSize
-    return filePath, blockSize, err
+
+    batchRequest := `
+        SELECT file_id, batch_id, block_size
+        FROM batchs
+        WHERE file_id = $1
+        ORDER BY file_id, batch_id
+        `
+    batchs := make([]*dscom.BatchDescr, 0)
+
+
+    err = reg.db.Select(&batchs, batchRequest, fileId)
+    if err != nil {
+        return file, err
+    }
+    file.Batchs = batchs
+
+    fmt.Println(batchs)
+
+
+    blockRequest := `
+        SELECT file_id, batch_id, block_id, block_size, file_path, hash_init, hash_sum, data_size
+        FROM blocks
+        WHERE file_id = $1
+            AND batch_id = $2
+        ORDER BY file_id, batch_id, block_id`
+    for i := range file.Batchs {
+        blocks := make([]*dscom.BlockDescr, 0)
+        err = reg.db.Select(&blocks, blockRequest, fileId, file.Batchs[i].BatchId)
+        if err != nil {
+            return file, err
+        }
+        file.Batchs[i].Blocks = blocks
+    }
+    return file, err
 }
 
-
-func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, error) {
+func (reg *Reg) DeleteFileDescr() error {
     var err error
-    var exists bool
-    if reg.db == nil {
-        return exists, ErrorNilRef
-    }
-
-    request := `SELECT file_path
-                FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
-                    AND batch_id = $3
-                    AND block_id = $4
-                LIMIT 1`
-
-    blocks := make([]Block, 0)
-    err = reg.db.Select(&blocks, request, clusterId, fileId, batchId, blockId)
-    if err != nil {
-        return exists, err
-    }
-    if len(blocks) > 0 {
-        exists = true
-    }
-    return exists, err
-}
-
-func (reg *Reg) ListBlocks(clusterId int64) ([]Block, error) {
-    var err error
-    blocks := make([]Block, 0)
-    if reg.db == nil {
-        return blocks, ErrorNilRef
-    }
-    request := `SELECT file_path
-                FROM blocks
-                WHERE cluster_id = $1`
-    err = reg.db.Select(&blocks, request, clusterId)
-    if err != nil {
-        return blocks, err
-    }
-    return blocks, err
-}
-
-func (reg *Reg) DeleteBlock(clusterId, fileId, batchId, blockId int64) error {
-    var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
-    request := `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
-                    AND batch_id = $3
-                    AND block_id = $4`
-    _, err = reg.db.Exec(request, clusterId, fileId, batchId, blockId)
-    if err != nil {
-        return err
-    }
-    return err
-}
-
-func (reg *Reg) PurgeFile(clusterId, fileId int64) error {
-    var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
-    request := `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2`
-    _, err = reg.db.Exec(request, clusterId, fileId)
-    if err != nil {
-        return err
-    }
-    return err
-}
-
-func (reg *Reg) PurgeCluster(clusterId int64) error {
-    var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
-    request := `DELETE FROM blocks
-                WHERE cluster_id = $1`
-    _, err = reg.db.Exec(request, clusterId)
-    if err != nil {
-        return err
-    }
     return err
 }

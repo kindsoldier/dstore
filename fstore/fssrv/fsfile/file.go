@@ -23,12 +23,13 @@ func NewFile(baseDir string, fileId, batchSize, blockSize int64) *File {
     return &file
 }
 
-func RenewFile(baseDir string, meta *dscom.FileMI) *File {
+func RenewFile(baseDir string, meta *dscom.FileDescr) *File {
     var file File
     file.baseDir    = baseDir
     file.fileId     = meta.FileId
     file.batchSize  = meta.BatchSize
     file.blockSize  = meta.BlockSize
+    file.batchs     = make([]*Batch, 0)
     for i := int64(0); i < meta.BatchCount; i++ {
         batch := NewBatch(file.baseDir, file.fileId, i, file.batchSize, file.blockSize)
         file.batchs = append(file.batchs, batch)
@@ -36,17 +37,26 @@ func RenewFile(baseDir string, meta *dscom.FileMI) *File {
     return &file
 }
 
-func (file *File) Meta() *dscom.FileMI {
-    fileMeta := dscom.NewFileMI()
+func (file *File) Meta() (*dscom.FileDescr, error) {
+    var err error
+    fileMeta := dscom.NewFileDescr()
     fileMeta.FileId     = file.fileId
     fileMeta.BatchCount = file.batchCount()
     fileMeta.BatchSize  = file.batchSize
     fileMeta.BlockSize  = file.blockSize
+    fileMeta.FileSize, err = file.Size()
+    if err != nil {
+        return fileMeta, err
+    }
+
     for i := range file.batchs {
-        batchMeta := file.batchs[i].Meta()
+        batchMeta, err := file.batchs[i].Meta()
+        if err != nil {
+            return fileMeta, err
+        }
         fileMeta.Batchs = append(fileMeta.Batchs, batchMeta)
     }
-    return fileMeta
+    return fileMeta, err
 }
 
 func (file *File) Open() error {

@@ -16,7 +16,7 @@ type ListParams struct {
 }
 
 type ListResult struct {
-    Files   []*dscom.CFile   `json:"cFiles"`
+    Files   []*dscom.DirEntry   `json:"cFiles"`
 }
 
 func NewListResult() *ListResult {

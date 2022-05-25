@@ -5,6 +5,7 @@
 package fsrec
 
 import (
+    "fmt"
     "io/fs"
     "io"
 
@@ -20,6 +21,7 @@ type Store struct {
     dataRoot string
     dirPerm   fs.FileMode
     filePerm  fs.FileMode
+    metaFile  *dscom.FileMI
 }
 
 func NewStore(dataRoot string) *Store {
@@ -41,10 +43,17 @@ func (store *Store) SaveFile(fileName string, fileReader io.Reader, fileSize int
     var batchSize   int64 = 5
     var blockSize   int64 = 1024
     file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
-    file.Open()
+    err = file.Open()
     defer file.Close()
+    if err != nil {
+        return err
+    }
 
-    file.Write(fileReader)
+    _, err = file.Write(fileReader)
+    if err != nil && err != io.EOF {
+        return err
+    }
+    store.metaFile = file.Meta()
     return err
 }
 
@@ -57,24 +66,45 @@ func (store *Store) FileExists(fileName string) (int64, error) {
 func (store *Store) LoadFile(fileName string, fileWriter io.Writer) error {
     var err error
 
-    var fileId      int64 = 15
-    var batchSize   int64 = 5
-    var blockSize   int64 = 1024
-    file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
-    file.Open()
+    file := fsfile.RenewFile(store.dataRoot, store.metaFile)
+    err = file.Open()
     defer file.Close()
-
-    file.Read(fileWriter)
+    if err != nil {
+        return err
+    }
+    _, err = file.Read(fileWriter)
+    if err != nil {
+        return err
+    }
     return err
 }
 
 func (store *Store) DeleteFile(fileName string) error {
     var err error
+
+    //var fileId      int64 = 15
+    //var batchSize   int64 = 5
+    //var blockSize   int64 = 1024
+    //file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
+    if store.metaFile == nil {
+        fmt.Println("metafile is nil")
+    }
+    file := fsfile.RenewFile(store.dataRoot, store.metaFile)
+    err = file.Open()
+    defer file.Close()
+    if err != nil {
+        return err
+    }
+    err = file.Purge()
+    if err != nil {
+        return err
+    }
+
     return err
 }
 
-func (store *Store) ListFiles(dirName string) ([]*dscom.CFile, error) {
+func (store *Store) ListFiles(dirName string) ([]*dscom.DirEntry, error) {
     var err error
-    files := make([]*dscom.CFile, 0)
+    files := make([]*dscom.DirEntry, 0)
     return files, err
 }

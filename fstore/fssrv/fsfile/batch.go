@@ -27,13 +27,20 @@ func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batc
     return &batch
 }
 
-func (batch *Batch) Meta() *dscom.BatchMI {
-    batchMeta := dscom.NewBatchMI()
+func (batch *Batch) Meta() (*dscom.BatchDescr, error) {
+    var err error
+    batchMeta := dscom.NewBatchDescr()
+    batchMeta.FileId    = batch.fileId
+    batchMeta.BatchId   = batch.batchId
+    batchMeta.BatchSize = batch.batchSize
     for i := range batch.blocks {
-        blockMeta := batch.blocks[i].Meta()
+        blockMeta, err := batch.blocks[i].Meta()
+        if err != nil {
+            return batchMeta, err
+        }
         batchMeta.Blocks = append(batchMeta.Blocks, blockMeta)
     }
-    return batchMeta
+    return batchMeta, err
 }
 
 

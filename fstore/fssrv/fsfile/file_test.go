@@ -89,7 +89,8 @@ func TestFileWriteMetaRead(t *testing.T) {
     assert.Equal(t, err, io.EOF)
     assert.Equal(t, dataSize, written)
 
-    meta := file.Meta()
+    meta, err := file.Meta()
+    assert.NoError(t, err)
 
     //metaJSON, _ := json.MarshalIndent(meta, " ", "    ")
     //fmt.Println(string(metaJSON))

@@ -1,53 +1,52 @@
 package dscom
 
 
-type FileMI struct {
-    FileId      int64       `json:"fileId"`
-    BatchSize   int64       `json:"batchSize"`
-    BlockSize   int64       `json:"blockSize"`
-    BatchCount  int64       `json:"batchCount"`
-    Batchs      []*BatchMI  `json:"batchs"`
+type DirEntryDescr struct {
+    FilePath    string      `json:"filePath"`
+    FileSize    int64       `json:"fileSize"`
 }
 
-func NewFileMI() *FileMI {
-    var fileMeta FileMI
-    fileMeta.Batchs = make([]*BatchMI, 0)
-    return &fileMeta
+type FileDescr struct {
+    FileId      int64       `json:"fileId"      db:"file_id"`
+    FileSize    int64       `json:"fileSize"    db:"file_size"`
+    BatchSize   int64       `json:"batchSize"   db:"batch_size"`
+    BlockSize   int64       `json:"blockSize"   db:"block_size"`
+    BatchCount  int64       `json:"batchCount"  db:"batch_count"`
+    Batchs      []*BatchDescr  `json:"batchs"      db:"-"`
 }
 
-
-type BatchMI struct {
-    Blocks      []*BlockMI  `json:"blocks"`
+func NewFileDescr() *FileDescr {
+    var file FileDescr
+    file.Batchs = make([]*BatchDescr, 0)
+    return &file
 }
 
-func NewBatchMI() *BatchMI {
-    var batchMeta BatchMI
-    batchMeta.Blocks = make([]*BlockMI, 0)
-    return &batchMeta
+type BatchDescr struct {
+    FileId      int64       `json:"fileId"      db:"file_id"`
+    BatchId     int64       `json:"batchId"     db:"batch_id"`
+    BatchSize   int64       `json:"batchSize"   db:"batch_size"`
+    BlockSize   int64       `json:"blockSize"   db:"block_size"`
+    Blocks      []*BlockDescr  `json:"blocks"      db:"-"`
 }
 
-
-type BlockMI struct {
-    ClusterId   int64       `db:"cluster_id"  json:"clusterId"`
-    FileId      int64       `db:"file_id"     json:"fileId"`
-    BatchId     int64       `db:"batch_id"    json:"batchId"`
-    BlockId     int64       `db:"block_id"    json:"blockId"`
-    BlockSize   int64       `db:"block_size"  json:"blockSize"`
-    FileName    string      `db:"file_path"   json:"filePath"`
-    HashAlg     string      `db:"hash_alg"    json:"hashAlg"`
-    HashSum     string      `db:"hash_sum"    json:"hashSum"`
-    HashInit    string      `db:"hash_init"   json:"hashInit"`
+func NewBatchDescr() *BatchDescr {
+    var batch BatchDescr
+    batch.Blocks = make([]*BlockDescr, 0)
+    return &batch
 }
 
-//type BlockMI struct {
-//    FileId      int64       `json:"fileId"      db:"file_id"`
-//    FileName    string      `json:"fileName"    db:"file_name"`
-//    HashSum     string      `json:"hashSum"     db:"hash_sum"`
-//    HashInit    string      `json:"hashInit"    db:"hash_init"`
-//    Size        int64       `json:"size"        db:"size"`
-//}
+type BlockDescr struct {
+    FileId      int64       `json:"fileId"      db:"file_id"`
+    BatchId     int64       `json:"batchId"     db:"batch_id"`
+    BlockId     int64       `json:"blockId"     db:"block_id"`
+    BlockSize   int64       `json:"blockSize"   db:"block_size"`
+    FilePath    string      `json:"filePath"    db:"file_path"`
+    HashSum     string      `json:"hashSum"     db:"hash_sum"`
+    HashInit    string      `json:"hashInit"    db:"hash_init"`
+    DataSize    int64       `json:"dataSize"    db:"data_size"`
+}
 
-func NewBlockMI() *BlockMI {
-    var blockMeta BlockMI
-    return &blockMeta
+func NewBlockDescr() *BlockDescr {
+    var block BlockDescr
+    return &block
 }

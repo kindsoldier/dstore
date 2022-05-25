@@ -47,17 +47,26 @@ func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *
     hasher, _ := highwayhash.New(hashInit)
 
     block.hashInit  = hashInit
-    block.hasher = hasher
+    block.hasher    = hasher
     return &block
 }
 
-func (block *Block) Meta() *dscom.BlockMI {
-    meta := dscom.NewBlockMI()
-    meta.FileName = block.fileName()
-    meta.HashInit = hex.EncodeToString(block.hashInit)
-    meta.HashSum = hex.EncodeToString(block.hashSum)
-    //meta.Size, _ = block.Size()
-    return meta
+func (block *Block) Meta() (*dscom.BlockDescr, error) {
+    var err error
+    meta := dscom.NewBlockDescr()
+    meta.FileId     = block.fileId
+    meta.BatchId    = block.batchId
+    meta.BlockId    = block.blockId
+    meta.BlockSize  = block.blockSize
+
+    meta.FilePath   = block.fileName()
+    meta.DataSize, err  = block.Size()
+    if err != nil {
+            return meta, err
+    }
+    meta.HashInit   = hex.EncodeToString(block.hashInit)
+    meta.HashSum    = hex.EncodeToString(block.hashSum)
+    return meta, err
 }
 
 func (block *Block) Open() error {

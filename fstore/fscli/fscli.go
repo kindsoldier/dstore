@@ -36,7 +36,7 @@ type Util struct {
     URI         string
     SubCmd      string
 
-    ClusterId   int64
+    UserId   int64
     FileId      int64
     BatchId     int64
     BlockId     int64
@@ -110,7 +110,7 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case saveCmd, loadCmd:
             flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
+            flagSet.Int64Var(&util.UserId, "c", util.UserId, "cluster id")
             flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
@@ -128,7 +128,7 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case listCmd:
             flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
+            flagSet.Int64Var(&util.UserId, "c", util.UserId, "cluster id")
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -205,7 +205,7 @@ func (util *Util) SaveCmd() (*fsapi.SaveResult, error) {
     var err error
 
     params := fsapi.NewSaveParams()
-    params.ClusterId    = util.ClusterId
+    params.UserId    = util.UserId
     params.FileId       = util.FileId
     params.BatchId      = util.BatchId
     params.BlockId      = util.BlockId
@@ -237,7 +237,7 @@ func (util *Util) LoadCmd() (*fsapi.LoadResult, error) {
     var err error
 
     params := fsapi.NewLoadParams()
-    params.ClusterId    = util.ClusterId
+    params.UserId    = util.UserId
     params.FileId       = util.FileId
     params.BatchId      = util.BatchId
     params.BlockId      = util.BlockId
@@ -260,7 +260,7 @@ func (util *Util) LoadCmd() (*fsapi.LoadResult, error) {
 func (util *Util) ListCmd() (*fsapi.ListResult, error) {
     var err error
     params := fsapi.NewListParams()
-    params.ClusterId = util.ClusterId
+    params.UserId = util.UserId
     result := fsapi.NewListResult()
     err = dsrpc.Exec(util.URI, fsapi.ListMethod, params, result, nil)
     if err != nil {
