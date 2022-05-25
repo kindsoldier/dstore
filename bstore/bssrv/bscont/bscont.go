@@ -50,12 +50,10 @@ func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
     blockSize   := context.BinSize()
     blockReader := context.BinReader()
 
-    clusterId   := params.ClusterId
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
-    err = contr.Store.SaveBlock(clusterId, fileId, batchId, blockId,
-                                                blockReader, blockSize)
+    err = contr.Store.SaveBlock(fileId, batchId, blockId, blockReader, blockSize)
     if err != nil {
         context.SendError(err)
         return err
@@ -77,7 +75,6 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
         return err
     }
 
-    clusterId   := params.ClusterId
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
@@ -90,7 +87,7 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
         return err
     }
 
-    blockSize, err := contr.Store.BlockExists(clusterId, fileId, batchId, blockId)
+    blockSize, err := contr.Store.BlockExists(fileId, batchId, blockId)
     if err != nil {
         context.SendError(err)
         return err
@@ -101,7 +98,7 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
         return err
     }
 
-    err = contr.Store.LoadBlock(clusterId, fileId, batchId, blockId, blockWriter)
+    err = contr.Store.LoadBlock(fileId, batchId, blockId, blockWriter)
     if err != nil {
         return err
     }
@@ -116,12 +113,11 @@ func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    clusterId   := params.ClusterId
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
 
-    err = contr.Store.DeleteBlock(clusterId, fileId, batchId, blockId)
+    err = contr.Store.DeleteBlock(fileId, batchId, blockId)
     if err != nil {
         context.SendError(err)
         return err
@@ -141,9 +137,8 @@ func (contr *Contr) ListHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    clusterId   := params.ClusterId
 
-    blocks, err := contr.Store.ListBlocks(clusterId)
+    blocks, err := contr.Store.ListBlocks()
     if err != nil {
         context.SendError(err)
         return err

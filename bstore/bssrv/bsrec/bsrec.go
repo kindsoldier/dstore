@@ -21,6 +21,8 @@ import (
 const blockFileExt string = ".blk"
 const storeDBName  string = "reg.db"
 
+type Block = dscom.BlockMI
+
 
 type Store struct {
     dataRoot string
@@ -66,11 +68,11 @@ func (store *Store) CloseReg() error {
     return err
 }
 
-func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
-                                blockReader io.Reader, blockSize int64) error {
+func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Reader,
+                                                                        blockSize int64) error {
     var err error
 
-    blockExists, err := store.reg.BlockExists(clusterId, fileId, batchId, blockId)
+    blockExists, err := store.reg.BlockExists(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -78,7 +80,7 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
         return errors.New("block yet exists")
     }
 
-    fileName := MakeBlockName(clusterId, fileId, batchId, blockId)
+    fileName := MakeBlockName(fileId, batchId, blockId)
     subdirName := MakeDirName(fileName)
     dirPath := filepath.Join(store.dataRoot, subdirName)
     os.MkdirAll(dirPath, store.dirPerm)
@@ -96,7 +98,7 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
     }
 
     filePath := filepath.Join(subdirName, fileName)
-    err = store.reg.AddBlock(clusterId, fileId, batchId, blockId, blockSize, filePath)
+    err = store.reg.AddBlock(fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
         os.Remove(filePath)
         return err
@@ -104,10 +106,10 @@ func (store *Store) SaveBlock(clusterId, fileId, batchId, blockId int64,
     return err
 }
 
-func (store *Store) BlockExists(clusterId, fileId, batchId, blockId int64) (int64, error) {
+func (store *Store) BlockExists(fileId, batchId, blockId int64) (int64, error) {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlock(clusterId, fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlock(fileId, batchId, blockId)
     if err != nil {
         return blockSize, err
     }
@@ -121,11 +123,11 @@ func (store *Store) BlockExists(clusterId, fileId, batchId, blockId int64) (int6
 }
 
 
-func (store *Store) LoadBlock(clusterId, fileId, batchId, blockId int64,
+func (store *Store) LoadBlock(fileId, batchId, blockId int64,
                                                     blockWriter io.Writer) error {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlock(clusterId, fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlock(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -142,10 +144,10 @@ func (store *Store) LoadBlock(clusterId, fileId, batchId, blockId int64,
     return err
 }
 
-func (store *Store) DeleteBlock(clusterId, fileId, batchId, blockId int64) error {
+func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
     var err error
     var filePath string
-    filePath, _, err = store.reg.GetBlock(clusterId, fileId, batchId, blockId)
+    filePath, _, err = store.reg.GetBlock(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -154,26 +156,25 @@ func (store *Store) DeleteBlock(clusterId, fileId, batchId, blockId int64) error
     if err != nil {
         return err
     }
-    err = store.reg.DeleteBlock(clusterId, fileId, batchId, blockId)
+    err = store.reg.DeleteBlock(fileId, batchId, blockId)
     if err != nil {
         return err
     }
     return err
 }
 
-func (store *Store) ListBlocks(clusterId int64) ([]dscom.Block, error) {
+func (store *Store) ListBlocks() ([]Block, error) {
     var err error
-    blocks, err := store.reg.ListBlocks(clusterId)
+    blocks, err := store.reg.ListBlocks()
     if err != nil {
         return blocks, err
     }
     return blocks, err
 }
 
-
-func MakeBlockName(clusterId, fileId, batchId, blockId int64) string {
+func MakeBlockName(fileId, batchId, blockId int64) string {
     var fileName string
-    fileName = fmt.Sprintf("%020d-%020d-%020d-%020d", clusterId, fileId, batchId, blockId)
+    fileName = fmt.Sprintf("%020d-%020d-%020d", fileId, batchId, blockId)
     fileName = xtools.Raw2HashString([]byte(fileName))
     fileName = fileName + blockFileExt
     return fileName

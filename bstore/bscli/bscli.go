@@ -36,7 +36,6 @@ type Util struct {
     URI         string
     SubCmd      string
 
-    ClusterId   int64
     FileId      int64
     BatchId     int64
     BlockId     int64
@@ -110,7 +109,6 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case saveCmd, loadCmd:
             flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
             flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
@@ -128,7 +126,6 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case listCmd:
             flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.ClusterId, "c", util.ClusterId, "cluster id")
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -205,10 +202,9 @@ func (util *Util) SaveCmd() (*bsapi.SaveResult, error) {
     var err error
 
     params := bsapi.NewSaveParams()
-    params.ClusterId    = util.ClusterId
-    params.FileId       = util.FileId
-    params.BatchId      = util.BatchId
-    params.BlockId      = util.BlockId
+    params.FileId   = util.FileId
+    params.BatchId  = util.BatchId
+    params.BlockId  = util.BlockId
 
     result := bsapi.NewSaveResult()
 
@@ -237,10 +233,9 @@ func (util *Util) LoadCmd() (*bsapi.LoadResult, error) {
     var err error
 
     params := bsapi.NewLoadParams()
-    params.ClusterId    = util.ClusterId
-    params.FileId       = util.FileId
-    params.BatchId      = util.BatchId
-    params.BlockId      = util.BlockId
+    params.FileId   = util.FileId
+    params.BatchId  = util.BatchId
+    params.BlockId  = util.BlockId
 
     result := bsapi.NewLoadResult()
 
@@ -260,7 +255,6 @@ func (util *Util) LoadCmd() (*bsapi.LoadResult, error) {
 func (util *Util) ListCmd() (*bsapi.ListResult, error) {
     var err error
     params := bsapi.NewListParams()
-    params.ClusterId = util.ClusterId
     result := bsapi.NewListResult()
     err = dsrpc.Exec(util.URI, bsapi.ListMethod, params, result, nil)
     if err != nil {

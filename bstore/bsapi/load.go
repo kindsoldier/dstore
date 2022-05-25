@@ -8,7 +8,6 @@ package bsapi
 const LoadMethod string = "load"
 
 type LoadParams struct {
-    ClusterId   int64           `json:"clusterId"`
     FileId      int64           `json:"fileId"`
     BatchId     int64           `json:"batchId"`
     BlockId     int64           `json:"blockId"`

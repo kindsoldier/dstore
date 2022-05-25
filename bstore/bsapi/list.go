@@ -12,7 +12,6 @@ import (
 const ListMethod string = "list"
 
 type ListParams struct {
-    ClusterId   int64           `json:"clusterId"`
 }
 
 type ListResult struct {

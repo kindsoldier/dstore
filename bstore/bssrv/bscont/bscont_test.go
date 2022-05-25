@@ -35,12 +35,11 @@ func TestHello(t *testing.T) {
     assert.Equal(t, helloResp, result.Message)
 }
 
-func TestSLD(t *testing.T) {
+func TestSaveLoadDelete(t *testing.T) {
     var err error
 
     params := bsapi.NewSaveParams()
 
-    params.ClusterId    = 1
     params.FileId       = 2
     params.BatchId      = 3
     params.BlockId      = 4

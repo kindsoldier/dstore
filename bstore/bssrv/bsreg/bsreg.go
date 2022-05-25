@@ -15,7 +15,6 @@ import (
 const schema = `
     DROP TABLE IF EXISTS blocks;
     CREATE TABLE IF NOT EXISTS blocks (
-        cluster_id  INTEGER,
         file_id     INTEGER,
         batch_id    INTEGER,
         block_id    INTEGER,
@@ -27,7 +26,7 @@ const schema = `
     );
     DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
-        ON blocks (cluster_id, file_id, batch_id, block_id);
+        ON blocks (file_id, batch_id, block_id);
     `
 
 var ErrorNilRef error = errors.New("db ref is nil")
@@ -78,17 +77,16 @@ func (reg *Reg) MigrateDB() error {
     return err
 }
 
-func (reg *Reg) AddBlock(clusterId, fileId, batchId, blockId, blockSize int64,
-                                                                    filePath string) error {
+func (reg *Reg) AddBlock(fileId, batchId, blockId, blockSize int64, filePath string) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
     }
     request := `
         INSERT
-            INTO blocks(cluster_id, file_id, batch_id, block_id, block_size, file_path)
-        VALUES ($1, $2, $3, $4, $5, $6)`
-    _, err = reg.db.Exec(request, clusterId, fileId, batchId, blockId, blockSize, filePath)
+            INTO blocks(file_id, batch_id, block_id, block_size, file_path)
+        VALUES ($1, $2, $3, $4, $5)`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
         return err
     }
@@ -96,8 +94,7 @@ func (reg *Reg) AddBlock(clusterId, fileId, batchId, blockId, blockSize int64,
 }
 
 
-func (reg *Reg) UpdateBlock(clusterId, fileId, batchId, blockId, blockSize int64,
-                                                                    filePath string) error {
+func (reg *Reg) UpdateBlock(fileId, batchId, blockId, blockSize int64, filePath string) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
@@ -105,18 +102,17 @@ func (reg *Reg) UpdateBlock(clusterId, fileId, batchId, blockId, blockSize int64
     tx, err := reg.db.Begin()
     var request string
     request = `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
+                WHERE file_id = $2
                     AND batch_id = $3
                     AND block_id = $4`
-    _, err = tx.Exec(request, clusterId, fileId, batchId, blockId)
+    _, err = tx.Exec(request, fileId, batchId, blockId)
     if err != nil {
         return err
     }
     request = `INSERT
-                INTO blocks(cluster_id, file_id, batch_id, block_id, block_size, file_path)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)`
-    _, err = tx.Exec(request, clusterId, fileId, batchId, blockId, blockSize, filePath)
+                INTO blocks(file_id, batch_id, block_id, block_size, file_path)
+                VALUES ($1, $2, $3, $4, $5)`
+    _, err = tx.Exec(request, fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
         return err
     }
@@ -128,7 +124,7 @@ func (reg *Reg) UpdateBlock(clusterId, fileId, batchId, blockId, blockSize int64
     return err
 }
 
-func (reg *Reg) GetBlock(clusterId, fileId, batchId, blockId int64) (string, int64, error) {
+func (reg *Reg) GetBlock(fileId, batchId, blockId int64) (string, int64, error) {
     var err error
     var filePath string
     var blockSize int64
@@ -138,14 +134,13 @@ func (reg *Reg) GetBlock(clusterId, fileId, batchId, blockId int64) (string, int
     }
     request := `SELECT file_path, block_size
                 FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
+                WHERE file_id = $2
                     AND batch_id = $3
                     AND block_id = $4
                 LIMIT 1`
 
     var block Block
-    err = reg.db.Get(&block, request, clusterId, fileId, batchId, blockId)
+    err = reg.db.Get(&block, request, fileId, batchId, blockId)
     if err != nil {
         return filePath, blockSize, err
     }
@@ -155,7 +150,7 @@ func (reg *Reg) GetBlock(clusterId, fileId, batchId, blockId int64) (string, int
 }
 
 
-func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, error) {
+func (reg *Reg) BlockExists(fileId, batchId, blockId int64) (bool, error) {
     var err error
     var exists bool
     if reg.db == nil {
@@ -164,14 +159,13 @@ func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, er
 
     request := `SELECT file_path
                 FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
+                WHERE file_id = $2
                     AND batch_id = $3
                     AND block_id = $4
                 LIMIT 1`
 
     blocks := make([]Block, 0)
-    err = reg.db.Select(&blocks, request, clusterId, fileId, batchId, blockId)
+    err = reg.db.Select(&blocks, request, fileId, batchId, blockId)
     if err != nil {
         return exists, err
     }
@@ -181,62 +175,58 @@ func (reg *Reg) BlockExists(clusterId, fileId, batchId, blockId int64) (bool, er
     return exists, err
 }
 
-func (reg *Reg) ListBlocks(clusterId int64) ([]Block, error) {
+func (reg *Reg) ListBlocks() ([]Block, error) {
     var err error
     blocks := make([]Block, 0)
     if reg.db == nil {
         return blocks, ErrorNilRef
     }
     request := `SELECT file_path
-                FROM blocks
-                WHERE cluster_id = $1`
-    err = reg.db.Select(&blocks, request, clusterId)
+                FROM blocks`
+    err = reg.db.Select(&blocks, request)
     if err != nil {
         return blocks, err
     }
     return blocks, err
 }
 
-func (reg *Reg) DeleteBlock(clusterId, fileId, batchId, blockId int64) error {
+func (reg *Reg) DeleteBlock(fileId, batchId, blockId int64) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
     }
     request := `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2
+                WHERE file_id = $2
                     AND batch_id = $3
                     AND block_id = $4`
-    _, err = reg.db.Exec(request, clusterId, fileId, batchId, blockId)
+    _, err = reg.db.Exec(request, fileId, batchId, blockId)
     if err != nil {
         return err
     }
     return err
 }
 
-func (reg *Reg) PurgeFile(clusterId, fileId int64) error {
+func (reg *Reg) PurgeFile(fileId int64) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
     }
     request := `DELETE FROM blocks
-                WHERE cluster_id = $1
-                    AND file_id = $2`
-    _, err = reg.db.Exec(request, clusterId, fileId)
+                WHERE file_id = $2`
+    _, err = reg.db.Exec(request, fileId)
     if err != nil {
         return err
     }
     return err
 }
 
-func (reg *Reg) PurgeCluster(clusterId int64) error {
+func (reg *Reg) PurgeCluster(userId int64) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
     }
-    request := `DELETE FROM blocks
-                WHERE cluster_id = $1`
-    _, err = reg.db.Exec(request, clusterId)
+    request := `DELETE FROM blocks`
+    _, err = reg.db.Exec(request, userId)
     if err != nil {
         return err
     }
