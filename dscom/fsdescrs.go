@@ -1,10 +1,17 @@
 package dscom
 
 
-type DirEntryDescr struct {
-    FilePath    string      `json:"filePath"`
-    FileSize    int64       `json:"fileSize"`
+type EntryDescr struct {
+    DirPath     string      `json:"dirPath"     db:"dir_path"`
+    FileName    string      `json:"fileName"    db:"file_name"`
+    FileId      int64       `json:"fileId"      db:"file_id"`
 }
+
+func NewEntryDescr() *EntryDescr {
+    var entry EntryDescr
+    return &entry
+}
+
 
 type FileDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`

@@ -18,7 +18,7 @@ func NewBatch(baseDir string, fileId, batchId, batchSize, blockSize int64) *Batc
     batch.baseDir   = baseDir
     batch.fileId    = fileId
     batch.batchId   = batchId
-    batch.batchSize  = batchSize
+    batch.batchSize = batchSize
 
     batch.blocks = make([]*Block, batch.batchSize)
     for i := int64(0); i < batch.batchSize; i++ {
