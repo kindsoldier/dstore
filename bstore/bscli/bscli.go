@@ -47,15 +47,17 @@ func NewUtil() *Util {
     var util Util
     util.Port = "5001"
     util.Address = "127.0.0.1"
-    util.Message = "hello world!"
+    util.Message = "hello"
     return &util
 }
 
-const helpCmd   string = "help"
-const helloCmd  string = "hello"
-const saveCmd   string = "save"
-const loadCmd   string = "load"
-const listCmd   string = "list"
+const helpCmd           string = "help"
+const getHelloCmd       string = "hello"
+const saveBlockCmd      string = "save"
+const loadBlocksCmd     string = "load"
+const listBlocksCmd     string = "list"
+const deleteBlockCmd    string = "delete"
+
 
 func (util *Util) GetOpt() error {
     var err error
@@ -69,7 +71,7 @@ func (util *Util) GetOpt() error {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: hello, save, load, list \n")
+        fmt.Printf("Command list: hello, save, load, list, delete \n")
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
         flag.PrintDefaults()
@@ -81,7 +83,7 @@ func (util *Util) GetOpt() error {
     args := flag.Args()
 
     //if len(args) == 0 {
-    //    args = append(args, helloCmd)
+    //    args = append(args, getHelloCmd)
     //}
 
     var subCmd string
@@ -94,8 +96,8 @@ func (util *Util) GetOpt() error {
         case helpCmd:
             help()
             return errors.New("unknown command")
-        case helloCmd:
-            flagSet := flag.NewFlagSet(helloCmd, flag.ContinueOnError)
+        case getHelloCmd:
+            flagSet := flag.NewFlagSet(getHelloCmd, flag.ContinueOnError)
             flagSet.StringVar(&util.Message, "m", util.Message, "message")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -107,8 +109,8 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case saveCmd, loadCmd:
-            flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
+        case saveBlockCmd, loadBlocksCmd, deleteBlockCmd:
+            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ContinueOnError)
             flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
@@ -124,8 +126,8 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case listCmd:
-            flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
+        case listBlocksCmd:
+            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ContinueOnError)
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -164,17 +166,20 @@ func (util *Util) Exec() error {
     resp := NewResponse(nil, nil)
 
     switch util.SubCmd {
-        case helloCmd:
+        case getHelloCmd:
             result, err := util.GetHelloCmd()
             resp = NewResponse(result, err)
-        case saveCmd:
+        case saveBlockCmd:
             result, err := util.SaveBlockCmd()
             resp = NewResponse(result, err)
-        case loadCmd:
+        case loadBlocksCmd:
             result, err := util.LoadBlockCmd()
             resp = NewResponse(result, err)
-        case listCmd:
+        case listBlocksCmd:
             result, err := util.ListBlocksCmd()
+            resp = NewResponse(result, err)
+        case deleteBlockCmd:
+            result, err := util.DeleteBlockCmd()
             resp = NewResponse(result, err)
         default:
     }
@@ -256,6 +261,17 @@ func (util *Util) ListBlocksCmd() (*bsapi.ListBlocksResult, error) {
     params := bsapi.NewListBlocksParams()
     result := bsapi.NewListBlocksResult()
     err = dsrpc.Exec(util.URI, bsapi.ListBlocksMethod, params, result, nil)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) DeleteBlockCmd() (*bsapi.DeleteBlockResult, error) {
+    var err error
+    params := bsapi.NewDeleteBlockParams()
+    result := bsapi.NewDeleteBlockResult()
+    err = dsrpc.Exec(util.URI, bsapi.DeleteBlockMethod, params, result, nil)
     if err != nil {
         return result, err
     }
