@@ -9,9 +9,9 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestDB(t *testing.T) {
+func TestInsertSelectDelete(t *testing.T) {
     var err error
-    path := filepath.Join(t.TempDir(), "reg.db")
+    path := filepath.Join(t.TempDir(), "blocks.db")
     reg := NewReg()
     err = reg.OpenDB(path)
     assert.NoError(t, err)
@@ -44,20 +44,22 @@ func TestDB(t *testing.T) {
         assert.NoError(t, err)
         assert.Equal(t, filePath, nFileName)
 
-        //err := reg.DeleteBlock(userId, fileId, batchId, blockId)
-        //assert.NoError(t, err)
+        err = reg.DeleteBlock(fileId, batchId, blockId)
+        assert.NoError(t, err)
     }
 }
 
 func BenchmarkInsert(b *testing.B) {
     var err error
-    path := filepath.Join(b.TempDir(), "reg.db")
+    path := filepath.Join(b.TempDir(), "blocks.db")
     reg := NewReg()
     err = reg.OpenDB(path)
     assert.NoError(b, err)
 
     err = reg.MigrateDB()
     assert.NoError(b, err)
+
+    b.ResetTimer()
 
     const numRange int = 1024
     pBench := func(pb *testing.PB) {
@@ -79,7 +81,7 @@ func BenchmarkInsert(b *testing.B) {
 
 func BenchmarkSelect(b *testing.B) {
     var err error
-    path := filepath.Join(b.TempDir(), "reg.db")
+    path := filepath.Join(b.TempDir(), "blocks.db")
     reg := NewReg()
     err = reg.OpenDB(path)
     assert.NoError(b, err)
