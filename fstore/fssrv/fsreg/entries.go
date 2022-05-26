@@ -7,6 +7,16 @@ import (
     "ndstore/dscom"
 )
 
+
+const entriesSchema = `
+    DROP TABLE IF EXISTS entries;
+    CREATE TABLE IF NOT EXISTS entries (
+        dir_path   TEXT,
+        file_name  TEXT,
+        file_id    INTEGER
+    );
+    `
+
 func (reg *Reg) AddEntryDescr(dirPath, fileName string, fileId int64) error {
     var err error
     request := `
@@ -19,20 +29,27 @@ func (reg *Reg) AddEntryDescr(dirPath, fileName string, fileId int64) error {
     return err
 }
 
-func (reg *Reg) GetEntryDescr(dirPath, fileName string) (*dscom.EntryDescr, error) {
+func (reg *Reg) GetEntryDescr(dirPath, fileName string) (*dscom.EntryDescr, bool, error) {
     var err error
+    var exists bool
+    var entry *dscom.EntryDescr
     request := `
         SELECT dir_path, file_name, file_id
         FROM entries
         WHERE dir_path = $1
             AND file_name = $2
         LIMIT 1;`
-    entry := dscom.NewEntryDescr()
-    err = reg.db.Get(entry, request, dirPath, fileName)
+    entries := make([]*dscom.EntryDescr, 0)
+    err = reg.db.Select(&entries, request, dirPath, fileName)
     if err != nil {
-        return entry, err
+        return entry, exists, err
+
     }
-    return entry, err
+    if len(entries) > 0 {
+        exists = true
+        entry = entries[0]
+    }
+    return entry, exists, err
 }
 
 func (reg *Reg) EntryDescrExists(dirPath, fileName string) (bool, error) {

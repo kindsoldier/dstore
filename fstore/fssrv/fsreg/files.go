@@ -7,6 +7,46 @@ import (
     "ndstore/dscom"
 )
 
+const filesSchema = `
+    -- DROP TABLE IF EXISTS files;
+    CREATE TABLE IF NOT EXISTS files (
+        file_id     INTEGER,
+        batch_count INTEGER,
+        batch_size  INTEGER,
+        block_size  INTEGER,
+        file_size   INTEGER
+    );
+    DROP INDEX IF EXISTS file_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS file_idx
+        ON files (file_id);
+
+    -- DROP TABLE IF EXISTS batchs;
+    CREATE TABLE IF NOT EXISTS batchs (
+        file_id     INTEGER,
+        batch_id    INTEGER,
+        batch_size  INTEGER,
+        block_size  INTEGER
+    );
+    DROP INDEX IF EXISTS batch_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS batch_idx
+        ON batchs (file_id, batch_id);
+
+    -- DROP TABLE IF EXISTS blocks;
+    CREATE TABLE IF NOT EXISTS blocks (
+        file_id     INTEGER,
+        batch_id    INTEGER,
+        block_id    INTEGER,
+        block_size  INTEGER,
+        file_path   TEXT,
+        hash_init   TEXT,
+        hash_sum    TEXT,
+        data_size  INTEGER
+    );
+    DROP INDEX IF EXISTS block_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS block_idx
+        ON blocks (file_id, batch_id, block_id);
+    `
+
 func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     var err error
 
@@ -106,6 +146,27 @@ func (reg *Reg) GetFileDescr(fileId int64) (*dscom.FileDescr, error) {
         file.Batchs[i].Blocks = blocks
     }
     return file, err
+}
+
+func (reg *Reg) GetNewFileId() (int64, error) {
+    var err error
+    var fileId int64
+
+    request := `
+        SELECT file_id
+        FROM files
+        ORDER BY file_id DESC
+        LIMIT 1;`
+    files := make([]*dscom.FileDescr, 0)
+    err = reg.db.Select(&files, request)
+    if err != nil {
+        return fileId, err
+    }
+    if len(files) > 0 {
+        fileId = files[0].FileId + 1
+    }
+
+    return fileId, err
 }
 
 func (reg *Reg) FileDescrExists(fileId int64) (bool, error) {

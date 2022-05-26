@@ -15,11 +15,23 @@ import (
 func TestInsertSelectDeleteFileDescr(t *testing.T) {
     var err error
 
-    var fileId      int64 = 1
+    dbPath := "postgres://pgsql@localhost/test"
+    reg := NewReg()
+
+    err = reg.OpenDB(dbPath)
+    assert.NoError(t, err)
+
+    err = reg.MigrateDB()
+    assert.NoError(t, err)
+
+
     var batchSize   int64 = 5
     var blockSize   int64 = 1024 * 1024
 
     baseDir := t.TempDir()
+
+    fileId, err := reg.GetNewFileId()
+    assert.NoError(t, err)
 
     file := fsfile.NewFile(baseDir, fileId, batchSize, blockSize)
 
@@ -45,18 +57,8 @@ func TestInsertSelectDeleteFileDescr(t *testing.T) {
     err = file.Close()
     assert.NoError(t, err)
 
-
-    dbPath := "postgres://pgsql@localhost/test"
-    reg := NewReg()
-
-    err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
-
-    err = reg.MigrateDB()
-    assert.NoError(t, err)
-
-    err = reg.DeleteFileDescr(fileId)
-    assert.NoError(t, err)
+    //err = reg.DeleteFileDescr(fileId)
+    //assert.NoError(t, err)
 
     err = reg.AddFileDescr(origFileDescr)
     assert.NoError(t, err)
@@ -69,8 +71,8 @@ func TestInsertSelectDeleteFileDescr(t *testing.T) {
     metaJSON, _ := json.MarshalIndent(fileDescr, " ", "    ")
     assert.Equal(t, string(origMetaJSON), string(metaJSON))
 
-    err = reg.DeleteFileDescr(fileId)
-    assert.NoError(t, err)
+    //err = reg.DeleteFileDescr(fileId)
+    //assert.NoError(t, err)
 
     err = reg.CloseDB()
     assert.NoError(t, err)
@@ -102,7 +104,8 @@ func BenchmarkInsertDelete(b *testing.B) {
     pBench := func(pb *testing.PB) {
         for pb.Next() {
 
-            var fileId      int64 = int64(rand.Intn(numRange))
+            fileId, err := reg.GetNewFileId()
+            assert.NoError(b, err)
 
             exists, err := reg.FileDescrExists(fileId)
             if exists {
@@ -135,8 +138,8 @@ func BenchmarkInsertDelete(b *testing.B) {
             err = reg.AddFileDescr(fileDescr)
             assert.NoError(b, err)
 
-            //_, err = reg.GetFileDescr(fileId)
-            //assert.NoError(b, err)
+            _, err = reg.GetFileDescr(fileId)
+            assert.NoError(b, err)
 
         }
     }
@@ -145,5 +148,4 @@ func BenchmarkInsertDelete(b *testing.B) {
 
     err = reg.CloseDB()
     assert.NoError(b, err)
-
 }

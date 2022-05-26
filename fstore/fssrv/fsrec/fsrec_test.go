@@ -9,30 +9,45 @@ import (
     "bytes"
     "math/rand"
     "testing"
-    "io"
-
-    //"ndstore/fstore/fsapi"
-    //"ndstore/fstore/fssrv/fsrec"
-    //"ndstore/dsrpc"
 
     "github.com/stretchr/testify/assert"
+
+    "ndstore/fstore/fssrv/fsreg"
 )
 
 
 func TestSaveLoadDelete(t *testing.T) {
     var err error
-    baseDir := "./"
-    store := NewStore(baseDir)
+
+    baseDir := t.TempDir()
+
+    dbPath := "postgres://pgsql@localhost/test"
+    reg := fsreg.NewReg()
+
+    err = reg.OpenDB(dbPath)
+    assert.NoError(t, err)
+
+    err = reg.MigrateDB()
+    assert.NoError(t, err)
+
+    store := NewStore(baseDir, reg)
     fileName := "qwerty.txt"
 
-    data := make([]byte, 1024 * 16)
+    data := make([]byte, 1024 * 1024 * 2)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
     dataSize := int64(len(data))
 
     err = store.SaveFile(fileName, reader, dataSize)
-    assert.Equal(t, err, io.EOF)
+    assert.NoError(t, err)
+
+    writer := bytes.NewBuffer(make([]byte, 0))
+
+    err = store.LoadFile(fileName, writer)
+    assert.NoError(t, err)
+
+    assert.Equal(t, data, writer.Bytes())
 
     err = store.DeleteFile(fileName)
     assert.NoError(t, err)
