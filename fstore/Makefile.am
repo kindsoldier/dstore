@@ -42,16 +42,18 @@ instvis:
 	$(GO) get github.com/ofabry/go-callvis
 	$(GO) install github.com/ofabry/go-callvis
 
-CVCMD = go-callvis -nostd  -skipbrowser -graphviz
+CVCMD = go-callvis -nostd -skipbrowser
 CVIGNORE = nsstore/dslog
-CVDIR = .
+CVDIR = ./docs
 GOMAIN = ndstore/fstore/fssrv
 GOROOT = ndstore
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/ndsrv -file $(CVDIR)/fstore $(GOMAIN)
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv -file $(CVDIR)/fstore $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsrec -file $(CVDIR)/fscont $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsrec -file $(CVDIR)/fsrec $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsreg -file $(CVDIR)/fsreg $(GOMAIN)
+	rm -f $(CVDIR)/*.gv
 
 EXTRA_DIST += \
-	fstore.svg \
-	dsrpc.svg
+	$(CVDIR)/fstore.svg

@@ -299,11 +299,11 @@ EXTRA_fstored_SOURCES = \
 
 fstorecli_SOURCES = fscli/fscli.go
 GOFLAGS = -ldflags="-s -w"
-EXTRA_DIST = fstore.conf fstore.svg dsrpc.svg
+EXTRA_DIST = fstore.conf $(CVDIR)/fstore.svg
 PATH := $(PATH):$(HOME)/go/bin
-CVCMD = go-callvis -nostd  -skipbrowser -graphviz
+CVCMD = go-callvis -nostd -skipbrowser
 CVIGNORE = nsstore/dslog
-CVDIR = .
+CVDIR = ./docs
 GOMAIN = ndstore/fstore/fssrv
 GOROOT = ndstore
 all: all-am
@@ -769,8 +769,11 @@ instvis:
 	$(GO) install github.com/ofabry/go-callvis
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/ndsrv -file $(CVDIR)/fstore $(GOMAIN)
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv -file $(CVDIR)/fstore $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsrec -file $(CVDIR)/fscont $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsrec -file $(CVDIR)/fsrec $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/fstore/fssrv/fsreg -file $(CVDIR)/fsreg $(GOMAIN)
+	rm -f $(CVDIR)/*.gv
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

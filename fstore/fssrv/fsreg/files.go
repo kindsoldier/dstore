@@ -8,7 +8,7 @@ import (
 )
 
 const filesSchema = `
-    -- DROP TABLE IF EXISTS files;
+    DROP TABLE IF EXISTS files;
     CREATE TABLE IF NOT EXISTS files (
         file_id     INTEGER,
         batch_count INTEGER,
@@ -20,7 +20,7 @@ const filesSchema = `
     CREATE UNIQUE INDEX IF NOT EXISTS file_idx
         ON files (file_id);
 
-    -- DROP TABLE IF EXISTS batchs;
+    DROP TABLE IF EXISTS batchs;
     CREATE TABLE IF NOT EXISTS batchs (
         file_id     INTEGER,
         batch_id    INTEGER,
@@ -31,7 +31,7 @@ const filesSchema = `
     CREATE UNIQUE INDEX IF NOT EXISTS batch_idx
         ON batchs (file_id, batch_id);
 
-    -- DROP TABLE IF EXISTS blocks;
+    DROP TABLE IF EXISTS blocks;
     CREATE TABLE IF NOT EXISTS blocks (
         file_id     INTEGER,
         batch_id    INTEGER,

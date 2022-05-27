@@ -36,27 +36,25 @@ type Util struct {
     URI         string
     SubCmd      string
 
-    UserId   int64
-    FileId      int64
-    BatchId     int64
-    BlockId     int64
-
-    FilePath    string
+    LocalFilePath   string
+    RemoteFilePath  string
 }
 
 func NewUtil() *Util {
     var util Util
-    util.Port = "5001"
-    util.Address = "127.0.0.1"
-    util.Message = "hello world!"
+    util.Port       = "5002"
+    util.Address    = "127.0.0.1"
+    util.Message    = "hello"
     return &util
 }
 
-const helpCmd   string = "help"
-const helloCmd  string = "hello"
-const saveCmd   string = "save"
-const loadCmd   string = "load"
-const listCmd   string = "list"
+const getHelloCmd       string = "hello"
+const saveFileCmd       string = "save"
+const loadFileCmd       string = "load"
+const listFilesCmd      string = "list"
+const deleteFileCmd     string = "delete"
+const helpCmd           string = "help"
+
 
 func (util *Util) GetOpt() error {
     var err error
@@ -70,7 +68,7 @@ func (util *Util) GetOpt() error {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: hello, save, load, list \n")
+        fmt.Printf("Command list: hello, save, load, list, delete \n")
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
         flag.PrintDefaults()
@@ -82,7 +80,7 @@ func (util *Util) GetOpt() error {
     args := flag.Args()
 
     //if len(args) == 0 {
-    //    args = append(args, helloCmd)
+    //    args = append(args, getHelloCmd)
     //}
 
     var subCmd string
@@ -95,8 +93,8 @@ func (util *Util) GetOpt() error {
         case helpCmd:
             help()
             return errors.New("unknown command")
-        case helloCmd:
-            flagSet := flag.NewFlagSet(helloCmd, flag.ContinueOnError)
+        case getHelloCmd:
+            flagSet := flag.NewFlagSet(getHelloCmd, flag.ContinueOnError)
             flagSet.StringVar(&util.Message, "m", util.Message, "message")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -108,13 +106,10 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case saveCmd, loadCmd:
-            flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.UserId, "c", util.UserId, "cluster id")
-            flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
-            flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
-            flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
-            flagSet.StringVar(&util.FilePath, "n", util.FilePath, "block file name")
+        case saveFileCmd, loadFileCmd:
+            flagSet := flag.NewFlagSet(saveFileCmd, flag.ContinueOnError)
+            flagSet.StringVar(&util.LocalFilePath, "f", util.LocalFilePath, "local file name")
+            flagSet.StringVar(&util.RemoteFilePath, "f", util.RemoteFilePath, "remote file path")
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -126,9 +121,21 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case listCmd:
-            flagSet := flag.NewFlagSet(saveCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.UserId, "c", util.UserId, "cluster id")
+        case listFilesCmd:
+            flagSet := flag.NewFlagSet(listFilesCmd, flag.ContinueOnError)
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case deleteFileCmd:
+            flagSet := flag.NewFlagSet(saveFileCmd, flag.ContinueOnError)
+            flagSet.StringVar(&util.RemoteFilePath, "f", util.RemoteFilePath, "remote file path")
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -167,17 +174,20 @@ func (util *Util) Exec() error {
     resp := NewResponse(nil, nil)
 
     switch util.SubCmd {
-        case helloCmd:
-            result, err := util.HelloCmd()
+        case getHelloCmd:
+            result, err := util.GetHelloCmd()
             resp = NewResponse(result, err)
-        case saveCmd:
-            result, err := util.SaveCmd()
+        case saveFileCmd:
+            result, err := util.SaveFileCmd()
             resp = NewResponse(result, err)
-        case loadCmd:
-            result, err := util.LoadCmd()
+        case loadFileCmd:
+            result, err := util.LoadFileCmd()
             resp = NewResponse(result, err)
-        case listCmd:
-            result, err := util.ListCmd()
+        case listFilesCmd:
+            result, err := util.ListFilesCmd()
+            resp = NewResponse(result, err)
+        case deleteFileCmd:
+            result, err := util.DeleteFileCmd()
             resp = NewResponse(result, err)
         default:
     }
@@ -187,43 +197,40 @@ func (util *Util) Exec() error {
     return err
 }
 
-func (util *Util) HelloCmd() (*fsapi.HelloResult, error) {
+func (util *Util) GetHelloCmd() (*fsapi.GetHelloResult, error) {
     var err error
 
-    params := fsapi.NewHelloParams()
+    params := fsapi.NewGetHelloParams()
     params.Message = util.Message
-    result := fsapi.NewHelloResult()
+    result := fsapi.NewGetHelloResult()
 
-    err = dsrpc.Exec(util.URI, fsapi.HelloMethod, params, result, nil)
+    err = dsrpc.Exec(util.URI, fsapi.GetHelloMethod, params, result, nil)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-func (util *Util) SaveCmd() (*fsapi.SaveResult, error) {
+func (util *Util) SaveFileCmd() (*fsapi.SaveFileResult, error) {
     var err error
 
-    params := fsapi.NewSaveParams()
-    params.UserId    = util.UserId
-    params.FileId       = util.FileId
-    params.BatchId      = util.BatchId
-    params.BlockId      = util.BlockId
+    params := fsapi.NewSaveFileParams()
+    params.FilePath  = util.RemoteFilePath
 
-    result := fsapi.NewSaveResult()
+    result := fsapi.NewSaveFileResult()
 
-    blockFile, err := os.OpenFile(util.FilePath, os.O_RDONLY, 0)
-    defer blockFile.Close()
+    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDONLY, 0)
+    defer localFile.Close()
     if err != nil {
         return result, err
     }
-    fileInfo, err := blockFile.Stat()
+    fileInfo, err := localFile.Stat()
     if err != nil {
         return result, err
     }
     fileSize := fileInfo.Size()
 
-    err = dsrpc.Put(util.URI, fsapi.SaveMethod, blockFile, fileSize, params, result, nil)
+    err = dsrpc.Put(util.URI, fsapi.SaveFileMethod, localFile, fileSize, params, result, nil)
     if err != nil {
         return result, err
     }
@@ -233,36 +240,44 @@ func (util *Util) SaveCmd() (*fsapi.SaveResult, error) {
 const dirPerm   fs.FileMode = 0755
 const filePerm  fs.FileMode = 0644
 
-func (util *Util) LoadCmd() (*fsapi.LoadResult, error) {
+func (util *Util) LoadFileCmd() (*fsapi.LoadFileResult, error) {
     var err error
 
-    params := fsapi.NewLoadParams()
-    params.UserId    = util.UserId
-    params.FileId       = util.FileId
-    params.BatchId      = util.BatchId
-    params.BlockId      = util.BlockId
+    params := fsapi.NewLoadFileParams()
+    params.FilePath   = util.RemoteFilePath
 
-    result := fsapi.NewLoadResult()
+    result := fsapi.NewLoadFileResult()
 
-    blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
-    defer blockFile.Close()
+    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
+    defer localFile.Close()
     if err != nil {
         return result, err
     }
-    err = dsrpc.Get(util.URI, fsapi.LoadMethod, blockFile, params, result, nil)
+    err = dsrpc.Get(util.URI, fsapi.LoadFileMethod, localFile, params, result, nil)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-
-func (util *Util) ListCmd() (*fsapi.ListResult, error) {
+func (util *Util) ListFilesCmd() (*fsapi.ListFilesResult, error) {
     var err error
-    params := fsapi.NewListParams()
-    params.UserId = util.UserId
-    result := fsapi.NewListResult()
-    err = dsrpc.Exec(util.URI, fsapi.ListMethod, params, result, nil)
+    params := fsapi.NewListFilesParams()
+    result := fsapi.NewListFilesResult()
+    err = dsrpc.Exec(util.URI, fsapi.ListFilesMethod, params, result, nil)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) DeleteFileCmd() (*fsapi.DeleteFileResult, error) {
+    var err error
+    params := fsapi.NewDeleteFileParams()
+    params.FilePath   = util.RemoteFilePath
+
+    result := fsapi.NewDeleteFileResult()
+    err = dsrpc.Exec(util.URI, fsapi.DeleteFileMethod, params, result, nil)
     if err != nil {
         return result, err
     }

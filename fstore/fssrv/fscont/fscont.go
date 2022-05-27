@@ -9,6 +9,7 @@ import (
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
     "ndstore/dsrpc"
+    //"ndstore/dslog"
 )
 
 
@@ -20,18 +21,18 @@ func NewContr() *Contr {
     return &Contr{}
 }
 
-const HelloMsg string = "hello"
+const GetHelloMsg string = "hello"
 
-func (contr *Contr) HelloHandler(context *dsrpc.Context) error {
+func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
     var err error
-    params := fsapi.NewHelloParams()
+    params := fsapi.NewGetHelloParams()
     err = context.BindParams(params)
     if err != nil {
         return err
     }
 
-    result := fsapi.NewHelloResult()
-    result.Message = HelloMsg
+    result := fsapi.NewGetHelloResult()
+    result.Message = GetHelloMsg
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -39,9 +40,9 @@ func (contr *Contr) HelloHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
+func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
     var err error
-    params := fsapi.NewSaveParams()
+    params := fsapi.NewSaveFileParams()
 
     err = context.BindParams(params)
     if err != nil {
@@ -58,7 +59,7 @@ func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
         return err
     }
 
-    result := fsapi.NewSaveResult()
+    result := fsapi.NewSaveFileResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -66,9 +67,9 @@ func (contr *Contr) SaveHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
+func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     var err error
-    params := fsapi.NewLoadParams()
+    params := fsapi.NewLoadFileParams()
     err = context.BindParams(params)
     if err != nil {
         return err
@@ -88,7 +89,7 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-    result := fsapi.NewLoadResult()
+    result := fsapi.NewLoadFileResult()
     err = context.SendResult(result, fileSize)
     if err != nil {
         return err
@@ -101,9 +102,9 @@ func (contr *Contr) LoadHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
+func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
     var err error
-    params := fsapi.NewDeleteParams()
+    params := fsapi.NewDeleteFileParams()
 
     err = context.BindParams(params)
     if err != nil {
@@ -115,7 +116,7 @@ func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-    result := fsapi.NewDeleteResult()
+    result := fsapi.NewDeleteFileResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return err
@@ -123,22 +124,22 @@ func (contr *Contr) DeleteHandler(context *dsrpc.Context) error {
     return err
 }
 
-func (contr *Contr) ListHandler(context *dsrpc.Context) error {
+func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
     var err error
-    params := fsapi.NewListParams()
+    params := fsapi.NewListFilesParams()
     err = context.BindParams(params)
     if err != nil {
         return err
     }
-    filePath   := params.DirPath
+    dirPath   := params.DirPath
 
-    files, err := contr.Store.ListFiles(filePath)
+    entries, err := contr.Store.ListFiles(dirPath)
     if err != nil {
         context.SendError(err)
         return err
     }
-    result := fsapi.NewListResult()
-    result.Files = files
+    result := fsapi.NewListFilesResult()
+    result.Entries = entries
     err = context.SendResult(result, 0)
     if err != nil {
         return err
