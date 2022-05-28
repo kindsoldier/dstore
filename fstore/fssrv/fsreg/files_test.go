@@ -12,7 +12,7 @@ import (
     "ndstore/fstore/fssrv/fsfile"
 )
 
-func TestInsertSelectDeleteFileDescr(t *testing.T) {
+func Test_FileDescr_InsertSelectDelete(t *testing.T) {
     var err error
 
     dbPath := "postgres://pgsql@localhost/test"
@@ -79,7 +79,7 @@ func TestInsertSelectDeleteFileDescr(t *testing.T) {
 }
 
 
-func BenchmarkInsertDelete(b *testing.B) {
+func BenchmarkFileDescrInsertDelete(b *testing.B) {
     var err error
 
     var batchSize   int64 = 4
