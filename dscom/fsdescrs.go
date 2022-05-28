@@ -1,5 +1,16 @@
 package dscom
 
+type BStoreDescr struct {
+    Id      int64       `json:"id"      db:"id"`
+    Address string      `json:"address" db:"address"`
+    Login   string      `json:"login"   db:"login"`
+    Pass    string      `json:"pass"    db:"pass"`
+    State   string      `json:"state"   db:"state"`
+}
+
+func NewBStoreDescr() *BStoreDescr{
+    return &BStoreDescr{}
+}
 
 type EntryDescr struct {
     DirPath     string      `json:"dirPath"     db:"dir_path"`
@@ -19,7 +30,7 @@ type FileDescr struct {
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     BatchCount  int64       `json:"batchCount"  db:"batch_count"`
-    Batchs      []*BatchDescr  `json:"batchs"      db:"-"`
+    Batchs      []*BatchDescr  `json:"batchs"   db:"-"`
 }
 
 func NewFileDescr() *FileDescr {
@@ -33,7 +44,7 @@ type BatchDescr struct {
     BatchId     int64       `json:"batchId"     db:"batch_id"`
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
-    Blocks      []*BlockDescr  `json:"blocks"      db:"-"`
+    Blocks      []*BlockDescr  `json:"blocks"   db:"-"`
 }
 
 func NewBatchDescr() *BatchDescr {

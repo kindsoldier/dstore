@@ -7,7 +7,7 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestInsertSelectDeleteEntryDescr(t *testing.T) {
+func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     var err error
 
     var dirPath     string = "x/y/z"

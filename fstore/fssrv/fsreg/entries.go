@@ -15,6 +15,9 @@ const entriesSchema = `
         file_name  TEXT,
         file_id    INTEGER
     );
+    DROP INDEX IF EXISTS entry_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS entry_idx
+        ON entries (dir_path, file_name);
     `
 
 func (reg *Reg) AddEntryDescr(dirPath, fileName string, fileId int64) error {
