@@ -51,12 +51,12 @@ func NewUtil() *Util {
     return &util
 }
 
+const getHelloCmd       string = "getHello"
+const saveBlockCmd      string = "saveBlock"
+const loadBlocksCmd     string = "loadBlock"
+const listBlocksCmd     string = "listBlocks"
+const deleteBlockCmd    string = "deleteBlock"
 const helpCmd           string = "help"
-const getHelloCmd       string = "hello"
-const saveBlockCmd      string = "save"
-const loadBlocksCmd     string = "load"
-const listBlocksCmd     string = "list"
-const deleteBlockCmd    string = "delete"
 
 
 func (util *Util) GetOpt() error {
@@ -71,7 +71,7 @@ func (util *Util) GetOpt() error {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: hello, save, load, list, delete \n")
+        fmt.Printf("Command list: hello, saveBlock, loadBlock, listBlocks, deleteBlock \n")
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
         flag.PrintDefaults()

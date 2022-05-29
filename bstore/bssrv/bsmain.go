@@ -20,7 +20,10 @@ import (
     "ndstore/dsrpc"
     "ndstore/bstore/bssrv/bsconf"
     "ndstore/bstore/bssrv/bscont"
-    "ndstore/bstore/bssrv/bsrec"
+    "ndstore/bstore/bssrv/bsblock"
+    "ndstore/bstore/bssrv/bsbreg"
+    "ndstore/bstore/bssrv/bsureg"
+    "ndstore/bstore/bssrv/bsuser"
 )
 
 const successExit   int = 0
@@ -348,18 +351,47 @@ func (server *Server) StopAll() error {
 func (server *Server) RunService() error {
     var err error
 
-    serv := dsrpc.NewService()
+    dataRoot    := server.Params.DataDir
+    dirPerm     := server.Params.DirPerm
+    filePerm    := server.Params.FilePerm
 
-    contr := bscont.NewContr()
-    dslog.LogDebug("data dir is", server.Params.DataDir)
-    store := bsrec.NewStore(server.Params.DataDir)
-    store.SetPerm(server.Params.DirPerm, server.Params.FilePerm)
-    err = store.OpenReg()
+    blockReg := bsbreg.NewReg()
+    blockDBPath := filepath.Join(dataRoot, "blocks.db")
+    err = blockReg.OpenDB(blockDBPath)
     if err != nil {
         return err
     }
-    contr.Store = store
+    err = blockReg.MigrateDB()
+    if err != nil {
+        return err
+    }
+    defer blockReg.CloseDB()
 
+    storeModel := bsblock.NewStore(dataRoot, blockReg)
+    storeModel.SetDirPerm(dirPerm)
+    storeModel.SetFilePerm(filePerm)
+
+
+    userReg := bsureg.NewReg()
+    userDBPath := filepath.Join(dataRoot, "users.db")
+    err = userReg.OpenDB(userDBPath)
+    if err != nil {
+        return err
+    }
+    err = userReg.MigrateDB()
+    if err != nil {
+        return err
+    }
+    defer userReg.CloseDB()
+
+    authModel := bsuser.NewAuth(userReg)
+    //store.SetDirPerm(dirPerm)
+    //store.SetFilePerm(filePerm)
+
+    contr := bscont.NewContr(storeModel, authModel)
+    dslog.LogDebug("dataDir is", dataRoot)
+
+    serv := dsrpc.NewService()
     serv.Handler(bsapi.GetHelloMethod, contr.GetHelloHandler)
     serv.Handler(bsapi.SaveBlockMethod, contr.SaveBlockHandler)
     serv.Handler(bsapi.LoadBlockMethod, contr.LoadBlockHandler)
@@ -375,6 +407,5 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
-
     return err
 }

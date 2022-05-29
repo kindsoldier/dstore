@@ -1,4 +1,4 @@
-package bsreg
+package bsbreg
 
 import (
     "fmt"
@@ -9,9 +9,10 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestInsertSelectDelete(t *testing.T) {
+func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var err error
-    path := filepath.Join(t.TempDir(), "blocks.db")
+
+    path := filepath.Join(t.TempDir(), "block.db")
     reg := NewReg()
     err = reg.OpenDB(path)
     assert.NoError(t, err)
@@ -19,34 +20,46 @@ func TestInsertSelectDelete(t *testing.T) {
     err = reg.MigrateDB()
     assert.NoError(t, err)
 
-    var count int64 = 128
-    var i int64
-    for i = 0; i < count; i++ {
-        var fileId      int64   = 2
-        var batchId     int64   = 3
-        var blockId     int64   = i
-        var blockSize   int64   = 1024
-        var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", i)
 
-        err = reg.AddBlock(fileId, batchId, blockId, blockSize, filePath)
-        assert.NoError(t, err)
-        var exists bool
+    var fileId      int64   = 1
+    var batchId     int64   = 2
+    var blockId     int64   = 3
+    var blockSize   int64   = 1024
+    var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
 
-        exists, err = reg.BlockExists(fileId, batchId, blockId)
-        assert.NoError(t, err)
-        assert.Equal(t, exists, true)
+    err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
+    assert.NoError(t, err)
+    var exists bool
 
-        exists, err = reg.BlockExists(fileId + 1, batchId, blockId)
-        assert.NoError(t, err)
-        assert.Equal(t, exists, false)
+    exists, err = reg.BlockDescrExists(fileId, batchId, blockId)
+    assert.NoError(t, err)
+    assert.Equal(t, exists, true)
 
-        nFileName, _, err := reg.GetBlock(fileId, batchId, blockId)
-        assert.NoError(t, err)
-        assert.Equal(t, filePath, nFileName)
+    exists, err = reg.BlockDescrExists(fileId + 1, batchId, blockId)
+    assert.NoError(t, err)
+    assert.Equal(t, exists, false)
 
-        err = reg.DeleteBlock(fileId, batchId, blockId)
-        assert.NoError(t, err)
-    }
+
+    nFileName, nBlockSize, err := reg.GetBlockFilePath(fileId, batchId, blockId)
+    assert.NoError(t, err)
+    assert.Equal(t, filePath, nFileName)
+    assert.Equal(t, blockSize, nBlockSize)
+
+    //fileId  += 1
+    //batchId += 1
+    //blockId += 1
+    blockSize += 1024
+    filePath = fmt.Sprintf("x/y/z/qwerty%020d", fileId)
+    err = reg.UpdateBlockDescr(fileId, batchId, blockId, blockSize, filePath)
+
+    nFileName, nBlockSize, err = reg.GetBlockFilePath(fileId, batchId, blockId)
+    assert.NoError(t, err)
+    assert.Equal(t, filePath, nFileName)
+    assert.Equal(t, blockSize, nBlockSize)
+
+
+    err = reg.DeleteBlockDescr(fileId, batchId, blockId)
+    assert.NoError(t, err)
 }
 
 func BenchmarkInsert(b *testing.B) {
@@ -70,7 +83,7 @@ func BenchmarkInsert(b *testing.B) {
             var blockSize   int64   = 1024
             var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
 
-            err = reg.AddBlock(fileId, batchId, blockId, blockSize, filePath)
+            err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
             assert.NoError(b, err)
         }
     }
@@ -98,7 +111,7 @@ func BenchmarkSelect(b *testing.B) {
         var blockId     int64   = 1
         var blockSize   int64   = 1024
         var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
-        err = reg.AddBlock(fileId, batchId, blockId, blockSize, filePath)
+        err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
         assert.NoError(b, err)
     }
 
@@ -109,7 +122,7 @@ func BenchmarkSelect(b *testing.B) {
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = 1
             var blockId     int64   = 1
-            _, _, err = reg.GetBlock(fileId, batchId, blockId)
+            _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId)
             assert.NoError(b, err)
         }
     }

@@ -4,59 +4,44 @@ import (
     "bytes"
     "math/rand"
     "testing"
+    "path/filepath"
 
     "ndstore/bstore/bsapi"
-    "ndstore/bstore/bssrv/bsrec"
+    "ndstore/bstore/bssrv/bsblock"
+    "ndstore/bstore/bssrv/bsbreg"
     "ndstore/dsrpc"
 
     "github.com/stretchr/testify/assert"
 )
 
 
-func TestGetHello(t *testing.T) {
-    var err error
-    helloResp := GetHelloMsg
-
-    params := bsapi.NewGetHelloParams()
-    params.Message = GetHelloMsg
-
-    result := bsapi.NewGetHelloResult()
-
-    contr := NewContr()
-    store := bsrec.NewStore(t.TempDir())
-    err = store.OpenReg()
-    assert.NoError(t, err)
-
-    contr.Store = store
-
-    err = dsrpc.LocalExec(bsapi.GetHelloMethod, params, result, nil, contr.GetHelloHandler)
-
-    assert.NoError(t, err)
-    assert.Equal(t, helloResp, result.Message)
-}
-
 func TestSaveLoadDelete(t *testing.T) {
     var err error
 
-    params := bsapi.NewSaveBlockParams()
-
-    params.FileId       = 2
-    params.BatchId      = 3
-    params.BlockId      = 4
-    result := bsapi.NewSaveBlockResult()
-
-    contr := NewContr()
-    store := bsrec.NewStore(t.TempDir())
-    err = store.OpenReg()
+    rootDir := t.TempDir()
+    path := filepath.Join(rootDir, "blocks.db")
+    reg := bsbreg.NewReg()
+    err = reg.OpenDB(path)
+    assert.NoError(t, err)
+    err = reg.MigrateDB()
     assert.NoError(t, err)
 
-    contr.Store = store
+    store := bsblock.NewStore(rootDir, reg)
+    assert.NoError(t, err)
+
+    contr := NewContr(store)
 
     data := make([]byte, 1024 * 1024)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
     size := int64(len(data))
+
+    params := bsapi.NewSaveBlockParams()
+    params.FileId       = 2
+    params.BatchId      = 3
+    params.BlockId      = 4
+    result := bsapi.NewSaveBlockResult()
 
     err = dsrpc.LocalPut(bsapi.SaveBlockMethod, reader, size, params, result, nil, contr.SaveBlockHandler)
     assert.NoError(t, err)

@@ -2,7 +2,7 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package bsrec
+package bsblock
 
 import (
     "fmt"
@@ -15,64 +15,40 @@ import (
     "ndstore/dsrpc"
     "ndstore/dscom"
     "ndstore/xtools"
-    "ndstore/bstore/bssrv/bsreg"
+    "ndstore/bstore/bssrv/bsbreg"
 )
 
 const blockFileExt string = ".blk"
-const storeDBName  string = "blocks.db"
-
-type Block = dscom.BlockDescr
-
 
 type Store struct {
     dataRoot string
-    reg *bsreg.Reg
+    reg *bsbreg.Reg
     dirPerm   fs.FileMode
     filePerm  fs.FileMode
 }
 
-func NewStore(dataRoot string) *Store {
+func NewStore(dataRoot string, reg *bsbreg.Reg) *Store {
     var store Store
     store.dataRoot  = dataRoot
+    store.reg       = reg
     store.dirPerm   = 0755
     store.filePerm  = 0644
     return &store
 }
 
-func (store *Store) SetPerm(dirPerm, filePerm fs.FileMode) {
+func (store *Store) SetDirPerm(dirPerm fs.FileMode) {
     store.dirPerm = dirPerm
+}
+
+func (store *Store) SetFilePerm(filePerm fs.FileMode) {
     store.filePerm = filePerm
-}
-
-func (store *Store) OpenReg() error {
-    var err error
-    reg := bsreg.NewReg()
-    dbPath := filepath.Join(store.dataRoot, storeDBName)
-    err = reg.OpenDB(dbPath)
-    if err != nil {
-        return err
-    }
-    err = reg.MigrateDB()
-    if err != nil {
-        return err
-    }
-    store.reg = reg
-    return err
-}
-
-func (store *Store) CloseReg() error {
-    var err error
-    if store.reg != nil {
-        err = store.reg.CloseDB()
-    }
-    return err
 }
 
 func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Reader,
                                                                         blockSize int64) error {
     var err error
 
-    blockExists, err := store.reg.BlockExists(fileId, batchId, blockId)
+    blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -98,7 +74,7 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Rea
     }
 
     filePath := filepath.Join(subdirName, fileName)
-    err = store.reg.AddBlock(fileId, batchId, blockId, blockSize, filePath)
+    err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
         os.Remove(filePath)
         return err
@@ -109,7 +85,7 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Rea
 func (store *Store) BlockExists(fileId, batchId, blockId int64) (int64, error) {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlock(fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId)
     if err != nil {
         return blockSize, err
     }
@@ -127,7 +103,7 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64,
                                                     blockWriter io.Writer) error {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlock(fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -147,7 +123,7 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64,
 func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
     var err error
     var filePath string
-    filePath, _, err = store.reg.GetBlock(fileId, batchId, blockId)
+    filePath, _, err = store.reg.GetBlockFilePath(fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -156,16 +132,16 @@ func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
     if err != nil {
         return err
     }
-    err = store.reg.DeleteBlock(fileId, batchId, blockId)
+    err = store.reg.DeleteBlockDescr(fileId, batchId, blockId)
     if err != nil {
         return err
     }
     return err
 }
 
-func (store *Store) ListBlocks() ([]Block, error) {
+func (store *Store) ListBlocks() ([]dscom.BlockDescr, error) {
     var err error
-    blocks, err := store.reg.ListBlocks()
+    blocks, err := store.reg.ListBlockDescrs()
     if err != nil {
         return blocks, err
     }

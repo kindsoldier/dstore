@@ -48,10 +48,10 @@ func NewConfig() *Config {
     return &config
 }
 
-func (this *Config) Read() error {
+func (config *Config) Read() error {
     var err error
     confData, err := os.ReadFile(this.ConfPath)
-    err = yaml.Unmarshal(confData, this)
+    err = yaml.Unmarshal(confData, config)
     if err != nil {
         return err
     }
