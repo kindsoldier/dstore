@@ -21,14 +21,16 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     var login   string  = "qwerty"
     var pass    string  = "12345"
     var state   string  = "undef"
+    var role    string  = "admin"
+
 
     err = reg.DeleteUserDescr(login)
     assert.NoError(t, err)
 
-    err = reg.AddUserDescr(login, pass, state)
+    err = reg.AddUserDescr(login, pass, state, role)
     assert.NoError(t, err)
 
-    err = reg.AddUserDescr(login, pass, state)
+    err = reg.AddUserDescr(login, pass, state, role)
     assert.Error(t, err)
 
     exists, err := reg.UserDescrExists(login)
@@ -39,6 +41,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     assert.NoError(t, err)
     assert.Equal(t, login, user.Login)
     assert.Equal(t, pass, user.Pass)
+    assert.Equal(t, role, user.Role)
 
     pass = "56789"
     user.Pass = pass
@@ -46,10 +49,13 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     state = "disabled"
     user.State = state
 
+    role = "somerole"
+    user.Role = state
+
     err = reg.RenewUserDescr(user)
     assert.NoError(t, err)
 
-    err = reg.UpdateUserDescr(login, pass, state)
+    err = reg.UpdateUserDescr(login, pass, state, role)
     assert.NoError(t, err)
 
     user, _, err = reg.GetUserDescr(login)
@@ -57,6 +63,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     assert.NotNil(t, user)
     assert.Equal(t, login, user.Login)
     assert.Equal(t, pass, user.Pass)
+    assert.Equal(t, role, user.Role)
 
     wrongLogin := "foobar"
     user, _, err = reg.GetUserDescr(wrongLogin)

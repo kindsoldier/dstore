@@ -10,7 +10,9 @@ import (
     "ndstore/bstore/bscom"
 )
 
-const UserEnabled string= "enabled"
+const StateEnabled  string  = "enabled"
+
+const RoleAdmin string  = "admin"
 
 type Auth struct {
     reg *bsureg.Reg
@@ -22,10 +24,9 @@ func NewAuth(reg *bsureg.Reg) *Auth {
     return &auth
 }
 
-
 func (auth *Auth) SeedUsers() error {
     var err error
-    err = auth.reg.AddUserDescr("admin", "admin", UserEnabled)
+    err = auth.reg.AddUserDescr("admin", "admin", StateEnabled, RoleAdmin)
     return err
 }
 
@@ -41,7 +42,7 @@ func (auth *Auth) AddUser(login, pass string) error {
     if !ok {
         return err
     }
-    err = auth.reg.AddUserDescr(login, pass, UserEnabled)
+    err = auth.reg.AddUserDescr(login, pass, StateEnabled, RoleAdmin)
     return err
 }
 
@@ -69,11 +70,11 @@ func (auth *Auth) CheckUser(login, pass string) (bool, error) {
 
 func (auth *Auth) UpdateUser(login, pass string) error {
     var err error
-    //ok, err := checkPass(pass)
-    //if !ok {
-    //    return err
-    //}
-    err = auth.reg.UpdateUserDescr(login, pass, UserEnabled)
+    ok, err := checkPass(pass)
+    if !ok {
+        return err
+    }
+    err = auth.reg.UpdateUserDescr(login, pass, StateEnabled, RoleAdmin)
     return err
 }
 
