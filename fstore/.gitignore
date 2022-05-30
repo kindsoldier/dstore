@@ -16,8 +16,8 @@ fstored
 fstorecli
 fsconf.go
 fssrv/fssrv
-fdsrv/fsmain
-fdsli/fscli
+fsmain
+fscli/fscli
 vendor/
 data/
 *.blk

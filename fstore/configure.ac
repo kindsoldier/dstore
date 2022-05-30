@@ -267,7 +267,7 @@ AC_SUBST(srv_background, "$SRV_BACKGROUND")
 
 AC_SUBST(srv_conf, "$PACKAGE.conf")
 AC_SUBST(srv_name, "$PACKAGE")
-AC_SUBST(srv_port, 5001)
+AC_SUBST(srv_port, 5200)
 
 AC_OUTPUT([
 Makefile

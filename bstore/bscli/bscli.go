@@ -88,7 +88,7 @@ func (util *Util) GetOpt() error {
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
         fmt.Printf("Command list: hello, saveBlock, loadBlock, listBlocks, deleteBlock \n")
-        fmt.Printf("Command list:     addUser, checkUser, updateUser, listUsers, deleteUser \n")
+        fmt.Printf("               addUser, checkUser, updateUser, listUsers, deleteUser \n")
 
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
@@ -116,12 +116,11 @@ func (util *Util) GetOpt() error {
             return errors.New("unknown command")
         case getHelloCmd:
             flagSet := flag.NewFlagSet(getHelloCmd, flag.ExitOnError)
-            flagSet.StringVar(&util.Message, "m", util.Message, "message")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
                 fmt.Printf("\n")
-                fmt.Printf("The command options:\n")
+                fmt.Printf("The command options: none\n")
                 flagSet.PrintDefaults()
                 fmt.Printf("\n")
             }

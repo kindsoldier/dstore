@@ -18,6 +18,9 @@ import (
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsconf"
     "ndstore/fstore/fssrv/fscont"
+    "ndstore/fstore/fssrv/fsreg"
+    "ndstore/fstore/fssrv/fsrec"
+
     "ndstore/dslog"
     "ndstore/dsrpc"
 )
@@ -346,16 +349,42 @@ func (server *Server) StopAll() error {
 func (server *Server) RunService() error {
     var err error
 
-    serv := dsrpc.NewService()
+    dataRoot    := server.Params.DataDir
+    dirPerm     := server.Params.DirPerm
+    filePerm    := server.Params.FilePerm
 
-    contr := fdcont.NewContr()
-    dslog.LogDebug("data dir is", server.Params.DataDir)
+    reg := fsreg.NewReg()
+    dbLoc := "postgres://pgsql@localhost/test"
+    err = reg.OpenDB(dbLoc)
+    if err != nil {
+        return err
+    }
+    err = reg.MigrateDB()
+    if err != nil {
+        return err
+    }
+    defer reg.CloseDB()
+
+    model := fsrec.NewStore(dataRoot, reg)
+    model.SetDirPerm(dirPerm)
+    model.SetFilePerm(filePerm)
+
+    contr := fdcont.NewContr(model)
+    dslog.LogDebug("dataDir is", server.Params.DataDir)
+
+    serv := dsrpc.NewService()
 
     serv.Handler(fsapi.GetHelloMethod, contr.GetHelloHandler)
     serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
     serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
     serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
     serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
+
+    serv.Handler(fsapi.AddUserMethod, contr.AddUserHandler)
+    serv.Handler(fsapi.CheckUserMethod, contr.CheckUserHandler)
+    serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
+    serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
+    serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

@@ -9,9 +9,6 @@ import (
     "ndstore/fstore/fssrv/fsreg"
 )
 
-const blockFileExt string = ".blk"
-const storeDBName  string = "file.db"
-
 
 type Store struct {
     dataRoot string
@@ -29,7 +26,10 @@ func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
     return &store
 }
 
-func (store *Store) SetPerm(dirPerm, filePerm fs.FileMode) {
+func (store *Store) SetDirPerm(dirPerm fs.FileMode) {
     store.dirPerm = dirPerm
+}
+
+func (store *Store) SetFilePerm(filePerm fs.FileMode) {
     store.filePerm = filePerm
 }

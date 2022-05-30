@@ -12,11 +12,11 @@ import (
 
 
 type Contr struct {
-    Store  *fsrec.Store
+    store  *fsrec.Store
 }
 
-func NewContr() *Contr {
-    return &Contr{}
+func NewContr(store *fsrec.Store) *Contr {
+    return &Contr{ store: store }
 }
 
 const GetHelloMsg string = "hello"

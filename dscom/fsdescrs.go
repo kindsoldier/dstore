@@ -1,5 +1,17 @@
 package dscom
 
+type UserDescr struct {
+    Id      int64       `json:"id"      db:"id"`
+    Login   string      `json:"login"   db:"login"`
+    Pass    string      `json:"pass"    db:"pass"`
+    State   string      `json:"state"   db:"state"`
+    Role    string      `json:"role"    db:"role"`
+}
+
+func NewUserDescr() *UserDescr{
+    return &UserDescr{}
+}
+
 type BStoreDescr struct {
     Id      int64       `json:"id"      db:"id"`
     Address string      `json:"address" db:"address"`

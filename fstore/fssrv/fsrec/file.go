@@ -13,6 +13,7 @@ import (
     "ndstore/fstore/fssrv/fsfile"
 )
 
+const blockFileExt string = ".blk"
 
 func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int64) error {
     var err error

@@ -16,11 +16,10 @@ func init() {
     rand.Seed(time.Now().UnixNano())
 }
 
-
 type Auth struct {
-    Ident   []byte      `json:"ident,omitempty"  json:"ident,omitempty"`
-    Salt    []byte      `json:"salt,omitempty"   json:"salt,omitempty"`
-    Hash    []byte      `json:"hash,omitempty"   json:"hash,omitempty"`
+    Ident   []byte      `json:"ident,omitempty"`
+    Salt    []byte      `json:"salt,omitempty"`
+    Hash    []byte      `json:"hash,omitempty"`
 }
 
 func NewAuth() *Auth {
@@ -43,7 +42,7 @@ func CreateAuth(ident, pass []byte) *Auth {
 }
 
 func CreateSalt() []byte {
-    const saltSize = 8
+    const saltSize = 16
     randBytes := make([]byte, saltSize)
     rand.Read(randBytes)
     return randBytes

@@ -5,13 +5,14 @@ import (
     "math/rand"
     "testing"
 
+    "github.com/stretchr/testify/assert"
+
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
     "ndstore/fstore/fssrv/fsreg"
     "ndstore/dsrpc"
     "fmt"
 
-    "github.com/stretchr/testify/assert"
 )
 
 
@@ -20,23 +21,19 @@ func Test_File_SaveLoadDelete(t *testing.T) {
 
     dbPath := "postgres://pgsql@localhost/test"
     reg := fsreg.NewReg()
-
     err = reg.OpenDB(dbPath)
     assert.NoError(t, err)
-
     err = reg.MigrateDB()
     assert.NoError(t, err)
 
-    fileName := "../aaaa/qwert.txt"
+    store := fsrec.NewStore(t.TempDir(), reg)
+    contr := NewContr(store)
 
+
+    fileName := "../aaaa/qwert.txt"
     saveParams := fsapi.NewSaveFileParams()
     saveParams.FilePath = fileName
     saveResult := fsapi.NewSaveFileResult()
-
-    contr := NewContr()
-    store := fsrec.NewStore(t.TempDir(), reg)
-
-    contr.Store = store
 
     data := make([]byte, 8)
     rand.Read(data)

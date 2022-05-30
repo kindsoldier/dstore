@@ -24,7 +24,7 @@ func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
     fileReader := context.BinReader()
 
     filePath := params.FilePath
-    err = contr.Store.SaveFile(filePath, fileReader, fileSize)
+    err = contr.store.SaveFile(filePath, fileReader, fileSize)
     if err != nil {
         context.SendError(err)
         return err
@@ -55,7 +55,7 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
         return err
     }
 
-    fileSize, err := contr.Store.FileExists(filePath)
+    fileSize, err := contr.store.FileExists(filePath)
     if err != nil {
         context.SendError(err)
         return err
@@ -66,7 +66,7 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
         return err
     }
 
-    err = contr.Store.LoadFile(filePath, fileWriter)
+    err = contr.store.LoadFile(filePath, fileWriter)
     if err != nil {
         return err
     }
@@ -82,7 +82,7 @@ func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
         return err
     }
     filePath   := params.FilePath
-    err = contr.Store.DeleteFile(filePath)
+    err = contr.store.DeleteFile(filePath)
     if err != nil {
         context.SendError(err)
         return err
@@ -104,7 +104,7 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
     }
     dirPath   := params.DirPath
 
-    entries, err := contr.Store.ListFiles(dirPath)
+    entries, err := contr.store.ListFiles(dirPath)
     if err != nil {
         context.SendError(err)
         return err

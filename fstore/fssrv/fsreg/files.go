@@ -60,12 +60,10 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     if err != nil {
         return err
     }
-
     blockRequest := `
         INSERT INTO blocks(file_id, batch_id, block_id, block_size, file_path,
                                                                 hash_init, hash_sum, data_size)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
-
     for _, batch := range file.Batchs {
         for _, block := range batch.Blocks {
             _, err = tx.Exec(blockRequest, block.FileId, block.BatchId, block.BlockId,
@@ -76,7 +74,6 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
             }
         }
     }
-
     batchRequest := `
         INSERT INTO batchs(file_id, batch_id, batch_size, block_size)
         VALUES ($1, $2, $3, $4);`
@@ -86,7 +83,6 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
             return err
         }
     }
-
     fileRequest := `
         INSERT INTO files(file_id, batch_count, batch_size, block_size, file_size)
         VALUES ($1, $2, $3, $4, $5);`
@@ -95,7 +91,6 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     if err != nil {
         return err
     }
-
     err = tx.Commit()
     if err != nil {
         return err
@@ -117,20 +112,17 @@ func (reg *Reg) GetFileDescr(fileId int64) (*dscom.FileDescr, error) {
     if err != nil {
         return file, err
     }
-
     batchRequest := `
         SELECT file_id, batch_id, block_size, batch_size
         FROM batchs
         WHERE file_id = $1
         ORDER BY file_id, batch_id;`
     batchs := make([]*dscom.BatchDescr, 0)
-
     err = reg.db.Select(&batchs, batchRequest, fileId)
     if err != nil {
         return file, err
     }
     file.Batchs = batchs
-
     blockRequest := `
         SELECT file_id, batch_id, block_id, block_size, file_path, hash_init, hash_sum, data_size
         FROM blocks
@@ -151,7 +143,6 @@ func (reg *Reg) GetFileDescr(fileId int64) (*dscom.FileDescr, error) {
 func (reg *Reg) GetNewFileId() (int64, error) {
     var err error
     var fileId int64
-
     request := `
         SELECT file_id
         FROM files
@@ -165,14 +156,12 @@ func (reg *Reg) GetNewFileId() (int64, error) {
     if len(files) > 0 {
         fileId = files[0].FileId + 1
     }
-
     return fileId, err
 }
 
 func (reg *Reg) FileDescrExists(fileId int64) (bool, error) {
     var err error
     var exists bool
-
     request := `
         SELECT file_id, batch_count, batch_size, block_size, file_size
         FROM files
@@ -191,7 +180,6 @@ func (reg *Reg) FileDescrExists(fileId int64) (bool, error) {
 
 func (reg *Reg) DeleteFileDescr(fileId int64) error {
     var err error
-
     tx, err := reg.db.Begin()
     exitFunc := func() {
         if err != nil && tx != nil {
@@ -202,7 +190,6 @@ func (reg *Reg) DeleteFileDescr(fileId int64) error {
     if err != nil {
         return err
     }
-
     var request string
     request = `
         DELETE FROM blocks

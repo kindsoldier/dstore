@@ -3010,7 +3010,7 @@ srv_conf="$PACKAGE.conf"
 
 srv_name="$PACKAGE"
 
-srv_port=5001
+srv_port=5200
 
 
 ac_config_files="$ac_config_files Makefile fssrv/fsconf/fsconf.go"

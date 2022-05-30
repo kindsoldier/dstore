@@ -38,10 +38,9 @@ func (reg *Reg) OpenDB(dbPath string) error {
 
 func (reg *Reg) CloseDB() error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
+    if reg.db != nil {
+        reg.db.Close()
     }
-    reg.db.Close()
     return err
 }
 
