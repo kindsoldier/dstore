@@ -5,6 +5,7 @@ package bsureg
 
 import (
     "ndstore/bstore/bscom"
+    "ndstore/dslog"
 )
 
 const usersSchema = `
@@ -33,9 +34,10 @@ func (reg *Reg) AddUserDescr(login, pass, state string) error {
 
 func (reg *Reg) UpdateUserDescr(login, pass, state string) error {
     var err error
+    dslog.LogDebug(login, pass, state)
     request := `
         UPDATE users
-        SET pass = $1, state = $3
+        SET pass = $1, state = $2
         WHERE login = $3;`
     _, err = reg.db.Exec(request, pass, state, login)
     if err != nil {

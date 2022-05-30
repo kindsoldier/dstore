@@ -32,6 +32,15 @@ func (auth *Auth) SeedUsers() error {
 
 func (auth *Auth) AddUser(login, pass string) error {
     var err error
+    var ok bool
+    ok, err = checkLogin(login)
+    if !ok {
+        return err
+    }
+    ok, err = checkPass(pass)
+    if !ok {
+        return err
+    }
     err = auth.reg.AddUserDescr(login, pass, UserEnabled)
     return err
 }
@@ -60,6 +69,10 @@ func (auth *Auth) CheckUser(login, pass string) (bool, error) {
 
 func (auth *Auth) UpdateUser(login, pass string) error {
     var err error
+    //ok, err := checkPass(pass)
+    //if !ok {
+    //    return err
+    //}
     err = auth.reg.UpdateUserDescr(login, pass, UserEnabled)
     return err
 }
@@ -67,6 +80,9 @@ func (auth *Auth) UpdateUser(login, pass string) error {
 func (auth *Auth) ListUsers() ([]*bscom.UserDescr, error) {
     var err error
     users, err := auth.reg.ListUserDescrs()
+    //for i := range users {
+    //    users[i].Pass = "xxxxx"
+    //}
     return users, err
 }
 
@@ -74,4 +90,26 @@ func (auth *Auth) DeleteUser(login string) error {
     var err error
     err = auth.reg.DeleteUserDescr(login)
     return err
+}
+
+
+func checkLogin(login string) (bool, error) {
+    var err error
+    var ok bool = true
+    if len(login) == 0 {
+        ok = false
+        err = errors.New("zero len password")
+    }
+    return ok, err
+}
+
+
+func checkPass(pass string) (bool, error) {
+    var err error
+    var ok bool = true
+    if len(pass) == 0 {
+        ok = false
+        err = errors.New("zero len password")
+    }
+    return ok, err
 }

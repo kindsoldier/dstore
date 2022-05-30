@@ -12,7 +12,6 @@ config.status
 log/
 run/
 dat/
-
 bstored
 bstorecli
 bsconf.go

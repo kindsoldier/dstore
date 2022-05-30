@@ -15,7 +15,7 @@ type ListBlocksParams struct {
 }
 
 type ListBlocksResult struct {
-    Blocks  []dscom.BlockDescr     `json:"blocks"`
+    Blocks  []dscom.BlockDescr     `json:"blocks,omitempty"`
 }
 
 func NewListBlocksResult() *ListBlocksResult {

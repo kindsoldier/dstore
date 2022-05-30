@@ -30,8 +30,8 @@ func main() {
 }
 
 type Util struct {
-    ALogin       string
-    APass        string
+    ALogin      string
+    APass       string
     Port        string
     Address     string
     Message     string
@@ -155,7 +155,7 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case addUserCmd, checkUserCmd:
+        case addUserCmd, checkUserCmd, updateUserCmd:
             flagSet := flag.NewFlagSet(addUserCmd, flag.ExitOnError)
             flagSet.StringVar(&util.Login, "login", util.Login, "login")
             flagSet.StringVar(&util.Pass, "pass", util.Pass, "pass")
@@ -232,37 +232,32 @@ func (util *Util) Exec() error {
     auth := dsrpc.CreateAuth([]byte(util.ALogin), []byte(util.APass))
 
     resp := NewResponse(nil, nil)
-
+    var result interface{}
     switch util.SubCmd {
         case getHelloCmd:
-            result, err := util.GetHelloCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.GetHelloCmd(auth)
         case saveBlockCmd:
-            result, err := util.SaveBlockCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.SaveBlockCmd(auth)
         case loadBlocksCmd:
-            result, err := util.LoadBlockCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.LoadBlockCmd(auth)
         case listBlocksCmd:
-            result, err := util.ListBlocksCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.ListBlocksCmd(auth)
         case deleteBlockCmd:
-            result, err := util.DeleteBlockCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.DeleteBlockCmd(auth)
         case addUserCmd:
-            result, err := util.AddUserCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.AddUserCmd(auth)
         case checkUserCmd:
-            result, err := util.CheckUserCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.CheckUserCmd(auth)
+        case updateUserCmd:
+            result, err = util.UpdateUserCmd(auth)
         case deleteUserCmd:
-            result, err := util.DeleteUserCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.DeleteUserCmd(auth)
         case listUsersCmd:
-            result, err := util.ListUsersCmd(auth)
-            resp = NewResponse(result, err)
+            result, err = util.ListUsersCmd(auth)
         default:
+            err = errors.New("unknown cli command")
     }
+    resp = NewResponse(result, err)
     respJSON, err := json.MarshalIndent(resp, "", "  ")
     fmt.Printf("%s\n", string(respJSON))
     err = nil
@@ -375,6 +370,19 @@ func (util *Util) CheckUserCmd(auth *dsrpc.Auth) (*bsapi.CheckUserResult, error)
     params.Pass = util.Pass
     result := bsapi.NewCheckUserResult()
     err = dsrpc.Exec(util.URI, bsapi.CheckUserMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) UpdateUserCmd(auth *dsrpc.Auth) (*bsapi.UpdateUserResult, error) {
+    var err error
+    params := bsapi.NewUpdateUserParams()
+    params.Login = util.Login
+    params.Pass = util.Pass
+    result := bsapi.NewUpdateUserResult()
+    err = dsrpc.Exec(util.URI, bsapi.UpdateUserMethod, params, result, auth)
     if err != nil {
         return result, err
     }

@@ -411,6 +411,7 @@ func (server *Server) RunService() error {
 
     serv.Handler(bsapi.AddUserMethod, userContr.AddUserHandler)
     serv.Handler(bsapi.CheckUserMethod, userContr.CheckUserHandler)
+    serv.Handler(bsapi.UpdateUserMethod, userContr.UpdateUserHandler)
     serv.Handler(bsapi.ListUsersMethod, userContr.ListUsersHandler)
     serv.Handler(bsapi.DeleteUserMethod, userContr.DeleteUserHandler)
 

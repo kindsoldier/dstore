@@ -75,6 +75,7 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     return err
 }
 
+
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     var err error
     params := bsapi.NewAddUserParams()
@@ -122,6 +123,30 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
 
     result := bsapi.NewCheckUserResult()
     result.Match = ok
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return err
+    }
+    return err
+}
+
+func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
+    var err error
+    params := bsapi.NewUpdateUserParams()
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+    login   := params.Login
+    pass    := params.Pass
+
+    err = contr.auth.UpdateUser(login, pass)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+
+    result := bsapi.NewUpdateUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return err
