@@ -13,6 +13,7 @@ type CheckUserParams struct {
 }
 
 type CheckUserResult struct {
+    Match   bool        `json:"match"`
 }
 
 func NewCheckUserResult() *CheckUserResult {

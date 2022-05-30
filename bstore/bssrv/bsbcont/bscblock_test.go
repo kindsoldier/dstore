@@ -1,4 +1,8 @@
-package bscont
+/*
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ */
+
+package bsbcont
 
 import (
     "bytes"
@@ -15,7 +19,9 @@ import (
 )
 
 
-func TestSaveLoadDelete(t *testing.T) {
+
+
+func Test_Block_SaveLoadDelete(t *testing.T) {
     var err error
 
     rootDir := t.TempDir()
@@ -55,4 +61,39 @@ func TestSaveLoadDelete(t *testing.T) {
 
     err = dsrpc.LocalExec(bsapi.DeleteBlockMethod, params, result, nil, contr.DeleteBlockHandler)
     assert.NoError(t, err)
+
+    err = reg.CloseDB()
+    assert.NoError(t, err)
+}
+
+func Test_Block_Hello(t *testing.T) {
+    var err error
+
+    rootDir := t.TempDir()
+    path := filepath.Join(rootDir, "blocks.db")
+    reg := bsbreg.NewReg()
+
+    err = reg.OpenDB(path)
+    assert.NoError(t, err)
+
+    err = reg.MigrateDB()
+    assert.NoError(t, err)
+
+    store := bsblock.NewStore(rootDir, reg)
+    assert.NoError(t, err)
+
+    contr := NewContr(store)
+
+    helloResp := GetHelloMsg
+    params := bsapi.NewGetHelloParams()
+    params.Message = GetHelloMsg
+    result := bsapi.NewGetHelloResult()
+    err = dsrpc.LocalExec(bsapi.GetHelloMethod, params, result, nil, contr.GetHelloHandler)
+
+    assert.NoError(t, err)
+    assert.Equal(t, helloResp, result.Message)
+
+    err = reg.CloseDB()
+    assert.NoError(t, err)
+
 }

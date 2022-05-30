@@ -8,11 +8,11 @@ package bsapi
 const GetHelloMethod string = "getHello"
 
 type GetHelloParams struct {
-    Message string      `json:"message" msgpack:"message" `
+    Message string      `json:"message,omitempty" msgpack:"message" `
 }
 
 type GetHelloResult struct {
-    Message string      `json:"message" msgpack:"message" `
+    Message string      `json:"message,omitempty" msgpack:"message" `
 }
 
 func NewGetHelloResult() *GetHelloResult {

@@ -30,11 +30,16 @@ func main() {
 }
 
 type Util struct {
+    ALogin       string
+    APass        string
     Port        string
     Address     string
     Message     string
     URI         string
     SubCmd      string
+
+    Login       string
+    Pass        string
 
     FileId      int64
     BatchId     int64
@@ -45,9 +50,11 @@ type Util struct {
 
 func NewUtil() *Util {
     var util Util
-    util.Port = "5001"
-    util.Address = "127.0.0.1"
-    util.Message = "hello"
+    util.Port       = "5001"
+    util.Address    = "127.0.0.1"
+    util.Message    = "hello"
+    util.ALogin     = "admin"
+    util.APass      = "admin"
     return &util
 }
 
@@ -56,6 +63,13 @@ const saveBlockCmd      string = "saveBlock"
 const loadBlocksCmd     string = "loadBlock"
 const listBlocksCmd     string = "listBlocks"
 const deleteBlockCmd    string = "deleteBlock"
+
+const addUserCmd        string = "addUser"
+const checkUserCmd      string = "checkUser"
+const updateUserCmd     string = "updateUser"
+const deleteUserCmd     string = "deleteUser"
+const listUsersCmd      string = "listUsers"
+
 const helpCmd           string = "help"
 
 
@@ -64,14 +78,18 @@ func (util *Util) GetOpt() error {
 
     exeName := filepath.Base(os.Args[0])
 
-    flag.StringVar(&util.Port, "p", util.Port, "port")
-    flag.StringVar(&util.Address, "a", util.Address, "address")
+    flag.StringVar(&util.Port, "port", util.Port, "service port")
+    flag.StringVar(&util.Address, "address", util.Address, "service address")
+    flag.StringVar(&util.ALogin, "aLogin", util.ALogin, "access login")
+    flag.StringVar(&util.APass, "aPass", util.APass, "access password")
 
     help := func() {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
         fmt.Printf("Command list: hello, saveBlock, loadBlock, listBlocks, deleteBlock \n")
+        fmt.Printf("Command list:     addUser, checkUser, updateUser, listUsers, deleteUser \n")
+
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
         flag.PrintDefaults()
@@ -97,7 +115,7 @@ func (util *Util) GetOpt() error {
             help()
             return errors.New("unknown command")
         case getHelloCmd:
-            flagSet := flag.NewFlagSet(getHelloCmd, flag.ContinueOnError)
+            flagSet := flag.NewFlagSet(getHelloCmd, flag.ExitOnError)
             flagSet.StringVar(&util.Message, "m", util.Message, "message")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -110,12 +128,11 @@ func (util *Util) GetOpt() error {
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
         case saveBlockCmd, loadBlocksCmd, deleteBlockCmd:
-            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ContinueOnError)
-            flagSet.Int64Var(&util.FileId, "f", util.FileId, "file id")
-            flagSet.Int64Var(&util.BatchId, "ba", util.BatchId, "batch id")
-            flagSet.Int64Var(&util.BlockId, "bl", util.BlockId, "block id")
-            flagSet.StringVar(&util.FilePath, "n", util.FilePath, "block file name")
-
+            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ExitOnError)
+            flagSet.Int64Var(&util.FileId, "fileId", util.FileId, "file id")
+            flagSet.Int64Var(&util.BatchId, "batchId", util.BatchId, "batch id")
+            flagSet.Int64Var(&util.BlockId, "blockId", util.BlockId, "block id")
+            flagSet.StringVar(&util.FilePath, "file", util.FilePath, "block file name")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
@@ -127,13 +144,51 @@ func (util *Util) GetOpt() error {
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
         case listBlocksCmd:
-            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ContinueOnError)
-
+            flagSet := flag.NewFlagSet(saveBlockCmd, flag.ExitOnError)
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options: none\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case addUserCmd, checkUserCmd:
+            flagSet := flag.NewFlagSet(addUserCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Login, "login", util.Login, "login")
+            flagSet.StringVar(&util.Pass, "pass", util.Pass, "pass")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
                 fmt.Printf("\n")
                 fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case deleteUserCmd:
+            flagSet := flag.NewFlagSet(deleteUserCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Login, "login", util.Login, "login")
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case listUsersCmd:
+            flagSet := flag.NewFlagSet(deleteUserCmd, flag.ExitOnError)
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options: none\n")
                 flagSet.PrintDefaults()
                 fmt.Printf("\n")
             }
@@ -147,12 +202,23 @@ func (util *Util) GetOpt() error {
 }
 
 type Response struct {
-    Error   error      `json:"error"`
-    Result  any        `json:"result,omitempty"`
+    Error       bool       `json:"error"`
+    ErrorMsg    string     `json:"errorMsg,omitempty"`
+    Result      any        `json:"result,omitempty"`
 }
 
 func NewResponse(result any, err error) *Response {
-    return &Response{ Result: result, Error: err }
+    var errMsg string
+    var errBool bool
+    if err != nil {
+        errMsg = err.Error()
+        errBool = true
+    }
+    return &Response{
+        Result:     result,
+        Error:      errBool,
+        ErrorMsg:   errMsg,
+    }
 }
 
 func (util *Util) Exec() error {
@@ -163,47 +229,61 @@ func (util *Util) Exec() error {
     }
     util.URI = fmt.Sprintf("%s:%s", util.Address, util.Port)
 
+    auth := dsrpc.CreateAuth([]byte(util.ALogin), []byte(util.APass))
+
     resp := NewResponse(nil, nil)
 
     switch util.SubCmd {
         case getHelloCmd:
-            result, err := util.GetHelloCmd()
+            result, err := util.GetHelloCmd(auth)
             resp = NewResponse(result, err)
         case saveBlockCmd:
-            result, err := util.SaveBlockCmd()
+            result, err := util.SaveBlockCmd(auth)
             resp = NewResponse(result, err)
         case loadBlocksCmd:
-            result, err := util.LoadBlockCmd()
+            result, err := util.LoadBlockCmd(auth)
             resp = NewResponse(result, err)
         case listBlocksCmd:
-            result, err := util.ListBlocksCmd()
+            result, err := util.ListBlocksCmd(auth)
             resp = NewResponse(result, err)
         case deleteBlockCmd:
-            result, err := util.DeleteBlockCmd()
+            result, err := util.DeleteBlockCmd(auth)
+            resp = NewResponse(result, err)
+        case addUserCmd:
+            result, err := util.AddUserCmd(auth)
+            resp = NewResponse(result, err)
+        case checkUserCmd:
+            result, err := util.CheckUserCmd(auth)
+            resp = NewResponse(result, err)
+        case deleteUserCmd:
+            result, err := util.DeleteUserCmd(auth)
+            resp = NewResponse(result, err)
+        case listUsersCmd:
+            result, err := util.ListUsersCmd(auth)
             resp = NewResponse(result, err)
         default:
     }
-    respJSON, _ := json.Marshal(resp)
+    respJSON, err := json.MarshalIndent(resp, "", "  ")
     fmt.Printf("%s\n", string(respJSON))
     err = nil
     return err
 }
 
-func (util *Util) GetHelloCmd() (*bsapi.GetHelloResult, error) {
+func (util *Util) GetHelloCmd(auth *dsrpc.Auth) (*bsapi.GetHelloResult, error) {
     var err error
 
     params := bsapi.NewGetHelloParams()
     params.Message = util.Message
     result := bsapi.NewGetHelloResult()
 
-    err = dsrpc.Exec(util.URI, bsapi.GetHelloMethod, params, result, nil)
+    err = dsrpc.Exec(util.URI, bsapi.GetHelloMethod, params, result, auth)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-func (util *Util) SaveBlockCmd() (*bsapi.SaveBlockResult, error) {
+func (util *Util) SaveBlockCmd(auth *dsrpc.Auth) (*bsapi.SaveBlockResult, error) {
     var err error
 
     params := bsapi.NewSaveBlockParams()
@@ -224,7 +304,7 @@ func (util *Util) SaveBlockCmd() (*bsapi.SaveBlockResult, error) {
     }
     fileSize := fileInfo.Size()
 
-    err = dsrpc.Put(util.URI, bsapi.SaveBlockMethod, blockFile, fileSize, params, result, nil)
+    err = dsrpc.Put(util.URI, bsapi.SaveBlockMethod, blockFile, fileSize, params, result, auth)
     if err != nil {
         return result, err
     }
@@ -234,44 +314,90 @@ func (util *Util) SaveBlockCmd() (*bsapi.SaveBlockResult, error) {
 const dirPerm   fs.FileMode = 0755
 const filePerm  fs.FileMode = 0644
 
-func (util *Util) LoadBlockCmd() (*bsapi.LoadBlockResult, error) {
+func (util *Util) LoadBlockCmd(auth *dsrpc.Auth) (*bsapi.LoadBlockResult, error) {
     var err error
-
     params := bsapi.NewLoadBlockParams()
     params.FileId   = util.FileId
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
-
     result := bsapi.NewLoadBlockResult()
-
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
     defer blockFile.Close()
     if err != nil {
         return result, err
     }
-    err = dsrpc.Get(util.URI, bsapi.LoadBlockMethod, blockFile, params, result, nil)
+    err = dsrpc.Get(util.URI, bsapi.LoadBlockMethod, blockFile, params, result, auth)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-func (util *Util) ListBlocksCmd() (*bsapi.ListBlocksResult, error) {
+func (util *Util) ListBlocksCmd(auth *dsrpc.Auth) (*bsapi.ListBlocksResult, error) {
     var err error
     params := bsapi.NewListBlocksParams()
     result := bsapi.NewListBlocksResult()
-    err = dsrpc.Exec(util.URI, bsapi.ListBlocksMethod, params, result, nil)
+    err = dsrpc.Exec(util.URI, bsapi.ListBlocksMethod, params, result, auth)
     if err != nil {
         return result, err
     }
     return result, err
 }
 
-func (util *Util) DeleteBlockCmd() (*bsapi.DeleteBlockResult, error) {
+func (util *Util) DeleteBlockCmd(auth *dsrpc.Auth) (*bsapi.DeleteBlockResult, error) {
     var err error
     params := bsapi.NewDeleteBlockParams()
     result := bsapi.NewDeleteBlockResult()
-    err = dsrpc.Exec(util.URI, bsapi.DeleteBlockMethod, params, result, nil)
+    err = dsrpc.Exec(util.URI, bsapi.DeleteBlockMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*bsapi.AddUserResult, error) {
+    var err error
+    params := bsapi.NewAddUserParams()
+    params.Login = util.Login
+    params.Pass = util.Pass
+    result := bsapi.NewAddUserResult()
+    err = dsrpc.Exec(util.URI, bsapi.AddUserMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) CheckUserCmd(auth *dsrpc.Auth) (*bsapi.CheckUserResult, error) {
+    var err error
+    params := bsapi.NewCheckUserParams()
+    params.Login = util.Login
+    params.Pass = util.Pass
+    result := bsapi.NewCheckUserResult()
+    err = dsrpc.Exec(util.URI, bsapi.CheckUserMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) DeleteUserCmd(auth *dsrpc.Auth) (*bsapi.DeleteUserResult, error) {
+    var err error
+    params := bsapi.NewDeleteUserParams()
+    params.Login = util.Login
+    result := bsapi.NewDeleteUserResult()
+    err = dsrpc.Exec(util.URI, bsapi.DeleteUserMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) ListUsersCmd(auth *dsrpc.Auth) (*bsapi.ListUsersResult, error) {
+    var err error
+    params := bsapi.NewListUsersParams()
+    result := bsapi.NewListUsersResult()
+    err = dsrpc.Exec(util.URI, bsapi.ListUsersMethod, params, result, auth)
     if err != nil {
         return result, err
     }

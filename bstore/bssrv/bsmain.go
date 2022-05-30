@@ -19,9 +19,12 @@ import (
     "ndstore/dslog"
     "ndstore/dsrpc"
     "ndstore/bstore/bssrv/bsconf"
-    "ndstore/bstore/bssrv/bscont"
-    "ndstore/bstore/bssrv/bsblock"
+
+    "ndstore/bstore/bssrv/bsbcont"
     "ndstore/bstore/bssrv/bsbreg"
+    "ndstore/bstore/bssrv/bsblock"
+
+    "ndstore/bstore/bssrv/bsucont"
     "ndstore/bstore/bssrv/bsureg"
     "ndstore/bstore/bssrv/bsuser"
 )
@@ -371,6 +374,9 @@ func (server *Server) RunService() error {
     storeModel.SetDirPerm(dirPerm)
     storeModel.SetFilePerm(filePerm)
 
+    blockContr := bsbcont.NewContr(storeModel)
+    dslog.LogDebug("dataDir is", dataRoot)
+
 
     userReg := bsureg.NewReg()
     userDBPath := filepath.Join(dataRoot, "users.db")
@@ -385,20 +391,29 @@ func (server *Server) RunService() error {
     defer userReg.CloseDB()
 
     authModel := bsuser.NewAuth(userReg)
-    //store.SetDirPerm(dirPerm)
-    //store.SetFilePerm(filePerm)
-
-    contr := bscont.NewContr(storeModel, authModel)
-    dslog.LogDebug("dataDir is", dataRoot)
+    err = authModel.SeedUsers()
+    if err != nil {
+        return err
+    }
+    userContr := bsucont.NewContr(authModel)
 
     serv := dsrpc.NewService()
-    serv.Handler(bsapi.GetHelloMethod, contr.GetHelloHandler)
-    serv.Handler(bsapi.SaveBlockMethod, contr.SaveBlockHandler)
-    serv.Handler(bsapi.LoadBlockMethod, contr.LoadBlockHandler)
-    serv.Handler(bsapi.DeleteBlockMethod, contr.DeleteBlockHandler)
-    serv.Handler(bsapi.ListBlocksMethod, contr.ListBlocksHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
+    serv.PreMiddleware(userContr.AuthMidware)
+
+    serv.Handler(bsapi.GetHelloMethod, blockContr.GetHelloHandler)
+
+    serv.Handler(bsapi.SaveBlockMethod, blockContr.SaveBlockHandler)
+    serv.Handler(bsapi.LoadBlockMethod, blockContr.LoadBlockHandler)
+    serv.Handler(bsapi.DeleteBlockMethod, blockContr.DeleteBlockHandler)
+    serv.Handler(bsapi.ListBlocksMethod, blockContr.ListBlocksHandler)
+
+    serv.Handler(bsapi.AddUserMethod, userContr.AddUserHandler)
+    serv.Handler(bsapi.CheckUserMethod, userContr.CheckUserHandler)
+    serv.Handler(bsapi.ListUsersMethod, userContr.ListUsersHandler)
+    serv.Handler(bsapi.DeleteUserMethod, userContr.DeleteUserHandler)
+
     serv.PostMiddleware(dsrpc.LogResponse)
     serv.PostMiddleware(dsrpc.LogAccess)
 

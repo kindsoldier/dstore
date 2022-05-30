@@ -18,6 +18,7 @@ const usersSchema = `
     CREATE UNIQUE INDEX IF NOT EXISTS user_idx
         ON users (login);`
 
+
 func (reg *Reg) AddUserDescr(login, pass, state string) error {
     var err error
     request := `

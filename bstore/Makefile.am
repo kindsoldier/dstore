@@ -8,11 +8,19 @@ sbin_PROGRAMS = bstored bstorecli
 bstored_SOURCES = bssrv/bsmain.go
 
 EXTRA_bstored_SOURCES = \
-	bssrv/bsconf/bsconf.go \
 	bssrv/bsconf/bsconf.go.in \
-	bssrv/bsrec/bsrec.go \
-	bssrv/bscont/bscont.go \
-	bssrv/bsreg/bsreg.go
+	bssrv/bsbreg/common.go \
+	bssrv/bsbreg/blocks.go \
+	bssrv/bsbreg/blocks_test.go \
+	bssrv/bsureg/common.go \
+	bssrv/bsureg/users.go \
+	bssrv/bsureg/users_test.go \
+	bssrv/bsbcont/bscblock.go \
+	bssrv/bsbcont/bscblock_test.go \
+	bssrv/bsuser/bsuser.go \
+	bssrv/bsucont/bscuser_test.go \
+	bssrv/bsucont/bscuser.go \
+	bssrv/bsblock/bsrec.go
 
 bstorecli_SOURCES = bscli/bscli.go
 

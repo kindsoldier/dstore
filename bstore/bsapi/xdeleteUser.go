@@ -9,8 +9,6 @@ const DeleteUserMethod string = "deleteUser"
 
 type DeleteUserParams struct {
     Login      string           `json:"login"`
-    Pass     string           `json:"pass"`
-    State     string           `json:"state"`
 }
 
 type DeleteUserResult struct {

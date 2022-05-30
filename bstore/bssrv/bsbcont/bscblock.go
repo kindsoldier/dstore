@@ -2,13 +2,41 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package bscont
+package bsbcont
 
 import (
     "io"
     "ndstore/bstore/bsapi"
+    "ndstore/bstore/bssrv/bsblock"
     "ndstore/dsrpc"
 )
+
+const GetHelloMsg string = "hello"
+
+type Contr struct {
+    store   *bsblock.Store
+}
+
+func NewContr(store *bsblock.Store) *Contr {
+    return &Contr{ store: store }
+}
+
+func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
+    var err error
+    params := bsapi.NewGetHelloParams()
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+
+    result := bsapi.NewGetHelloResult()
+    result.Message = GetHelloMsg
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return err
+    }
+    return err
+}
 
 func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     var err error
