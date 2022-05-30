@@ -16,7 +16,7 @@ import (
 )
 
 
-func TestSaveLoadDelete(t *testing.T) {
+func Test_File_SaveLoadDelete(t *testing.T) {
     var err error
 
     baseDir := t.TempDir()

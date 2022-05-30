@@ -110,9 +110,14 @@ func (server *Server) GetOptions() error {
     var err error
     exeName := filepath.Base(os.Args[0])
 
-    flag.StringVar(&server.Params.RunDir, "run", server.Params.RunDir, "run direcory")
-    flag.StringVar(&server.Params.LogDir, "log", server.Params.LogDir, "log direcory")
-    flag.StringVar(&server.Params.DataDir, "data", server.Params.DataDir, "data directory")
+    flag.StringVar(&server.Params.RunDir, "runDir", server.Params.RunDir, "run direcory")
+    flag.StringVar(&server.Params.LogDir, "logDir", server.Params.LogDir, "log direcory")
+    flag.StringVar(&server.Params.DataDir, "dataDir", server.Params.DataDir, "data directory")
+
+    flag.StringVar(&server.Params.DbName, "dbName", server.Params.DbName, "db name")
+    flag.StringVar(&server.Params.DbHost, "dbHost", server.Params.DbHost, "db host")
+    flag.StringVar(&server.Params.DbUser, "dbUser", server.Params.DbUser, "db user")
+    flag.StringVar(&server.Params.DbPass, "dbPass", server.Params.DbPass, "db pass")
 
     flag.StringVar(&server.Params.Port, "port", server.Params.Port, "listen port")
     flag.BoolVar(&server.Backgr, "daemon", server.Backgr, "run as daemon")
@@ -346,7 +351,11 @@ func (server *Server) RunService() error {
     contr := fdcont.NewContr()
     dslog.LogDebug("data dir is", server.Params.DataDir)
 
-    serv.Handler(fsapi.HelloMethod, contr.HelloHandler)
+    serv.Handler(fsapi.GetHelloMethod, contr.GetHelloHandler)
+    serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
+    serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
+    serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
+    serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

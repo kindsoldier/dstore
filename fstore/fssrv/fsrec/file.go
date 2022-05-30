@@ -6,39 +6,13 @@ package fsrec
 
 import (
     "errors"
-    "io/fs"
     "io"
     "path/filepath"
 
     "ndstore/dscom"
     "ndstore/fstore/fssrv/fsfile"
-    "ndstore/fstore/fssrv/fsreg"
 )
 
-const blockFileExt string = ".blk"
-const storeDBName  string = "file.db"
-
-
-type Store struct {
-    dataRoot string
-    dirPerm   fs.FileMode
-    filePerm  fs.FileMode
-    reg    *fsreg.Reg
-}
-
-func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
-    var store Store
-    store.dataRoot  = dataRoot
-    store.dirPerm   = 0755
-    store.filePerm  = 0644
-    store.reg       = reg
-    return &store
-}
-
-func (store *Store) SetPerm(dirPerm, filePerm fs.FileMode) {
-    store.dirPerm = dirPerm
-    store.filePerm = filePerm
-}
 
 func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int64) error {
     var err error

@@ -62,5 +62,10 @@ func (reg *Reg) MigrateDB() error {
     if err != nil {
         return err
     }
+    _, err = reg.db.Exec(usersSchema)
+    if err != nil {
+        return err
+    }
+
     return err
 }
