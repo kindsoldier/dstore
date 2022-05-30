@@ -110,6 +110,14 @@ func (this *Service) handleConn(conn net.Conn) {
     }
     defer exitFunc()
 
+    recovFunc := func () {
+        panicMsg := recover()
+        if recMsg != nil {
+            logError("handler panic message:", panicMsg)
+        }
+    }
+    defer recovFunc()
+
     err = context.ReadRequest()
     if err != nil {
         return

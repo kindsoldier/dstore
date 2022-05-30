@@ -28,7 +28,6 @@ func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-
     result := fsapi.NewGetHelloResult()
     result.Message = GetHelloMsg
     err = context.SendResult(result, 0)
