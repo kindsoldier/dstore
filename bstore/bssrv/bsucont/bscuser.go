@@ -10,6 +10,7 @@ import (
     "ndstore/bstore/bsapi"
     "ndstore/bstore/bssrv/bsuser"
     "ndstore/dsrpc"
+    "ndstore/dslog"
 )
 
 const GetHelloMsg string = "hello"
@@ -51,23 +52,21 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
         return err
     }
     if !exists {
+        context.ReadBin(io.Discard)
+
         err = errors.New("login not exists")
         context.SendError(err)
         return err
     }
-
-    err = context.ReadBin(io.Discard)
-    if err != nil {
-        context.SendError(err)
-        return err
-    }
-    //auth := context.Auth()
-    //dslog.LogDebug("auth ", string(auth.JSON()))
+    auth := context.Auth()
+    dslog.LogDebug("auth ", string(auth.JSON()))
 
     pass := []byte(usersDescr.Pass)
     ok := dsrpc.CheckHash(login, pass, salt, hash)
-    //dslog.LogDebug("auth ok:", ok)
+    dslog.LogDebug("auth ok:", ok)
     if !ok {
+        context.ReadBin(io.Discard)
+
         err = errors.New("auth login or pass missmatch")
         context.SendError(err)
         return err

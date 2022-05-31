@@ -41,12 +41,10 @@ func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
 func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     var err error
     params := bsapi.NewSaveBlockParams()
-
     err = context.BindParams(params)
     if err != nil {
         return err
     }
-
     blockSize   := context.BinSize()
     blockReader := context.BinReader()
 
@@ -58,7 +56,6 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
-
     result := bsapi.NewSaveBlockResult()
     err = context.SendResult(result, 0)
     if err != nil {

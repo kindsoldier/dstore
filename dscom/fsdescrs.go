@@ -71,9 +71,9 @@ type BlockDescr struct {
     BlockId     int64       `json:"blockId"     db:"block_id"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     FilePath    string      `json:"filePath"    db:"file_path"`
+    HashAlg     string      `json:"hashAlg"     db:"hash_alg"`
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`
-    DataSize    int64       `json:"dataSize"    db:"data_size"`
 }
 
 func NewBlockDescr() *BlockDescr {

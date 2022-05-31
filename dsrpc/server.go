@@ -112,7 +112,7 @@ func (this *Service) handleConn(conn net.Conn) {
 
     recovFunc := func () {
         panicMsg := recover()
-        if recMsg != nil {
+        if panicMsg != nil {
             logError("handler panic message:", panicMsg)
         }
     }

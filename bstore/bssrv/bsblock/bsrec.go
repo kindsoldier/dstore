@@ -72,7 +72,6 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Rea
     if err != nil {
         return err
     }
-
     filePath := filepath.Join(subdirName, fileName)
     err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
     if err != nil {
@@ -139,7 +138,7 @@ func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
     return err
 }
 
-func (store *Store) ListBlocks() ([]dscom.BlockDescr, error) {
+func (store *Store) ListBlocks() ([]*dscom.BlockDescr, error) {
     var err error
     blocks, err := store.reg.ListBlockDescrs()
     if err != nil {

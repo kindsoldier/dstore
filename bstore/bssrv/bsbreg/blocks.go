@@ -15,10 +15,10 @@ const blockSchema = `
         batch_id    INTEGER,
         block_id    INTEGER,
         block_size  INTEGER,
-        file_path   TEXT,
-        hash_alg    TEXT,
-        hash_sum    TEXT,
-        hash_init   TEXT
+        file_path   TEXT DEFAULT '',
+        hash_alg    TEXT DEFAULT '',
+        hash_sum    TEXT DEFAULT '',
+        hash_init   TEXT DEFAULT ''
     );
     DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
@@ -116,16 +116,17 @@ func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64) (bool, error) {
     return exists, err
 }
 
-func (reg *Reg) ListBlockDescrs() ([]dscom.BlockDescr, error) {
+func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     var err error
-    blocks := make([]dscom.BlockDescr, 0)
+    blocks := make([]*dscom.BlockDescr, 0)
     if reg.db == nil {
         return blocks, ErrorNilRef
     }
     request := `
-        SELECT file_path
+        SELECT file_id, batch_id, block_id, block_size,file_path,
+            hash_alg, hash_sum, hash_init
         FROM blocks;`
-    err = reg.db.Select(blocks, request)
+    err = reg.db.Select(&blocks, request)
     if err != nil {
         return blocks, err
     }

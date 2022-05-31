@@ -26,15 +26,11 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     }
     if !exists {
         err = errors.New("login not exists")
+        context.ReadBin(io.Discard)
         context.SendError(err)
         return err
     }
 
-    err = context.ReadBin(io.Discard)
-    if err != nil {
-        context.SendError(err)
-        return err
-    }
     //auth := context.Auth()
     //dslog.LogDebug("auth ", string(auth.JSON()))
 
@@ -43,6 +39,7 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     //dslog.LogDebug("auth ok:", ok)
     if !ok {
         err = errors.New("auth login or pass missmatch")
+        context.ReadBin(io.Discard)
         context.SendError(err)
         return err
     }
