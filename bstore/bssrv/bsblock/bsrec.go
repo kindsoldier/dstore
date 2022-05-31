@@ -11,11 +11,13 @@ import (
     "path/filepath"
     "os"
     "errors"
+    "encoding/hex"
+    "crypto/md5"
+    "time"
 
+    "ndstore/bstore/bssrv/bsbreg"
     "ndstore/dsrpc"
     "ndstore/dscom"
-    "ndstore/xtools"
-    "ndstore/bstore/bssrv/bsbreg"
 )
 
 const blockFileExt string = ".blk"
@@ -44,8 +46,8 @@ func (store *Store) SetFilePerm(filePerm fs.FileMode) {
     store.filePerm = filePerm
 }
 
-func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Reader,
-                                                                        blockSize int64) error {
+func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int64, blockReader io.Reader,
+                                                                        binSize int64) error {
     var err error
 
     blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId)
@@ -68,12 +70,12 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockReader io.Rea
     if err != nil {
         return err
     }
-    _, err = dsrpc.CopyBytes(blockReader, blockFile, blockSize)
+    _, err = dsrpc.CopyBytes(blockReader, blockFile, binSize)
     if err != nil {
         return err
     }
     filePath := filepath.Join(subdirName, fileName)
-    err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, filePath)
+    err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
     if err != nil {
         os.Remove(filePath)
         return err
@@ -148,17 +150,24 @@ func (store *Store) ListBlocks() ([]*dscom.BlockDescr, error) {
 }
 
 func MakeBlockName(fileId, batchId, blockId int64) string {
-    var fileName string
-    fileName = fmt.Sprintf("%020d-%020d-%020d", fileId, batchId, blockId)
-    fileName = xtools.Raw2HashString([]byte(fileName))
-    fileName = fileName + blockFileExt
+    ts := time.Now().UnixNano()
+    origin := fmt.Sprintf("%020d-%020d-%020d-%020d", fileId, batchId, blockId, ts)
+    hasher := md5.New()
+    hasher.Write([]byte(origin))
+    hashSum := hasher.Sum(nil)
+    hashHex := hex.EncodeToString(hashSum)
+    fileName := hashHex + blockFileExt
     return fileName
 }
 
 func MakeDirName(fileName string) string {
-    hash := xtools.Raw2HashBytes([]byte(fileName))
-    l1 := string(hash[0:1])
-    l2 := string(hash[2:3])
+    hasher := md5.New()
+    hasher.Write([]byte(fileName))
+    hashSum := hasher.Sum(nil)
+    hashHex := make([]byte, hex.EncodedLen(len(hashSum)))
+    hex.Encode(hashHex, hashSum)
+    l1 := string(hashHex[0:1])
+    l2 := string(hashHex[2:3])
     dirName := filepath.Join(l1, l2)
     return dirName
 }

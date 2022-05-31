@@ -293,18 +293,19 @@ SUFFIXES = .go
 OBJEXT = none
 bstored_SOURCES = bssrv/bsmain.go
 EXTRA_bstored_SOURCES = \
-	bssrv/bsconf/bsconf.go.in \
-	bssrv/bsbreg/common.go \
-	bssrv/bsbreg/blocks.go \
-	bssrv/bsbreg/blocks_test.go \
+	bssrv/bsbreg/block.go \
+	bssrv/bsbreg/comm.go \
+	bssrv/bsbreg/block_test.go \
 	bssrv/bsureg/common.go \
 	bssrv/bsureg/users.go \
 	bssrv/bsureg/users_test.go \
-	bssrv/bsbcont/bscblock.go \
-	bssrv/bsbcont/bscblock_test.go \
+	bssrv/bsbcont/comm.go \
+	bssrv/bsbcont/block.go \
+	bssrv/bsbcont/block_test.go \
 	bssrv/bsuser/bsuser.go \
-	bssrv/bsucont/bscuser_test.go \
-	bssrv/bsucont/bscuser.go \
+	bssrv/bsucont/comm.go \
+	bssrv/bsucont/user_test.go \
+	bssrv/bsucont/user.go \
 	bssrv/bsblock/bsrec.go
 
 bstorecli_SOURCES = bscli/bscli.go

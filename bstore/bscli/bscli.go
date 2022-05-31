@@ -298,6 +298,7 @@ func (util *Util) SaveBlockCmd(auth *dsrpc.Auth) (*bsapi.SaveBlockResult, error)
     }
     fileSize := fileInfo.Size()
 
+    params.DataSize = fileSize
     err = dsrpc.Put(util.URI, bsapi.SaveBlockMethod, blockFile, fileSize, params, result, auth)
     if err != nil {
         return result, err

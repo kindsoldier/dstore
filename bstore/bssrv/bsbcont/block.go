@@ -7,36 +7,8 @@ package bsbcont
 import (
     "io"
     "ndstore/bstore/bsapi"
-    "ndstore/bstore/bssrv/bsblock"
     "ndstore/dsrpc"
 )
-
-const GetHelloMsg string = "hello"
-
-type Contr struct {
-    store   *bsblock.Store
-}
-
-func NewContr(store *bsblock.Store) *Contr {
-    return &Contr{ store: store }
-}
-
-func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
-    var err error
-    params := bsapi.NewGetHelloParams()
-    err = context.BindParams(params)
-    if err != nil {
-        return err
-    }
-
-    result := bsapi.NewGetHelloResult()
-    result.Message = GetHelloMsg
-    err = context.SendResult(result, 0)
-    if err != nil {
-        return err
-    }
-    return err
-}
 
 func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     var err error
@@ -45,13 +17,16 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    blockSize   := context.BinSize()
+    binSize     := context.BinSize()
     blockReader := context.BinReader()
 
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
-    err = contr.store.SaveBlock(fileId, batchId, blockId, blockReader, blockSize)
+    blockSize   := params.BlockSize
+    dataSize    := params.DataSize
+
+    err = contr.store.SaveBlock(fileId, batchId, blockId, blockSize, dataSize, blockReader, binSize)
     if err != nil {
         context.SendError(err)
         return err
@@ -75,7 +50,6 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
-
     blockWriter := context.BinWriter()
 
     err = context.ReadBin(io.Discard)
@@ -84,13 +58,13 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
         return err
     }
 
-    blockSize, err := contr.store.BlockExists(fileId, batchId, blockId)
+    dataSize, err := contr.store.BlockExists(fileId, batchId, blockId)
     if err != nil {
         context.SendError(err)
         return err
     }
     result := bsapi.NewLoadBlockResult()
-    err = context.SendResult(result, blockSize)
+    err = context.SendResult(result, dataSize)
     if err != nil {
         return err
     }

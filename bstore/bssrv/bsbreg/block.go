@@ -15,6 +15,7 @@ const blockSchema = `
         batch_id    INTEGER,
         block_id    INTEGER,
         block_size  INTEGER,
+        data_size   INTEGER,
         file_path   TEXT DEFAULT '',
         hash_alg    TEXT DEFAULT '',
         hash_sum    TEXT DEFAULT '',
@@ -25,16 +26,16 @@ const blockSchema = `
         ON blocks (file_id, batch_id, block_id);`
 
 
-func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize int64, filePath string) error {
+func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
     }
     request := `
         INSERT
-            INTO blocks(file_id, batch_id, block_id, block_size, file_path)
-        VALUES ($1, $2, $3, $4, $5);`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, filePath)
+            INTO blocks(file_id, batch_id, block_id, block_size, data_size, file_path)
+        VALUES ($1, $2, $3, $4, $5, $6);`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, dataSize, filePath)
     if err != nil {
         return err
     }
@@ -42,7 +43,7 @@ func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize int64, filePat
 }
 
 
-func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize int64, filePath string) error {
+func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
     if reg.db == nil {
         return ErrorNilRef
@@ -51,12 +52,12 @@ func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize int64, file
     request = `
         UPDATE blocks SET
             block_size = $1,
+            data_size = $3,
             file_path = $2
-        WHERE file_id = $3
-            AND batch_id = $4
-            AND block_id = $5;`
-    _, err = reg.db.Exec(request, blockSize, filePath,
-                            fileId, batchId, blockId)
+        WHERE file_id = $4
+            AND batch_id = $5
+            AND block_id = $6;`
+    _, err = reg.db.Exec(request, blockSize, dataSize, filePath, fileId, batchId, blockId)
     if err != nil {
         return err
     }
@@ -123,7 +124,7 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
         return blocks, ErrorNilRef
     }
     request := `
-        SELECT file_id, batch_id, block_id, block_size,file_path,
+        SELECT file_id, batch_id, block_id, block_size, data_size, file_path,
             hash_alg, hash_sum, hash_init
         FROM blocks;`
     err = reg.db.Select(&blocks, request)

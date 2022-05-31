@@ -40,7 +40,7 @@ func NewConfig() *Config {
     config.MsgName  = "message.log"
     config.AccName  = "access.log"
 
-    config.FilePerm = 0655
+    config.FilePerm = 0644
     config.DirPerm  = 0755
 
     config.ConfPath = filepath.Join(configDir, configName)
