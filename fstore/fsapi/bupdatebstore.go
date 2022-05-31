@@ -8,9 +8,11 @@ package fsapi
 const UpdateBStoreMethod string = "updateBStore"
 
 type UpdateBStoreParams struct {
-    Login   string      `json:"login"`
-    Pass    string      `json:"pass"`
-    State   string      `json:"state"`
+    Address string      `json:"address" db:"address"`
+    Port    string      `json:"port"    db:"port"`
+    Login   string      `json:"login"   db:"login"`
+    Pass    string      `json:"pass"    db:"pass"`
+    State   string      `json:"state"   db:"state"`
 }
 
 type UpdateBStoreResult struct {

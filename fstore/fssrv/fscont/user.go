@@ -12,7 +12,6 @@ import (
     "ndstore/dslog"
 )
 
-
 func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     var err error
     login := context.AuthIdent()
@@ -22,7 +21,8 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     usersDescr, err := contr.store.GetUser(string(login))
     if err != nil {
         context.ReadBin(io.Discard)
-        context.SendError(err)
+        extErr := errors.New("auth missmatch")
+        context.SendError(extErr)
         return err
     }
 
@@ -34,9 +34,9 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     dslog.LogDebug("auth ok:", ok)
 
     if !ok {
-        err = errors.New("auth login or pass missmatch")
         context.ReadBin(io.Discard)
-        context.SendError(err)
+        extErr := errors.New("auth missmatch")
+        context.SendError(extErr)
         return err
     }
     return err

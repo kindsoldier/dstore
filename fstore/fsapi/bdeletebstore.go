@@ -8,7 +8,8 @@ package fsapi
 const DeleteBStoreMethod string = "deleteBStore"
 
 type DeleteBStoreParams struct {
-    Login      string           `json:"login"`
+    Address string      `json:"address" db:"address"`
+    Port    string      `json:"port"    db:"port"`
 }
 
 type DeleteBStoreResult struct {
