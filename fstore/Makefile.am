@@ -53,6 +53,8 @@ EXTRA_DIST = \
 clean-local:
 	rm -rf autom4te.cache
 	rm -rf log/ run/ data/
+	rm -f fssrv/fssrv
+	rm -f fscli/fscli
 
 install-data-local:
 	test -z $(DESTDIR)$(SRV_CONFDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_CONFDIR)
