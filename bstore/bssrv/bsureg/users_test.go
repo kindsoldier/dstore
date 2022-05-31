@@ -37,7 +37,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     assert.NoError(t, err)
     assert.Equal(t, true, exists)
 
-    user, _, err := reg.GetUserDescr(login)
+    user, err := reg.GetUserDescr(login)
     assert.NoError(t, err)
     assert.Equal(t, login, user.Login)
     assert.Equal(t, pass, user.Pass)
@@ -58,7 +58,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     err = reg.UpdateUserDescr(login, pass, state, role)
     assert.NoError(t, err)
 
-    user, _, err = reg.GetUserDescr(login)
+    user, err = reg.GetUserDescr(login)
     assert.NoError(t, err)
     assert.NotNil(t, user)
     assert.Equal(t, login, user.Login)
@@ -66,16 +66,15 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     assert.Equal(t, role, user.Role)
 
     wrongLogin := "foobar"
-    user, _, err = reg.GetUserDescr(wrongLogin)
-    assert.NoError(t, err)
-    assert.Nil(t, user)
+    user, err = reg.GetUserDescr(wrongLogin)
+    assert.Error(t, err)
+    assert.NotNil(t, user)
 
     err = reg.DeleteUserDescr(login)
     assert.NoError(t, err)
 
-    _, exists, err = reg.GetUserDescr(login)
-    assert.NoError(t, err)
-    assert.Equal(t, false, exists)
+    _, err = reg.GetUserDescr(login)
+    assert.Error(t, err)
 
     err = reg.CloseDB()
     assert.NoError(t, err)

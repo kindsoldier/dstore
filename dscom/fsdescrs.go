@@ -1,11 +1,11 @@
 package dscom
 
 type UserDescr struct {
-    Id      int64       `json:"id"      db:"id"`
-    Login   string      `json:"login"   db:"login"`
-    Pass    string      `json:"pass"    db:"pass"`
-    State   string      `json:"state"   db:"state"`
-    Role    string      `json:"role"    db:"role"`
+    UserId  int64       `json:"userId"      db:"user_id"`
+    Login   string      `json:"login"       db:"login"`
+    Pass    string      `json:"pass"        db:"pass"`
+    State   string      `json:"state"       db:"state"`
+    Role    string      `json:"role"        db:"role"`
 }
 
 func NewUserDescr() *UserDescr{
@@ -13,11 +13,12 @@ func NewUserDescr() *UserDescr{
 }
 
 type BStoreDescr struct {
-    Id      int64       `json:"id"      db:"id"`
-    Address string      `json:"address" db:"address"`
-    Login   string      `json:"login"   db:"login"`
-    Pass    string      `json:"pass"    db:"pass"`
-    State   string      `json:"state"   db:"state"`
+    BStoreId int64      `json:"bStoreId"    db:"bstore_id"`
+    Address string      `json:"address"     db:"address"`
+    Port    string      `json:"port"        db:"port"`
+    Login   string      `json:"login"       db:"login"`
+    Pass    string      `json:"pass"        db:"pass"`
+    State   string      `json:"state"       db:"state"`
 }
 
 func NewBStoreDescr() *BStoreDescr{
@@ -25,6 +26,7 @@ func NewBStoreDescr() *BStoreDescr{
 }
 
 type EntryDescr struct {
+    EntryId     string      `json:"entryId"     db:"entryId"`
     DirPath     string      `json:"dirPath"     db:"dir_path"`
     FileName    string      `json:"fileName"    db:"file_name"`
     FileId      int64       `json:"fileId"      db:"file_id"`
@@ -71,6 +73,7 @@ type BlockDescr struct {
     BlockId     int64       `json:"blockId"     db:"block_id"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     FilePath    string      `json:"filePath"    db:"file_path"`
+    DataSize    int64       `json:"dataSize"    db:"data_size"`
     HashAlg     string      `json:"hashAlg"     db:"hash_alg"`
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`

@@ -39,6 +39,15 @@ func Test_User_AddCheckDelete(t *testing.T) {
     err = dsrpc.LocalExec(fsapi.AddUserMethod, addParams, addResult, nil, contr.AddUserHandler)
     assert.NoError(t, err)
 
+    checkParams := fsapi.NewCheckUserParams()
+    checkParams.Login    = "qwerty"
+    checkParams.Pass     = "123456"
+    checkResult := fsapi.NewCheckUserResult()
+    err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, nil, contr.CheckUserHandler)
+    assert.NoError(t, err)
+    assert.Equal(t, true, checkResult.Match)
+
+
     addParams = fsapi.NewAddUserParams()
     addParams.Login    = "qwerty"
     addParams.Pass     = "123456xx"
@@ -53,13 +62,6 @@ func Test_User_AddCheckDelete(t *testing.T) {
     err = dsrpc.LocalExec(fsapi.AddUserMethod, addParams, addResult, nil, contr.AddUserHandler)
     assert.NoError(t, err)
 
-    checkParams := fsapi.NewCheckUserParams()
-    checkParams.Login    = "qwerty"
-    checkParams.Pass     = "123456"
-    checkResult := fsapi.NewCheckUserResult()
-    err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, nil, contr.CheckUserHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, true, checkResult.Match)
 
     checkParams = fsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"

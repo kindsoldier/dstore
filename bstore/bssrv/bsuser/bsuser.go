@@ -46,20 +46,18 @@ func (auth *Auth) AddUser(login, pass string) error {
     return err
 }
 
-func (auth *Auth) GetUser(login string) (*bscom.UserDescr, bool, error) {
+func (auth *Auth) GetUser(login string) (*bscom.UserDescr, error) {
     var err error
-    user, exists, err := auth.reg.GetUserDescr(login)
-    return user, exists, err
+    user, err := auth.reg.GetUserDescr(login)
+    return user, err
 }
 
 func (auth *Auth) CheckUser(login, pass string) (bool, error) {
     var err error
-    user, ok, err := auth.reg.GetUserDescr(login)
+    var ok bool
+    user, err := auth.reg.GetUserDescr(login)
     if err != nil {
         return ok, err
-    }
-    if !ok {
-        return ok, errors.New("user not exists")
     }
     if pass != user.Pass {
         ok = false

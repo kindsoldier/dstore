@@ -5,7 +5,6 @@ package bsureg
 
 import (
     "ndstore/bstore/bscom"
-    "ndstore/dslog"
 )
 
 const usersSchema = `
@@ -35,7 +34,6 @@ func (reg *Reg) AddUserDescr(login, pass, state, role string) error {
 
 func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
     var err error
-    dslog.LogDebug(login, pass, state)
     request := `
         UPDATE users
         SET pass = $1, state = $2, role = $3
@@ -60,42 +58,35 @@ func (reg *Reg) RenewUserDescr(descr *bscom.UserDescr) error {
     return err
 }
 
-func (reg *Reg) GetUserDescr(login string) (*bscom.UserDescr, bool, error) {
+func (reg *Reg) GetUserDescr(login string) (*bscom.UserDescr, error) {
     var err error
-    var exists bool
-    var user *bscom.UserDescr
     request := `
         SELECT login, pass, state, role
         FROM users
         WHERE login = $1
         LIMIT 1;`
-    users := make([]*bscom.UserDescr, 0)
-    err = reg.db.Select(&users, request, login)
+    user := bscom.NewUserDescr()
+    err = reg.db.Get(user, request, login)
     if err != nil {
-        return user, exists, err
-
+        return user, err
     }
-    if len(users) > 0 {
-        exists = true
-        user = users[0]
-    }
-    return user, exists, err
+    return user, err
 }
 
 func (reg *Reg) UserDescrExists(login string) (bool, error) {
     var err error
     var exists bool
     request := `
-        SELECT login, pass, state, role
+        SELECT count(login) AS count
         FROM users
         WHERE login = $1
         LIMIT 1;`
-    users := make([]*bscom.UserDescr, 0)
-    err = reg.db.Select(&users, request, login)
+    var count int64
+    err = reg.db.Get(&count, request, login)
     if err != nil {
         return exists, err
     }
-    if len(users) > 0 {
+    if count > 0 {
         exists = true
     }
     return exists, err

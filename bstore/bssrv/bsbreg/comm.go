@@ -4,12 +4,10 @@
 package bsbreg
 
 import (
-    "errors"
     "github.com/jmoiron/sqlx"
     _ "github.com/mattn/go-sqlite3"
 )
 
-var ErrorNilRef error = errors.New("db ref is nil")
 
 type Reg struct {
     db *sqlx.DB
@@ -36,18 +34,12 @@ func (reg *Reg) OpenDB(dbPath string) error {
 
 func (reg *Reg) CloseDB() error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     reg.db.Close()
     return err
 }
 
 func (reg *Reg) MigrateDB() error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     _, err = reg.db.Exec(blockSchema)
     if err != nil {
         return err

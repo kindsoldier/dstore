@@ -10,106 +10,87 @@ import (
 const usersSchema = `
     DROP TABLE IF EXISTS users;
     CREATE TABLE IF NOT EXISTS users (
-        id          INTEGER UNIQUE,
+        user_id     INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE ),
         login       TEXT,
         pass        TEXT,
         state       TEXT,
         role        TEXT
     );
-    DROP INDEX IF EXISTS user1_idx;
-    CREATE UNIQUE INDEX IF NOT EXISTS user1_idx
-        ON users (id);
-    DROP INDEX IF EXISTS user2_idx;
-    CREATE UNIQUE INDEX IF NOT EXISTS user2_idx
-        ON users (login);
-    DROP INDEX IF EXISTS user3_idx;
-    CREATE UNIQUE INDEX IF NOT EXISTS user3_idx
-        ON users (id, login);`
+    DROP INDEX IF EXISTS user_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS user_idx
+        ON users (login);`
 
 
-func (reg *Reg) GetNewUserId() (int64, error) {
+func (reg *Reg) AddUserDescr(login, pass, state, role string) (int64, error) {
     var err error
-    var userId int64
     request := `
-        SELECT id
-        FROM users
-        ORDER BY id DESC
-        LIMIT 1;`
-    users := make([]*dscom.UserDescr, 0)
-    err = reg.db.Select(&users, request)
+        INSERT INTO users(login, pass, state, role)
+        VALUES ($1, $2, $3, $4)
+        RETURNING user_id;`
+    var userId int64
+    err = reg.db.Get(&userId, request, login, pass, state, role)
     if err != nil {
         return userId, err
-    }
-    if len(users) > 0 {
-        userId = users[0].Id + 1
     }
     return userId, err
 }
 
-func (reg *Reg) AddUserDescr(id int64, login, pass, state, role string) error {
-    var err error
-    request := `
-        INSERT INTO users(id, login, pass, state, role)
-        VALUES ($1, $2, $3, $4, $5);`
-    _, err = reg.db.Exec(request, id, login, pass, state, role)
-    if err != nil {
-        return err
-    }
-    return err
-}
-
-
-func (reg *Reg) GetUserDescr(login string) (*dscom.UserDescr, bool, error) {
+func (reg *Reg) UserDescrExists(login string) (bool, error) {
     var err error
     var exists bool
-    var user *dscom.UserDescr
     request := `
-        SELECT id, login, pass, state, role
+        SELECT count(user_id) AS count
         FROM users
         WHERE login = $1
         LIMIT 1;`
-    users := make([]*dscom.UserDescr, 0)
-    err = reg.db.Select(&users, request, login)
+    var count int64
+    err = reg.db.Get(&count, request, login)
     if err != nil {
-        return user, exists, err
-
+        return exists, err
     }
-    if len(users) > 0 {
+    if count > 0 {
         exists = true
-        user = users[0]
     }
-    return user, exists, err
+    return exists, err
 }
 
-func (reg *Reg) GetUserId(login string) (int64, bool, error) {
+func (reg *Reg) GetUserDescr(login string) (*dscom.UserDescr, error) {
     var err error
-    var exists bool
+    request := `
+        SELECT user_id, login, pass, state, role
+        FROM users
+        WHERE login = $1
+        LIMIT 1;`
+    user := dscom.NewUserDescr()
+    err = reg.db.Get(user, request, login)
+    if err != nil {
+        return user, err
+    }
+    return user, err
+}
+
+func (reg *Reg) GetUserId(login string) (int64, error) {
+    var err error
+    request := `
+        SELECT user_id
+        FROM users
+        WHERE login = $1
+        LIMIT 1;`
     var userId int64
-    request := `
-        SELECT id, login, pass, state, role
-        FROM users
-        WHERE login = $1
-        LIMIT 1;`
-    users := make([]*dscom.UserDescr, 0)
-    err = reg.db.Select(&users, request, login)
-    if err != nil {
-        return userId, exists, err
-
+    err = reg.db.Get(&userId, request, login)
+    if err != nil  {
+        return userId, err
     }
-    if len(users) > 0 {
-        exists = true
-        userId = users[0].Id
-    }
-    return userId, exists, err
+    return userId, err
 }
 
 func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
     var err error
     request := `
         UPDATE users
-        SET pass = $1, state = $2, role = $3
-        WHERE login = $4;`
-    _, err = reg.db.Exec(request, pass, state, role, login)
+        SET login = $1, pass = $2, state = $3, role = $4
+        WHERE login = $1;`
+    _, err = reg.db.Exec(request, login, pass, state, role)
     if err != nil {
         return err
     }
@@ -121,31 +102,12 @@ func (reg *Reg) RenewUserDescr(descr *dscom.UserDescr) error {
     request := `
         UPDATE users
         SET login = $1, pass = $2, state = $3, role = $4
-        WHERE id = $5;`
-    _, err = reg.db.Exec(request, descr.Login, descr.Pass, descr.State, descr.Role, descr.Id)
+        WHERE user_id = $5;`
+    _, err = reg.db.Exec(request, descr.Login, descr.Pass, descr.State, descr.Role, descr.UserId)
     if err != nil {
         return err
     }
     return err
-}
-
-func (reg *Reg) UserDescrExists(login string) (bool, error) {
-    var err error
-    var exists bool
-    request := `
-        SELECT id, login, pass, state, role
-        FROM users
-        WHERE login = $1
-        LIMIT 1;`
-    users := make([]*dscom.UserDescr, 0)
-    err = reg.db.Select(&users, request, login)
-    if err != nil {
-        return exists, err
-    }
-    if len(users) > 0 {
-        exists = true
-    }
-    return exists, err
 }
 
 func (reg *Reg) DeleteUserDescr(login string) error {
@@ -163,7 +125,7 @@ func (reg *Reg) DeleteUserDescr(login string) error {
 func (reg *Reg) ListUserDescrs() ([]*dscom.UserDescr, error) {
     var err error
     request := `
-        SELECT id, login, pass, state, role
+        SELECT user_id, login, pass, state, role
         FROM users;`
     users := make([]*dscom.UserDescr, 0)
     err = reg.db.Select(&users, request)

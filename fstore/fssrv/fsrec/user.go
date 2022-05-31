@@ -13,7 +13,6 @@ const StateEnabled  string  = "enabled"
 
 const RoleAdmin string  = "admin"
 
-
 func (store *Store) AddUser(login, pass string) error {
     var err error
     var ok bool
@@ -25,34 +24,29 @@ func (store *Store) AddUser(login, pass string) error {
     if !ok {
         return err
     }
-    id, err := store.reg.GetNewUserId()
-    if err != nil {
-        return err
-    }
-    err = store.reg.AddUserDescr(id, login, pass, StateEnabled, RoleAdmin)
+    _, err = store.reg.AddUserDescr(login, pass, StateEnabled, RoleAdmin)
     if err != nil {
         return err
     }
     return err
 }
 
-func (store *Store) GetUser(login string) (*dscom.UserDescr, bool, error) {
+func (store *Store) GetUser(login string) (*dscom.UserDescr, error) {
     var err error
-    user, exists, err := store.reg.GetUserDescr(login)
-    return user, exists, err
+    user, err := store.reg.GetUserDescr(login)
+    return user,err
 }
 
 func (store *Store) CheckUser(login, pass string) (bool, error) {
     var err error
-    user, ok, err := store.reg.GetUserDescr(login)
+    var ok bool
+    user, err := store.reg.GetUserDescr(login)
+
     if err != nil {
         return ok, err
     }
-    if !ok {
-        return ok, errors.New("user not exists")
-    }
-    if pass != user.Pass {
-        ok = false
+    if pass == user.Pass {
+        ok = true
     }
     return ok, err
 }
@@ -92,7 +86,6 @@ func checkLogin(login string) (bool, error) {
     }
     return ok, err
 }
-
 
 func checkPass(pass string) (bool, error) {
     var err error

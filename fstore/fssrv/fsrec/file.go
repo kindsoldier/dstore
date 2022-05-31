@@ -5,7 +5,6 @@
 package fsrec
 
 import (
-    "errors"
     "io"
     "path/filepath"
 
@@ -59,9 +58,9 @@ func (store *Store) FileExists(filePath string) (int64, error) {
 
     dirPath, fileName := pathSplit(filePath)
 
-    entry, exists, err := store.reg.GetEntryDescr(dirPath, fileName)
-    if !exists || entry == nil {
-        return fileSize, errors.New("path not exists")
+    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    if err != nil {
+        return fileSize, err
     }
     fileMeta, err := store.reg.GetFileDescr(entry.FileId)
     if err != nil {
@@ -77,9 +76,9 @@ func (store *Store) LoadFile(filePath string, fileWriter io.Writer) error {
 
     dirPath, fileName := pathSplit(filePath)
 
-    entry, exists, err := store.reg.GetEntryDescr(dirPath, fileName)
-    if !exists || entry == nil {
-        return errors.New("path not exists")
+    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    if err != nil {
+        return err
     }
     meta, err := store.reg.GetFileDescr(entry.FileId)
     if err != nil {
@@ -103,9 +102,9 @@ func (store *Store) DeleteFile(filePath string) error {
 
     dirPath, fileName := pathSplit(filePath)
 
-    entry, exists, err := store.reg.GetEntryDescr(dirPath, fileName)
-    if !exists || entry == nil {
-        return errors.New("path not exists")
+    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    if err != nil {
+        return err
     }
     fileId := entry.FileId
     meta, err := store.reg.GetFileDescr(fileId)

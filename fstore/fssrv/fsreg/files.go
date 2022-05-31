@@ -4,10 +4,18 @@
 package fsreg
 
 import (
+    "strconv"
+    "time"
     "ndstore/dscom"
 )
 
 const filesSchema = `
+    DROP TABLE IF EXISTS file_ids;
+    CREATE TABLE IF NOT EXISTS file_ids (
+        file_id     INTEGER GENERATED ALWAYS AS IDENTITY (CYCLE),
+        updated_at  INTEGER
+    );
+
     DROP TABLE IF EXISTS files;
     CREATE TABLE IF NOT EXISTS files (
         file_id     INTEGER,
@@ -37,15 +45,31 @@ const filesSchema = `
         batch_id    INTEGER,
         block_id    INTEGER,
         block_size  INTEGER,
-        file_path   TEXT,
-        hash_init   TEXT,
-        hash_sum    TEXT,
-        data_size  INTEGER
+        file_path   TEXT DEFAULT '',
+        data_size   INTEGER,
+        hash_init   TEXT DEFAULT '',
+        hash_sum    TEXT DEFAULT '',
+        hash_alg    TEXT DEFAULT ''
     );
     DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
         ON blocks (file_id, batch_id, block_id);
     `
+
+func (reg *Reg) GetNewFileId() (int64, error) {
+    var err error
+    var fileId int64
+    ts := strconv.FormatInt(time.Now().UTC().Unix(), 10)
+    request := `
+        INSERT INTO file_ids(updated_at) VALUES($1)
+        RETURNING file_id;`
+    err = reg.db.Get(&fileId, request, ts)
+    if err != nil {
+        return fileId, err
+    }
+    return fileId, err
+}
+
 
 func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     var err error
@@ -62,13 +86,13 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
     }
     blockRequest := `
         INSERT INTO blocks(file_id, batch_id, block_id, block_size, file_path,
-                                                                hash_init, hash_sum, data_size)
+                                                        hash_init, hash_sum, data_size)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
     for _, batch := range file.Batchs {
         for _, block := range batch.Blocks {
             _, err = tx.Exec(blockRequest, block.FileId, block.BatchId, block.BlockId,
-                                             block.BlockSize, block.FilePath, block.HashInit,
-                                                                  block.HashSum, block.DataSize)
+                                            block.BlockSize, block.FilePath, block.HashInit,
+                                            block.HashSum, block.DataSize)
             if err != nil {
                 return err
             }
@@ -78,7 +102,8 @@ func (reg *Reg) AddFileDescr(file *dscom.FileDescr) error {
         INSERT INTO batchs(file_id, batch_id, batch_size, block_size)
         VALUES ($1, $2, $3, $4);`
     for _, batch := range file.Batchs {
-        _, err = tx.Exec(batchRequest, batch.FileId, batch.BatchId, batch.BatchSize, batch.BlockSize)
+        _, err = tx.Exec(batchRequest, batch.FileId, batch.BatchId, batch.BatchSize,
+                                                                            batch.BlockSize)
         if err != nil {
             return err
         }
@@ -140,39 +165,20 @@ func (reg *Reg) GetFileDescr(fileId int64) (*dscom.FileDescr, error) {
     return file, err
 }
 
-func (reg *Reg) GetNewFileId() (int64, error) {
-    var err error
-    var fileId int64
-    request := `
-        SELECT file_id
-        FROM files
-        ORDER BY file_id DESC
-        LIMIT 1;`
-    files := make([]*dscom.FileDescr, 0)
-    err = reg.db.Select(&files, request)
-    if err != nil {
-        return fileId, err
-    }
-    if len(files) > 0 {
-        fileId = files[0].FileId + 1
-    }
-    return fileId, err
-}
-
 func (reg *Reg) FileDescrExists(fileId int64) (bool, error) {
     var err error
     var exists bool
     request := `
-        SELECT file_id, batch_count, batch_size, block_size, file_size
+        SELECT count(file_id)
         FROM files
         WHERE file_id = $1
         LIMIT 1;`
-    files := make([]*dscom.FileDescr, 0)
-    err = reg.db.Select(&files, request, fileId)
+    var count int64
+    err = reg.db.Select(&count, request, fileId)
     if err != nil {
         return exists, err
     }
-    if len(files) > 0 {
+    if count > 0 {
         exists = true
     }
     return exists, err
@@ -207,6 +213,13 @@ func (reg *Reg) DeleteFileDescr(fileId int64) error {
     }
     request = `
         DELETE FROM files
+        WHERE file_id = $1;`
+    _, err = tx.Exec(request, fileId)
+    if err != nil {
+        return err
+    }
+    request = `
+        DELETE FROM file_ids
         WHERE file_id = $1;`
     _, err = tx.Exec(request, fileId)
     if err != nil {

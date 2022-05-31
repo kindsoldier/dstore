@@ -28,9 +28,6 @@ const blockSchema = `
 
 func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     request := `
         INSERT
             INTO blocks(file_id, batch_id, block_id, block_size, data_size, file_path)
@@ -42,12 +39,8 @@ func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int6
     return err
 }
 
-
 func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     var request string
     request = `
         UPDATE blocks SET
@@ -68,10 +61,6 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64) (string, int64,
     var err error
     var filePath string
     var blockSize int64
-
-    if reg.db == nil {
-        return filePath, blockSize, ErrorNilRef
-    }
     request := `
         SELECT file_path, block_size
         FROM blocks
@@ -94,24 +83,19 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64) (string, int64,
 func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64) (bool, error) {
     var err error
     var exists bool
-    if reg.db == nil {
-        return exists, ErrorNilRef
-    }
-
     request := `
-        SELECT file_path
+        SELECT count(file_path) AS count
         FROM blocks
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
         LIMIT 1;`
-
-    blocks := make([]dscom.BlockDescr, 0)
-    err = reg.db.Select(&blocks, request, fileId, batchId, blockId)
+    var count int64
+    err = reg.db.Get(&count, request, fileId, batchId, blockId)
     if err != nil {
         return exists, err
     }
-    if len(blocks) > 0 {
+    if count > 0 {
         exists = true
     }
     return exists, err
@@ -120,9 +104,6 @@ func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64) (bool, error) {
 func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     var err error
     blocks := make([]*dscom.BlockDescr, 0)
-    if reg.db == nil {
-        return blocks, ErrorNilRef
-    }
     request := `
         SELECT file_id, batch_id, block_id, block_size, data_size, file_path,
             hash_alg, hash_sum, hash_init
@@ -136,9 +117,6 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
 
 func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     request := `
         DELETE FROM blocks
         WHERE file_id = $1
@@ -153,9 +131,6 @@ func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64) error {
 
 func (reg *Reg) xPurgeFile(fileId int64) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     request := `
         DELETE FROM blocks
         WHERE file_id = $1;`
@@ -168,9 +143,6 @@ func (reg *Reg) xPurgeFile(fileId int64) error {
 
 func (reg *Reg) xPurgeCluster(userId int64) error {
     var err error
-    if reg.db == nil {
-        return ErrorNilRef
-    }
     request := `
         DELETE FROM blocks;`
     _, err = reg.db.Exec(request, userId)

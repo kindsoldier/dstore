@@ -18,15 +18,8 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     salt := context.AuthSalt()
     hash := context.AuthHash()
 
-    usersDescr, exists, err := contr.auth.GetUser(string(login))
+    usersDescr, err := contr.auth.GetUser(string(login))
     if err != nil {
-        context.SendError(err)
-        return err
-    }
-    if !exists {
-        context.ReadBin(io.Discard)
-
-        err = errors.New("login not exists")
         context.SendError(err)
         return err
     }

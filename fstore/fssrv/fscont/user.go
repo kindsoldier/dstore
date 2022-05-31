@@ -8,8 +8,8 @@ import (
     "errors"
     "io"
     "ndstore/fstore/fsapi"
-    //"ndstore/fstore/fssrv/fsrec"
     "ndstore/dsrpc"
+    "ndstore/dslog"
 )
 
 
@@ -19,24 +19,20 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     salt := context.AuthSalt()
     hash := context.AuthHash()
 
-    usersDescr, exists, err := contr.store.GetUser(string(login))
+    usersDescr, err := contr.store.GetUser(string(login))
     if err != nil {
-        context.SendError(err)
-        return err
-    }
-    if !exists {
-        err = errors.New("login not exists")
         context.ReadBin(io.Discard)
         context.SendError(err)
         return err
     }
 
-    //auth := context.Auth()
-    //dslog.LogDebug("auth ", string(auth.JSON()))
+    auth := context.Auth()
+    dslog.LogDebug("auth ", string(auth.JSON()))
 
     pass := []byte(usersDescr.Pass)
     ok := dsrpc.CheckHash(login, pass, salt, hash)
-    //dslog.LogDebug("auth ok:", ok)
+    dslog.LogDebug("auth ok:", ok)
+
     if !ok {
         err = errors.New("auth login or pass missmatch")
         context.ReadBin(io.Discard)
@@ -45,7 +41,6 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     }
     return err
 }
-
 
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     var err error
@@ -79,19 +74,11 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
-
-    //err = context.ReadBin(io.Discard)
-    //if err != nil {
-    //    context.SendError(err)
-    //    return err
-    //}
-
     ok, err := contr.store.CheckUser(login, pass)
     if err != nil {
         context.SendError(err)
         return err
     }
-
     result := fsapi.NewCheckUserResult()
     result.Match = ok
     err = context.SendResult(result, 0)

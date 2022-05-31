@@ -33,7 +33,7 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     assert.NoError(t, err)
     assert.Equal(t, true, exists)
 
-    entry, _, err := reg.GetEntryDescr(dirPath, fileName)
+    entry, err := reg.GetEntryDescr(dirPath, fileName)
     assert.NoError(t, err)
     assert.Equal(t, fileId, entry.FileId)
 
