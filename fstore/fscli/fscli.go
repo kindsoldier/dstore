@@ -93,9 +93,10 @@ func (util *Util) GetOpt() error {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: help, getHello, saveFile, loadFile, listFiles, deleteFile \n")
-        fmt.Printf("               addUser, checkUser, updateUser, listUsers, deleteUser \n")
-        fmt.Printf("               addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
+        fmt.Printf("Command list: help, getHello, \n")
+        fmt.Printf("    saveFile, loadFile, listFiles, deleteFile \n")
+        fmt.Printf("    addUser, checkUser, updateUser, listUsers, deleteUser \n")
+        fmt.Printf("    addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
 
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
