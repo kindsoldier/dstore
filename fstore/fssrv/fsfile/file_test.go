@@ -1,9 +1,6 @@
 package fsfile
 
 import (
-    //"encoding/json"
-    //"fmt"
-
     "bytes"
     "math/rand"
     "io"
@@ -11,7 +8,7 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestFileWriteToBeginRead(t *testing.T) {
+func Test_File_WriteToBeginRead(t *testing.T) {
     var err error
     var fileId      int64 = 1
     var batchSize   int64 = 5
@@ -63,7 +60,7 @@ func TestFileWriteToBeginRead(t *testing.T) {
     file.Purge()
 }
 
-func TestFileWriteMetaRead(t *testing.T) {
+func Test_File_WriteMetaRead(t *testing.T) {
     var err error
     var fileId      int64 = 1
     var batchSize   int64 = 5
@@ -92,7 +89,7 @@ func TestFileWriteMetaRead(t *testing.T) {
     meta, err := file.Meta()
     assert.NoError(t, err)
 
-    //metaJSON, _ := json.MarshalIndent(meta, " ", "    ")
+    //metaJSON, _ := json.Marshal(meta)
     //fmt.Println(string(metaJSON))
 
     err = file.Close()

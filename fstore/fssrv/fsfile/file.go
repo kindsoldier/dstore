@@ -70,7 +70,7 @@ func (file *File) Open() error {
     return err
 }
 
-func (file *File) Write(reader io.Reader) (int64, error) {
+func (file *File) XXWrite(reader io.Reader) (int64, error) {
     var err error
     var written int64
 
@@ -98,6 +98,45 @@ func (file *File) Write(reader io.Reader) (int64, error) {
     }
     return written, err
 }
+
+func (file *File) Lwrite(reader io.Reader, need int64) (int64, error) {
+    var err error
+    var written int64
+
+    for i := range file.batchs {
+        if need < 1 {
+            return written, io.EOF
+        }
+        batchWritten, err := file.batchs[i].Lwrite(reader, need)
+        written += batchWritten
+        if err != nil {
+            return written, err
+        }
+        need -= batchWritten
+    }
+    for {
+        if need < 1 {
+            return written, io.EOF
+        }
+
+        batchNumber := file.batchCount()
+
+        batch := NewBatch(file.baseDir, file.fileId, batchNumber, file.batchSize, file.blockSize)
+        file.batchs = append(file.batchs, batch)
+        err = batch.Open()
+        if err != nil {
+            return written, err
+        }
+        batchWritten, err := batch.Lwrite(reader, need)
+        written += batchWritten
+        if err != nil {
+            return written, err
+        }
+        need -= batchWritten
+    }
+    return written, err
+}
+
 
 func (file *File) Read(writer io.Writer) (int64, error) {
     var err error

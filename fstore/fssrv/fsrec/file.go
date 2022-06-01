@@ -10,6 +10,7 @@ import (
 
     "ndstore/dscom"
     "ndstore/fstore/fssrv/fsfile"
+    "ndstore/dslog"
 )
 
 const blockFileExt string = ".blk"
@@ -22,8 +23,8 @@ func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int
         return err
     }
 
-    var batchSize   int64 = 5
-    var blockSize   int64 = 1024
+    var batchSize   int64 = 10
+    var blockSize   int64 = 1000
 
     file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
     err = file.Open()
@@ -31,7 +32,8 @@ func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int
     if err != nil {
         return err
     }
-    _, err = file.Write(fileReader)
+    _, err = file.Lwrite(fileReader, fileSize)
+    dslog.LogDebug("write err is", err)
     if err != nil && err != io.EOF {
         return err
     }

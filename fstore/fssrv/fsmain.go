@@ -376,6 +376,10 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
+    err = model.SeedBStores()
+    if err != nil {
+        return err
+    }
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)

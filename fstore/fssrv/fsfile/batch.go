@@ -68,6 +68,24 @@ func (batch *Batch) Write(reader io.Reader) (int64, error) {
     return written, err
 }
 
+func (batch *Batch) Lwrite(reader io.Reader, need int64) (int64, error) {
+    var err error
+    var written int64
+    for i := int64(0); i < batch.batchSize; i++ {
+        if need < 1 {
+            return written, io.EOF
+        }
+        blockWritten, err := batch.blocks[i].Lwrite(reader, need)
+        written += blockWritten
+        if err != nil {
+            return written, err
+        }
+        need -= blockWritten
+    }
+    return written, err
+}
+
+
 func (batch *Batch) Read(writer io.Writer) (int64, error) {
     var err error
     var read int64

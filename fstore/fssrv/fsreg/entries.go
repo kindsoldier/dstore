@@ -81,12 +81,16 @@ func (reg *Reg) DeleteEntryDescr(dirPath, fileName string) error {
 
 func (reg *Reg) ListEntryDescr(dirPath string) ([]*dscom.EntryDescr, error) {
     var err error
+    //request := `
+    //    SELECT dir_path, file_name, file_id
+    //    FROM entries
+    //    WHERE dir_path = $1;`
     request := `
         SELECT dir_path, file_name, file_id
-        FROM entries
-        WHERE dir_path = $1;`
+        FROM entries;`
     entries := make([]*dscom.EntryDescr, 0)
-    err = reg.db.Select(&entries, request, dirPath)
+    //err = reg.db.Select(&entries, request, dirPath)
+    err = reg.db.Select(&entries, request)
     if err != nil {
         return entries, err
     }

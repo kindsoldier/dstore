@@ -8,7 +8,7 @@ import (
     "github.com/stretchr/testify/assert"
 )
 
-func TestBatchSmallWriteCloseRead(t *testing.T) {
+func Test_Batch_SmallWriteCloseRead(t *testing.T) {
     var err error
     var fileId      int64 = 1
     var batchId     int64 = 2

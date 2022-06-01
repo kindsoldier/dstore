@@ -114,9 +114,40 @@ func (block *Block) Write(reader io.Reader) (int64, error) {
     if err != nil {
             return written, err
     }
-
     return written, err
 }
+
+func (block *Block) Lwrite(reader io.Reader, need int64) (int64, error) {
+    var err error
+    var written int64
+    if block.file == nil {
+        return written, ErrorNilFile
+    }
+    if need < 1 {
+        return written, io.EOF
+    }
+
+    size, err := block.Size()
+    if err != nil {
+            return written, err
+    }
+    remains := block.blockSize - size
+    if need < remains {
+        remains = need
+    }
+    multiWriter := io.MultiWriter(block.file, block.hasher)
+    written, err = copyBytes(reader, multiWriter, remains)
+    block.hashSum = block.hasher.Sum(nil)
+    if err != nil {
+            return written, err
+    }
+    need -= written
+    if need < 1 {
+            return written, io.EOF
+    }
+    return written, err
+}
+
 
 func (block *Block) Read(writer io.Writer) (int64, error) {
     var err error
@@ -220,7 +251,7 @@ func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
 }
 
 func (block *Block) fileName() string {
-    fileName := fmt.Sprintf("%020d-%020d-%020d.blk", block.fileId, block.batchId, block.blockId)
+    fileName := fmt.Sprintf("%04d-%04d-%03d.blk", block.fileId, block.batchId, block.blockId)
     return fileName
 }
 

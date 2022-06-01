@@ -8,6 +8,20 @@ import (
     "ndstore/dscom"
 )
 
+func (store *Store) SeedBStores() error {
+    var err error
+    const address   = "127.0.0.1"
+    var port      = "5100"
+    const login     = "admin"
+    const pass      = "admin"
+    _, err = store.reg.AddBStoreDescr(address, port, login, pass, StateEnabled)
+    port      = "5101"
+    _, err = store.reg.AddBStoreDescr(address, port, login, pass, StateEnabled)
+    port      = "5102"
+    _, err = store.reg.AddBStoreDescr(address, port, login, pass, StateEnabled)
+    return err
+}
+
 func (store *Store) AddBStore(address, port, login, pass string) error {
     var err error
     _, err = store.reg.AddBStoreDescr(address, port, login, pass, StateEnabled)
