@@ -29,8 +29,8 @@ func main() {
 }
 
 type Util struct {
-    ALogin      string
-    APass       string
+    aLogin      string
+    aPass       string
 
     Port        string
     Address     string
@@ -38,8 +38,11 @@ type Util struct {
     URI         string
     SubCmd      string
 
-    Login      string
-    Pass       string
+    Login       string
+    Pass        string
+
+    bPort       string
+    bAddress    string
 
     LocalFilePath   string
     RemoteFilePath  string
@@ -50,8 +53,8 @@ func NewUtil() *Util {
     util.Port       = "5200"
     util.Address    = "127.0.0.1"
     util.Message    = "hello"
-    util.ALogin     = "admin"
-    util.APass      = "admin"
+    util.aLogin     = "admin"
+    util.aPass      = "admin"
     return &util
 }
 
@@ -67,6 +70,12 @@ const updateUserCmd     string = "updateUser"
 const deleteUserCmd     string = "deleteUser"
 const listUsersCmd      string = "listUsers"
 
+const addBStoreCmd        string = "addBStore"
+const updateBStoreCmd     string = "updateBStore"
+const deleteBStoreCmd     string = "deleteBStore"
+const listBStoresCmd      string = "listBStores"
+
+
 const helpCmd           string = "help"
 
 
@@ -77,15 +86,17 @@ func (util *Util) GetOpt() error {
 
     flag.StringVar(&util.Port, "port", util.Port, "service port")
     flag.StringVar(&util.Address, "address", util.Address, "service address")
-    flag.StringVar(&util.ALogin, "aLogin", util.ALogin, "access login")
-    flag.StringVar(&util.APass, "aPass", util.APass, "access password")
+    flag.StringVar(&util.aLogin, "aLogin", util.aLogin, "access login")
+    flag.StringVar(&util.aPass, "aPass", util.aPass, "access password")
 
     help := func() {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: hello, saveFile, loadFile, listFiles, deleteFile \n")
+        fmt.Printf("Command list: help, getHello, saveFile, loadFile, listFiles, deleteFile \n")
         fmt.Printf("               addUser, checkUser, updateUser, listUsers, deleteUser \n")
+        fmt.Printf("               addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
+
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
         flag.PrintDefaults()
@@ -202,6 +213,50 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
+
+        case addBStoreCmd, updateBStoreCmd:
+            flagSet := flag.NewFlagSet(addBStoreCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.bAddress, "address", util.bAddress, "address")
+            flagSet.StringVar(&util.bPort, "port", util.bPort, "port")
+            flagSet.StringVar(&util.Login, "login", util.Login, "login")
+            flagSet.StringVar(&util.Pass, "pass", util.Pass, "pass")
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case deleteBStoreCmd:
+            flagSet := flag.NewFlagSet(deleteBStoreCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.bAddress, "address", util.bAddress, "address")
+            flagSet.StringVar(&util.bPort, "port", util.bPort, "port")
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case listBStoresCmd:
+            flagSet := flag.NewFlagSet(deleteBStoreCmd, flag.ExitOnError)
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options: none\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+
         default:
             help()
             return errors.New("unknown command")
@@ -236,7 +291,7 @@ func (util *Util) Exec() error {
         return err
     }
     util.URI = fmt.Sprintf("%s:%s", util.Address, util.Port)
-    auth := dsrpc.CreateAuth([]byte(util.ALogin), []byte(util.APass))
+    auth := dsrpc.CreateAuth([]byte(util.aLogin), []byte(util.aPass))
 
     resp := NewResponse(nil, nil)
     var result interface{}
@@ -264,6 +319,18 @@ func (util *Util) Exec() error {
             result, err = util.DeleteUserCmd(auth)
         case listUsersCmd:
             result, err = util.ListUsersCmd(auth)
+
+        case addBStoreCmd:
+            result, err = util.AddBStoreCmd(auth)
+        case updateBStoreCmd:
+            result, err = util.UpdateBStoreCmd(auth)
+        case deleteBStoreCmd:
+            result, err = util.DeleteBStoreCmd(auth)
+        case listBStoresCmd:
+            result, err = util.ListBStoresCmd(auth)
+
+
+
         default:
             err = errors.New("unknown cli command")
     }
@@ -408,6 +475,64 @@ func (util *Util) ListUsersCmd(auth *dsrpc.Auth) (*fsapi.ListUsersResult, error)
     params := fsapi.NewListUsersParams()
     result := fsapi.NewListUsersResult()
     err = dsrpc.Exec(util.URI, fsapi.ListUsersMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+
+
+
+
+func (util *Util) AddBStoreCmd(auth *dsrpc.Auth) (*fsapi.AddBStoreResult, error) {
+    var err error
+    params := fsapi.NewAddBStoreParams()
+    params.Address = util.bAddress
+    params.Port    = util.bPort
+    params.Login    = util.Login
+    params.Pass     = util.Pass
+    result := fsapi.NewAddBStoreResult()
+    err = dsrpc.Exec(util.URI, fsapi.AddBStoreMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) UpdateBStoreCmd(auth *dsrpc.Auth) (*fsapi.UpdateBStoreResult, error) {
+    var err error
+    params := fsapi.NewUpdateBStoreParams()
+    params.Address = util.bAddress
+    params.Port    = util.bPort
+    params.Login    = util.Login
+    params.Pass     = util.Pass
+    result := fsapi.NewUpdateBStoreResult()
+    err = dsrpc.Exec(util.URI, fsapi.UpdateBStoreMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) DeleteBStoreCmd(auth *dsrpc.Auth) (*fsapi.DeleteBStoreResult, error) {
+    var err error
+    params := fsapi.NewDeleteBStoreParams()
+    params.Address = util.bAddress
+    params.Port    = util.bPort
+    result := fsapi.NewDeleteBStoreResult()
+    err = dsrpc.Exec(util.URI, fsapi.DeleteBStoreMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) ListBStoresCmd(auth *dsrpc.Auth) (*fsapi.ListBStoresResult, error) {
+    var err error
+    params := fsapi.NewListBStoresParams()
+    result := fsapi.NewListBStoresResult()
+    err = dsrpc.Exec(util.URI, fsapi.ListBStoresMethod, params, result, auth)
     if err != nil {
         return result, err
     }

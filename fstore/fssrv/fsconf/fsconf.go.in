@@ -66,6 +66,6 @@ func (conf *Config) Read() error {
 }
 
 func (conf *Config) GetDBPath() string {
-    return fmt.Sprintf("postgres://%s:%s@%s/$s",
+    return fmt.Sprintf("postgres://%s:%s@%s/%s",
                     conf.DbUser, conf.DbPass, conf.DbHost, conf.DbName)
 }

@@ -354,7 +354,10 @@ func (server *Server) RunService() error {
     filePerm    := server.Params.FilePerm
 
     reg := fsreg.NewReg()
-    dbLoc := "postgres://pgsql@localhost/test"
+
+    dbLoc := fmt.Sprintf("postgres://%s:%s@%s/%s", server.Params.DbUser, server.Params.DbPass,
+                                                    server.Params.DbHost, server.Params.DbName)
+    dslog.LogDebug("dbLoc is", dbLoc)
     err = reg.OpenDB(dbLoc)
     if err != nil {
         return err
@@ -369,8 +372,16 @@ func (server *Server) RunService() error {
     model.SetDirPerm(dirPerm)
     model.SetFilePerm(filePerm)
 
+    err = model.SeedUsers()
+    if err != nil {
+        return err
+    }
+
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)
+    dslog.LogDebug("logDir is", server.Params.LogDir)
+    dslog.LogDebug("runDir is", server.Params.RunDir)
+
 
     serv := dsrpc.NewService()
 
@@ -385,6 +396,11 @@ func (server *Server) RunService() error {
     serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
     serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
     serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
+
+    serv.Handler(fsapi.AddBStoreMethod, contr.AddBStoreHandler)
+    serv.Handler(fsapi.UpdateBStoreMethod, contr.UpdateBStoreHandler)
+    serv.Handler(fsapi.DeleteBStoreMethod, contr.DeleteBStoreHandler)
+    serv.Handler(fsapi.ListBStoresMethod, contr.ListBStoresHandler)
 
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)

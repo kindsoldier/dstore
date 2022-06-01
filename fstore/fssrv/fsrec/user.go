@@ -13,6 +13,12 @@ const StateEnabled  string  = "enabled"
 
 const RoleAdmin string  = "admin"
 
+func (store *Store) SeedUsers() error {
+    var err error
+    _, err = store.reg.AddUserDescr("admin", "admin", StateEnabled, RoleAdmin)
+    return err
+}
+
 func (store *Store) AddUser(login, pass string) error {
     var err error
     var ok bool
