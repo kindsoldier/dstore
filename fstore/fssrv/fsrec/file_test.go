@@ -31,24 +31,29 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     assert.NoError(t, err)
 
     store := NewStore(baseDir, reg)
+
+    err = store.SeedUsers()
+    assert.NoError(t, err)
+
     fileName := "qwerty.txt"
 
-    data := make([]byte, 1024 * 1024 * 2)
+    data := make([]byte, 10)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
     dataSize := int64(len(data))
 
-    err = store.SaveFile(fileName, reader, dataSize)
+    userName := "admin"
+    err = store.SaveFile(userName, fileName, reader, dataSize)
     assert.NoError(t, err)
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
-    err = store.LoadFile(fileName, writer)
+    err = store.LoadFile(userName, fileName, writer)
     assert.NoError(t, err)
 
     assert.Equal(t, data, writer.Bytes())
 
-    err = store.DeleteFile(fileName)
+    err = store.DeleteFile(userName, fileName)
     assert.NoError(t, err)
 }

@@ -15,16 +15,21 @@ import (
 
 const blockFileExt string = ".blk"
 
-func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int64) error {
+func (store *Store) SaveFile(userName string, filePath string, fileReader io.Reader, fileSize int64) error {
     var err error
+
+    userId, err := store.reg.GetUserId(userName)
+    if err != nil {
+        return err
+    }
 
     fileId, err := store.reg.GetNewFileId()
     if err != nil {
         return err
     }
 
-    var batchSize   int64 = 10
-    var blockSize   int64 = 1000
+    var batchSize   int64 = 5
+    var blockSize   int64 = 1024 * 1024 * 16
 
     file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
     err = file.Open()
@@ -47,20 +52,25 @@ func (store *Store) SaveFile(filePath string, fileReader io.Reader, fileSize int
     }
     dirPath, fileName := pathSplit(filePath)
 
-    err = store.reg.AddEntryDescr(dirPath, fileName, fileId)
+    err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
     if err != nil {
         return err
     }
     return err
 }
 
-func (store *Store) FileExists(filePath string) (int64, error) {
+func (store *Store) FileExists(userName string, filePath string) (int64, error) {
     var err error
     var fileSize int64
 
+    userId, err := store.reg.GetUserId(userName)
+    if err != nil {
+        return fileSize, err
+    }
+
     dirPath, fileName := pathSplit(filePath)
 
-    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    entry, err := store.reg.GetEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return fileSize, err
     }
@@ -73,12 +83,17 @@ func (store *Store) FileExists(filePath string) (int64, error) {
     return fileSize, err
 }
 
-func (store *Store) LoadFile(filePath string, fileWriter io.Writer) error {
+func (store *Store) LoadFile(userName string, filePath string, fileWriter io.Writer) error {
     var err error
+
+    userId, err := store.reg.GetUserId(userName)
+    if err != nil {
+        return err
+    }
 
     dirPath, fileName := pathSplit(filePath)
 
-    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    entry, err := store.reg.GetEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return err
     }
@@ -99,12 +114,16 @@ func (store *Store) LoadFile(filePath string, fileWriter io.Writer) error {
     return err
 }
 
-func (store *Store) DeleteFile(filePath string) error {
+func (store *Store) DeleteFile(userName string, filePath string) error {
     var err error
 
+    userId, err := store.reg.GetUserId(userName)
+    if err != nil {
+        return err
+    }
     dirPath, fileName := pathSplit(filePath)
 
-    entry, err := store.reg.GetEntryDescr(dirPath, fileName)
+    entry, err := store.reg.GetEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return err
     }
@@ -123,7 +142,7 @@ func (store *Store) DeleteFile(filePath string) error {
     if err != nil {
         return err
     }
-    err = store.reg.DeleteEntryDescr(dirPath, fileName)
+    err = store.reg.DeleteEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return err
     }
@@ -134,10 +153,17 @@ func (store *Store) DeleteFile(filePath string) error {
     return err
 }
 
-func (store *Store) ListFiles(dirPath string) ([]*dscom.EntryDescr, error) {
+func (store *Store) ListFiles(userName string, dirPath string) ([]*dscom.EntryDescr, error) {
     var err error
+    entries := make([]*dscom.EntryDescr, 0)
+
     dirPath = dirConv(dirPath)
-    entries, err := store.reg.ListEntryDescr(dirPath)
+
+    userId, err := store.reg.GetUserId(userName)
+    if err != nil {
+        return entries, err
+    }
+    entries, err = store.reg.ListEntryDescr(userId, dirPath)
     if err != nil {
         return entries, err
     }

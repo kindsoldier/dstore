@@ -26,10 +26,12 @@ func NewBStoreDescr() *BStoreDescr{
 }
 
 type EntryDescr struct {
-    EntryId     string      `json:"entryId"     db:"entryId"`
+    EntryId     string      `json:"entryId"     db:"entry_id"`
+    UserId      int64       `json:"userId"      db:"user_id"`
     DirPath     string      `json:"dirPath"     db:"dir_path"`
     FileName    string      `json:"fileName"    db:"file_name"`
     FileId      int64       `json:"fileId"      db:"file_id"`
+    FileSize    int64       `json:"fileSize"    db:"file_size"`
 }
 
 func NewEntryDescr() *EntryDescr {

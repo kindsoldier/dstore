@@ -70,7 +70,7 @@ func (file *File) Open() error {
     return err
 }
 
-func (file *File) XXWrite(reader io.Reader) (int64, error) {
+func (file *File) Write(reader io.Reader) (int64, error) {
     var err error
     var written int64
 

@@ -13,6 +13,7 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     var dirPath     string = "x/y/z"
     var fileName    string = "qwerty.txt"
     var fileId      int64 = int64(rand.Intn(1024))
+    var userId      int64 = 8
 
     dbPath := "postgres://pgsql@localhost/test"
     reg := NewReg()
@@ -23,21 +24,21 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     err = reg.MigrateDB()
     assert.NoError(t, err)
 
-    err = reg.DeleteEntryDescr(dirPath, fileName)
+    err = reg.DeleteEntryDescr(userId, dirPath, fileName)
     assert.NoError(t, err)
 
-    err = reg.AddEntryDescr(dirPath, fileName, fileId)
+    err = reg.AddEntryDescr(userId, dirPath, fileName, fileId)
     assert.NoError(t, err)
 
-    exists, err := reg.EntryDescrExists(dirPath, fileName)
+    exists, err := reg.EntryDescrExists(userId, dirPath, fileName)
     assert.NoError(t, err)
     assert.Equal(t, true, exists)
 
-    entry, err := reg.GetEntryDescr(dirPath, fileName)
+    entry, err := reg.GetEntryDescr(userId, dirPath, fileName)
     assert.NoError(t, err)
     assert.Equal(t, fileId, entry.FileId)
 
-    err = reg.DeleteEntryDescr(dirPath, fileName)
+    err = reg.DeleteEntryDescr(userId, dirPath, fileName)
     assert.NoError(t, err)
 
     err = reg.CloseDB()
