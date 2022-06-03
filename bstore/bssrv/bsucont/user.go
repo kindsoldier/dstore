@@ -49,7 +49,8 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
-    err = contr.auth.AddUser(login, pass)
+    userName := string(context.AuthIdent())
+    err = contr.auth.AddUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -72,6 +73,7 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
+    userName := string(context.AuthIdent())
 
     //err = context.ReadBin(io.Discard)
     //if err != nil {
@@ -79,7 +81,7 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     //    return err
     //}
 
-    ok, err := contr.auth.CheckUser(login, pass)
+    ok, err := contr.auth.CheckUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -103,8 +105,11 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
+    role    := "" // todo
+    state   := "" // todo
+    userName := string(context.AuthIdent())
 
-    err = contr.auth.UpdateUser(login, pass)
+    err = contr.auth.UpdateUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
         return err
@@ -126,7 +131,9 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
         return err
     }
     login   := params.Login
-    err = contr.auth.DeleteUser(login)
+    userName := string(context.AuthIdent())
+
+    err = contr.auth.DeleteUser(userName, login)
     if err != nil {
         context.SendError(err)
         return err
@@ -146,7 +153,8 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    users, err := contr.auth.ListUsers()
+    userName    := string(context.AuthIdent())
+    users, err := contr.auth.ListUsers(userName)
     if err != nil {
         context.SendError(err)
         return err

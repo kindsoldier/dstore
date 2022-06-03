@@ -23,7 +23,6 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     var state   string  = "undef"
     var role    string  = "admin"
 
-
     err = reg.DeleteUserDescr(login)
     assert.NoError(t, err)
 

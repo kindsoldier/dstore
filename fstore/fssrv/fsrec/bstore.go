@@ -26,8 +26,8 @@ func (store *Store) SeedBStores() error {
     }
 
     const address   = "127.0.0.1"
-    const login     = "admin"
-    const pass      = "admin"
+    const login     = "fstore"
+    const pass      = "fstore"
     ports := []string{ "5101", "5102", "5103" }
     for _, port := range ports {
         _, err = store.reg.AddBStoreDescr(address, port, login, pass, BStateNormal)

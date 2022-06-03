@@ -73,6 +73,23 @@ func (reg *Reg) GetUserDescr(login string) (*bscom.UserDescr, error) {
     return user, err
 }
 
+
+func (reg *Reg) GetUserRole(login string) (string, error) {
+    var err error
+    request := `
+        SELECT role
+        FROM users
+        WHERE login = $1
+        LIMIT 1;`
+    var role string
+    err = reg.db.Get(&role, request, login)
+    if err != nil  {
+        return role, err
+    }
+    return role, err
+}
+
+
 func (reg *Reg) UserDescrExists(login string) (bool, error) {
     var err error
     var exists bool

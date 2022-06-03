@@ -15,9 +15,11 @@ const UStateDisabled string  = "disabled"
 const URoleAdmin    string  = "admin"
 const URoleUser     string  = "user"
 
-const defaultUser   string  = "admin"
-const defaultPass   string  = "admin"
+const defaultAUser   string  = "admin"
+const defaultAPass   string  = "admin"
 
+const defaultUser   string  = "user"
+const defaultPass   string  = "user"
 
 func (store *Store) SeedUsers() error {
     var err error
@@ -26,7 +28,11 @@ func (store *Store) SeedUsers() error {
         return err
     }
     if len(users) < 1 {
-        _, err = store.reg.AddUserDescr(defaultUser, defaultPass, UStateEnabled, URoleAdmin)
+        _, err = store.reg.AddUserDescr(defaultAUser, defaultAPass, UStateEnabled, URoleAdmin)
+        if err != nil {
+            return err
+        }
+        _, err = store.reg.AddUserDescr(defaultUser, defaultPass, UStateEnabled, URoleUser)
         if err != nil {
             return err
         }
