@@ -30,6 +30,9 @@ func Test_BStore_AddCheckDelete(t *testing.T) {
     model := fsrec.NewStore(rootDir, reg)
     assert.NoError(t, err)
 
+    err = model.SeedUsers()
+    assert.NoError(t, err)
+
     contr := NewContr(model)
 
     addParams := fsapi.NewAddBStoreParams()
@@ -38,7 +41,10 @@ func Test_BStore_AddCheckDelete(t *testing.T) {
     addParams.Login    = "qwerty"
     addParams.Pass     = "123456"
     addResult := fsapi.NewAddBStoreResult()
-    err = dsrpc.LocalExec(fsapi.AddBStoreMethod, addParams, addResult, nil, contr.AddBStoreHandler)
+
+    auth := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
+
+    err = dsrpc.LocalExec(fsapi.AddBStoreMethod, addParams, addResult, auth, contr.AddBStoreHandler)
     assert.NoError(t, err)
 
     addParams = fsapi.NewAddBStoreParams()
@@ -47,14 +53,14 @@ func Test_BStore_AddCheckDelete(t *testing.T) {
     addParams.Login    = "qwerty"
     addParams.Pass     = "123456xxx"
     addResult = fsapi.NewAddBStoreResult()
-    err = dsrpc.LocalExec(fsapi.AddBStoreMethod, addParams, addResult, nil, contr.AddBStoreHandler)
+    err = dsrpc.LocalExec(fsapi.AddBStoreMethod, addParams, addResult, auth, contr.AddBStoreHandler)
     assert.Error(t, err)
 
     deleteParams := fsapi.NewDeleteBStoreParams()
     deleteParams.Address = "127.0.0.1"
     deleteParams.Port    = "1234"
     deleteResult := fsapi.NewDeleteBStoreResult()
-    err = dsrpc.LocalExec(fsapi.DeleteBStoreMethod, deleteParams, deleteResult, nil, contr.DeleteBStoreHandler)
+    err = dsrpc.LocalExec(fsapi.DeleteBStoreMethod, deleteParams, deleteResult, auth, contr.DeleteBStoreHandler)
     assert.NoError(t, err)
 
     err = reg.CloseDB()

@@ -20,8 +20,8 @@ func (contr *Contr) AddBStoreHandler(context *dsrpc.Context) error {
     port    := params.Port
     login   := params.Login
     pass    := params.Pass
-
-    err = contr.store.AddBStore(address, port, login, pass)
+    userName := string(context.AuthIdent())
+    err = contr.store.AddBStore(userName, address, port, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -46,7 +46,8 @@ func (contr *Contr) UpdateBStoreHandler(context *dsrpc.Context) error {
     port    := params.Port
     login   := params.Login
     pass    := params.Pass
-    err = contr.store.UpdateBStore(address, port, login, pass)
+    userName := string(context.AuthIdent())
+    err = contr.store.UpdateBStore(userName, address, port, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -69,7 +70,8 @@ func (contr *Contr) DeleteBStoreHandler(context *dsrpc.Context) error {
     }
     address := params.Address
     port    := params.Port
-    err = contr.store.DeleteBStore(address, port)
+    userName := string(context.AuthIdent())
+    err = contr.store.DeleteBStore(userName, address, port)
     if err != nil {
         context.SendError(err)
         return err
@@ -89,7 +91,8 @@ func (contr *Contr) ListBStoresHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    bstores, err := contr.store.ListBStores()
+    userName := string(context.AuthIdent())
+    bstores, err := contr.store.ListBStores(userName)
     if err != nil {
         context.SendError(err)
         return err

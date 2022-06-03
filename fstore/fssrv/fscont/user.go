@@ -51,7 +51,8 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
-    err = contr.store.AddUser(login, pass)
+    userName := string(context.AuthIdent())
+    err = contr.store.AddUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -72,9 +73,10 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    login   := params.Login
-    pass    := params.Pass
-    ok, err := contr.store.CheckUser(login, pass)
+    login       := params.Login
+    pass        := params.Pass
+    userName    := string(context.AuthIdent())
+    ok, err := contr.store.CheckUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
         return err
@@ -95,10 +97,12 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    login   := params.Login
-    pass    := params.Pass
-
-    err = contr.store.UpdateUser(login, pass)
+    login       := params.Login
+    pass        := params.Pass
+    state       := ""   // todo
+    role        := ""   // todo
+    userName    := string(context.AuthIdent())
+    err = contr.store.UpdateUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
         return err
@@ -120,7 +124,8 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
         return err
     }
     login   := params.Login
-    err = contr.store.DeleteUser(login)
+    userName    := string(context.AuthIdent())
+    err = contr.store.DeleteUser(userName, login)
     if err != nil {
         context.SendError(err)
         return err
@@ -140,7 +145,8 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
     if err != nil {
         return err
     }
-    users, err := contr.store.ListUsers()
+    userName := string(context.AuthIdent())
+    users, err := contr.store.ListUsers(userName)
     if err != nil {
         context.SendError(err)
         return err

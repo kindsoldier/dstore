@@ -27,10 +27,13 @@ func Test_User_AddCheckDelete(t *testing.T) {
     model := NewStore(rootDir, reg)
     assert.NoError(t, err)
 
+    err = model.SeedUsers()
+    assert.NoError(t, err)
 
-    login := "qwerty"
-    pass := "1234567"
-    err = model.AddUser(login, pass)
+    login   := "qwerty"
+    pass    := "1234567"
+    userName := "admin"
+    err = model.AddUser(userName, login, pass)
     assert.NoError(t, err)
 
     user, err := model.GetUser(login)
@@ -38,7 +41,7 @@ func Test_User_AddCheckDelete(t *testing.T) {
     assert.Equal(t, login, user.Login)
     assert.Equal(t, pass, user.Pass)
 
-    ok, err := model.CheckUser(login, pass)
+    ok, err := model.CheckUser(userName, login, pass)
     assert.NoError(t, err)
     assert.Equal(t, true, ok)
 

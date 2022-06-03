@@ -25,12 +25,15 @@ func Test_BStore_AddCheckDelete(t *testing.T) {
     model := NewStore(rootDir, reg)
     assert.NoError(t, err)
 
+    err = model.SeedUsers()
+    assert.NoError(t, err)
 
     address := "127.0.0.1"
     port    := "1234"
     login   := "qwerty"
     pass    := "123456"
-    err = model.AddBStore(address, port, login, pass)
+    userName := "admin"
+    err = model.AddBStore(userName, address, port, login, pass)
     assert.NoError(t, err)
 
     store, err := model.GetBStore(address, port)
@@ -38,7 +41,7 @@ func Test_BStore_AddCheckDelete(t *testing.T) {
     assert.Equal(t, login, store.Login)
     assert.Equal(t, pass, store.Pass)
 
-    err = model.DeleteBStore(address, port)
+    err = model.DeleteBStore(userName, address, port)
     assert.NoError(t, err)
 
     store, err = model.GetBStore(address, port)

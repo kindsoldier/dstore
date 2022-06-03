@@ -84,6 +84,22 @@ func (reg *Reg) GetUserId(login string) (int64, error) {
     return userId, err
 }
 
+func (reg *Reg) GetUserRole(login string) (string, error) {
+    var err error
+    request := `
+        SELECT role
+        FROM users
+        WHERE login = $1
+        LIMIT 1;`
+    var role string
+    err = reg.db.Get(&role, request, login)
+    if err != nil  {
+        return role, err
+    }
+    return role, err
+}
+
+
 func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
     var err error
     request := `
