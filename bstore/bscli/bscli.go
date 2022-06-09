@@ -46,6 +46,7 @@ type Util struct {
     FileId      int64
     BatchId     int64
     BlockId     int64
+    BlockType   string
 
     FilePath    string
 }
@@ -133,6 +134,8 @@ func (util *Util) GetOpt() error {
             flagSet.Int64Var(&util.FileId, "fileId", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "batchId", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "blockId", util.BlockId, "block id")
+            flagSet.StringVar(&util.BlockType, "blockType", util.BlockType, "block type")
+
             flagSet.StringVar(&util.FilePath, "file", util.FilePath, "block file name")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -303,6 +306,7 @@ func (util *Util) SaveBlockCmd(auth *dsrpc.Auth) (*bsapi.SaveBlockResult, error)
     params.FileId   = util.FileId
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
+    params.BlockType = util.BlockType
 
     result := bsapi.NewSaveBlockResult()
 
@@ -334,6 +338,8 @@ func (util *Util) LoadBlockCmd(auth *dsrpc.Auth) (*bsapi.LoadBlockResult, error)
     params.FileId   = util.FileId
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
+    params.BlockType = util.BlockType
+
     result := bsapi.NewLoadBlockResult()
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
     defer blockFile.Close()
@@ -361,6 +367,10 @@ func (util *Util) ListBlocksCmd(auth *dsrpc.Auth) (*bsapi.ListBlocksResult, erro
 func (util *Util) DeleteBlockCmd(auth *dsrpc.Auth) (*bsapi.DeleteBlockResult, error) {
     var err error
     params := bsapi.NewDeleteBlockParams()
+    params.FileId   = util.FileId
+    params.BatchId  = util.BatchId
+    params.BlockId  = util.BlockId
+    params.BlockType = util.BlockType
     result := bsapi.NewDeleteBlockResult()
     err = dsrpc.Exec(util.URI, bsapi.DeleteBlockMethod, params, result, auth)
     if err != nil {

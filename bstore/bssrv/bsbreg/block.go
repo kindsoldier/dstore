@@ -25,7 +25,7 @@ const blockSchema = `
     );
     DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
-        ON blocks (file_id, batch_id, block_id);`
+        ON blocks (file_id, batch_id, block_id, block_type);`
 
 
 func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath,
@@ -62,7 +62,7 @@ func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize i
     return err
 }
 
-func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64) (string, int64, error) {
+func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (string, int64, error) {
     var err error
     var filePath string
     var blockSize int64
@@ -72,10 +72,11 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64) (string, int64,
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
+            AND block_type = $4
         LIMIT 1;`
 
     var block dscom.BlockDescr
-    err = reg.db.Get(&block, request, fileId, batchId, blockId)
+    err = reg.db.Get(&block, request, fileId, batchId, blockId, blockType)
     if err != nil {
         return filePath, blockSize, err
     }
@@ -85,7 +86,7 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64) (string, int64,
 }
 
 
-func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64) (bool, error) {
+func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType string) (bool, error) {
     var err error
     var exists bool
     request := `
@@ -94,9 +95,10 @@ func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64) (bool, error) {
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
+            AND block_type = $4
         LIMIT 1;`
     var count int64
-    err = reg.db.Get(&count, request, fileId, batchId, blockId)
+    err = reg.db.Get(&count, request, fileId, batchId, blockId, blockType)
     if err != nil {
         return exists, err
     }
@@ -111,7 +113,7 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     blocks := make([]*dscom.BlockDescr, 0)
     request := `
         SELECT file_id, batch_id, block_id, block_size, data_size, file_path,
-            hash_alg, hash_sum, hash_init
+            hash_alg, hash_sum, hash_init, block_type
         FROM blocks;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
@@ -120,14 +122,15 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     return blocks, err
 }
 
-func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64) error {
+func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType string) error {
     var err error
     request := `
         DELETE FROM blocks
         WHERE file_id = $1
             AND batch_id = $2
-            AND block_id = $3;`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId)
+            AND block_id = $3
+            AND block_type = $4;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
     if err != nil {
         return err
     }

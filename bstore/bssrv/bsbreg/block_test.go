@@ -27,31 +27,54 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var blockSize   int64   = 1024
     var dataSize    int64   = 1123
 
-    var blockType   string  = "a1"
+    var blockType   string  = "unk"
     var hashAlg     string  = "a2"
     var hashInit    string  = "a3"
     var hashSum     string  = "a4"
 
+
     var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
+    var exists bool
 
     err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
                                                       blockType, hashAlg, hashInit, hashSum)
     assert.NoError(t, err)
-    var exists bool
 
-    exists, err = reg.BlockDescrExists(fileId, batchId, blockId)
+    err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                      blockType, hashAlg, hashInit, hashSum)
+    assert.Error(t, err)
+
+    err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                      "hihihi", hashAlg, hashInit, hashSum)
+    assert.NoError(t, err)
+
+
+    exists, err = reg.BlockDescrExists(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, exists, true)
 
-    exists, err = reg.BlockDescrExists(fileId + 1, batchId, blockId)
+    exists, err = reg.BlockDescrExists(fileId, batchId, blockId, "hohoho")
+    assert.NoError(t, err)
+    assert.Equal(t, exists, false)
+
+    exists, err = reg.BlockDescrExists(fileId, batchId, blockId, "hihihi")
+    assert.NoError(t, err)
+    assert.Equal(t, exists, true)
+
+
+    exists, err = reg.BlockDescrExists(fileId + 1, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, exists, false)
 
 
-    nFileName, nBlockSize, err := reg.GetBlockFilePath(fileId, batchId, blockId)
+    nFileName, nBlockSize, err := reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, filePath, nFileName)
     assert.Equal(t, blockSize, nBlockSize)
+
+
+    _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId, "hohoho")
+    assert.Error(t, err)
 
     //fileId  += 1
     //batchId += 1
@@ -59,14 +82,21 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     blockSize += 1024
     filePath = fmt.Sprintf("x/y/z/qwerty%020d", fileId)
     err = reg.UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
+    assert.NoError(t, err)
 
-    nFileName, nBlockSize, err = reg.GetBlockFilePath(fileId, batchId, blockId)
+    nFileName, nBlockSize, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, filePath, nFileName)
     assert.Equal(t, blockSize, nBlockSize)
 
+    err = reg.DeleteBlockDescr(fileId, batchId, blockId, "hohoho")
+    assert.NoError(t, err)
 
-    err = reg.DeleteBlockDescr(fileId, batchId, blockId)
+    err = reg.DeleteBlockDescr(fileId, batchId, blockId, "hihihi")
+    assert.NoError(t, err)
+
+
+    err = reg.DeleteBlockDescr(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 }
 
@@ -118,10 +148,10 @@ func BenchmarkSelect(b *testing.B) {
     err = reg.MigrateDB()
     assert.NoError(b, err)
 
-    var blockType   string  = "a1"
     var hashAlg     string  = "a2"
     var hashInit    string  = "a3"
     var hashSum     string  = "a4"
+    var blockType   string  = "unk"
 
     const numRange int = 1024 * 10
     var i int64
@@ -145,7 +175,7 @@ func BenchmarkSelect(b *testing.B) {
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = 1
             var blockId     int64   = 1
-            _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId)
+            _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
             assert.NoError(b, err)
         }
     }

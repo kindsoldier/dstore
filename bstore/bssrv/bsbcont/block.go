@@ -56,6 +56,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
+    blockType   := params.BlockType
     blockWriter := context.BinWriter()
 
     err = context.ReadBin(io.Discard)
@@ -64,7 +65,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
         return err
     }
 
-    dataSize, err := contr.store.BlockExists(fileId, batchId, blockId)
+    dataSize, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
         return err
@@ -75,7 +76,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
         return err
     }
 
-    err = contr.store.LoadBlock(fileId, batchId, blockId, blockWriter)
+    err = contr.store.LoadBlock(fileId, batchId, blockId, blockWriter, blockType)
     if err != nil {
         return err
     }
@@ -93,8 +94,9 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     fileId      := params.FileId
     batchId     := params.BatchId
     blockId     := params.BlockId
+    blockType   := params.BlockType
 
-    err = contr.store.DeleteBlock(fileId, batchId, blockId)
+    err = contr.store.DeleteBlock(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
         return err

@@ -50,12 +50,27 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
                                     binSize int64, blockType, hashAlg, hashInit, hashSum string) error {
     var err error
 
-    blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId)
+    blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId, blockType)
     if err != nil {
         return err
     }
     if blockExists {
         return errors.New("block yet exists")
+    }
+
+    err = validateFileId(fileId)
+    if err != nil {
+        return err
+    }
+
+    err = validateBatchId(batchId)
+    if err != nil {
+        return err
+    }
+
+    err = validateBlockId(blockId)
+    if err != nil {
+        return err
     }
 
     fileName := MakeBlockName(fileId, batchId, blockId)
@@ -85,10 +100,10 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
     return err
 }
 
-func (store *Store) BlockExists(fileId, batchId, blockId int64) (int64, error) {
+func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string) (int64, error) {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
         return blockSize, err
     }
@@ -103,10 +118,10 @@ func (store *Store) BlockExists(fileId, batchId, blockId int64) (int64, error) {
 
 
 func (store *Store) LoadBlock(fileId, batchId, blockId int64,
-                                                    blockWriter io.Writer) error {
+                                                    blockWriter io.Writer, blockType string) error {
     var err error
     var filePath string
-    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId)
+    filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
         return err
     }
@@ -123,10 +138,10 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64,
     return err
 }
 
-func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
+func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string) error {
     var err error
     var filePath string
-    filePath, _, err = store.reg.GetBlockFilePath(fileId, batchId, blockId)
+    filePath, _, err = store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
         return err
     }
@@ -135,7 +150,7 @@ func (store *Store) DeleteBlock(fileId, batchId, blockId int64) error {
     if err != nil {
         return err
     }
-    err = store.reg.DeleteBlockDescr(fileId, batchId, blockId)
+    err = store.reg.DeleteBlockDescr(fileId, batchId, blockId, blockType)
     if err != nil {
         return err
     }
@@ -172,4 +187,29 @@ func MakeDirName(fileName string) string {
     l2 := string(hashHex[2:3])
     dirName := filepath.Join(l1, l2)
     return dirName
+}
+
+
+func validateBlockId(id int64) error {
+    var err error
+    if id < 1 {
+        err = errors.New("block id must be greater than 0")
+    }
+    return err
+}
+
+func validateFileId(id int64) error {
+    var err error
+    if id < 1 {
+        err = errors.New("file id must be greater than 0")
+    }
+    return err
+}
+
+func validateBatchId(id int64) error {
+    var err error
+    if id < 1 {
+        err = errors.New("batch id must be greater than 0")
+    }
+    return err
 }

@@ -69,8 +69,12 @@ func NewBatchDescr() *BatchDescr {
     return &batch
 }
 
-const BlockData     string = "data"
-const BlockRecov    string = "reco"
+const BTypeData     string = "data"
+const BTypeRecov    string = "reco"
+
+const HashTypeHW    string = "hw"
+const HashTypeNone  string = "none"
+
 
 type BlockDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`
