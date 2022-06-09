@@ -222,24 +222,24 @@ func MakeDirName(fileName string) string {
 
 func validateBlockId(id int64) error {
     var err error
-    if id < 1 {
-        err = errors.New("block id must be greater than 0")
+    if id < 0 {
+        err = errors.New("block id must be equal or greater than 0")
     }
     return err
 }
 
 func validateFileId(id int64) error {
     var err error
-    if id < 1 {
-        err = errors.New("file id must be greater than 0")
+    if id < 0 {
+        err = errors.New("file id must be equal or greater than 0")
     }
     return err
 }
 
 func validateBatchId(id int64) error {
     var err error
-    if id < 1 {
-        err = errors.New("batch id must be greater than 0")
+    if id < 0 {
+        err = errors.New("batch id must be equal or greater than 0")
     }
     return err
 }

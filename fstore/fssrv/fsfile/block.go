@@ -14,6 +14,8 @@ import (
     "github.com/minio/highwayhash"
 
     "ndstore/dscom"
+    "ndstore/dsrpc"
+    "ndstore/bstore/bsfunc"
 )
 
 
@@ -25,12 +27,17 @@ type Block struct {
     blockId     int64
     blockSize   int64
 
+    remote      bool
+    local       bool
+    storeId     int64
+
     hasher      hash.Hash
     hashSum     []byte
     hashInit    []byte
 }
 
 const fileMode fs.FileMode = 0644
+
 var ErrorNilFile = errors.New("block file ref is nil")
 
 func NewBlock(baseDir string, fileId, batchId, blockId int64, blockSize int64) *Block {
@@ -148,6 +155,40 @@ func (block *Block) Lwrite(reader io.Reader, need int64) (int64, error) {
     return written, err
 }
 
+func (block *Block) Save() error {
+    var err error
+
+    err = block.ToBegin()
+    if err != nil {
+        return err
+    }
+
+    uri     := "localhost:5101"
+    auth    := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
+    fileId  := block.fileId
+    batchId := block.batchId
+    blockId := block.blockId
+    blockSize   := block.blockSize
+    blockReader := block.file
+    dataSize, err  := block.Size()
+    if err != nil {
+        return err
+    }
+    blockType   := dscom.BTypeData
+    hashAlg     := dscom.HashTypeHW
+    hashInit    := hex.EncodeToString(block.hashInit)
+    hashSum     := hex.EncodeToString(block.hashSum)
+
+    err = bsfunc.SaveBlock(uri, auth, fileId, batchId, blockId, blockSize, blockReader,
+                                dataSize, blockType, hashAlg, hashInit, hashSum)
+
+    if err != nil {
+        return err
+    }
+    block.remote = true
+    block.storeId = 1
+    return err
+}
 
 func (block *Block) Read(writer io.Writer) (int64, error) {
     var err error
@@ -155,14 +196,26 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
     if block.file == nil {
         return read, ErrorNilFile
     }
-    size, err := block.Size()
-    if err != nil {
-            return read, err
-    }
-    read, err = copyBytes(block.file, writer, size)
-    if err != nil {
-            return read, err
-    }
+    //size, err := block.Size()
+    //if err != nil {
+            //return read, err
+    //}
+    //read, err = copyBytes(block.file, writer, size)
+    //if err != nil {
+    //        return read, err
+    //}
+
+    fileId      := block.fileId
+    batchId     := block.batchId
+    blockId     := block.blockId
+    blockWriter := writer //io.Discard
+    blockType   := dscom.BTypeData
+
+    uri         := "localhost:5101"
+    auth        := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
+
+    _ = bsfunc.LoadBlock(uri, auth, fileId, batchId, blockId, blockWriter, blockType)
+
     return read, err
 }
 
@@ -183,7 +236,6 @@ func (block *Block) Purge() error {
     if err != nil {
         return err
     }
-
     return err
 }
 

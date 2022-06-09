@@ -36,6 +36,7 @@ func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize
     params.FileId   = fileId
     params.BatchId  = batchId
     params.BlockId  = blockId
+    params.BlockSize = blockSize
     params.DataSize = binSize
 
     params.BlockType = blockType

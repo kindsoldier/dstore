@@ -87,6 +87,10 @@ type BlockDescr struct {
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`
     BlockType   string      `json:"blockType"   db:"block_type"`
+
+    StoreId     int64       `json:"storeId"     db:"storeId"`
+    HasLocal    bool        `json:"hasLocal"    db:"has_local"`
+    HasRemote   bool        `json:"hasRemote"   db:"has_remote"`
 }
 
 func NewBlockDescr() *BlockDescr {

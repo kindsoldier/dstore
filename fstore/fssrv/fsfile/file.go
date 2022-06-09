@@ -137,6 +137,17 @@ func (file *File) Lwrite(reader io.Reader, need int64) (int64, error) {
     return written, err
 }
 
+func (file *File) Save() error {
+    var err error
+    for i := range file.batchs {
+        err = file.batchs[i].Save()
+        if err != nil {
+            return err
+        }
+    }
+    return err
+}
+
 
 func (file *File) Read(writer io.Writer) (int64, error) {
     var err error

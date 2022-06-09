@@ -29,7 +29,7 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
     }
 
     var batchSize   int64 = 5
-    var blockSize   int64 = 1024 * 1024 * 16
+    var blockSize   int64 = 1024 * 1024 * 1
 
     file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
     err = file.Open()
@@ -56,6 +56,13 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
     if err != nil {
         return err
     }
+
+    err = file.Save()
+    if err != nil {
+        return err
+    }
+
+
     return err
 }
 

@@ -37,7 +37,7 @@ func Test_File_SaveLoadDelete(t *testing.T) {
 
     fileName := "qwerty.txt"
 
-    data := make([]byte, 10)
+    data := make([]byte, 10 * 1024 * 1024 * 16)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
