@@ -16,23 +16,28 @@ const blockSchema = `
         block_id    INTEGER,
         block_size  INTEGER,
         data_size   INTEGER,
+        block_type  TEXT DEFAULT '',
         file_path   TEXT DEFAULT '',
         hash_alg    TEXT DEFAULT '',
         hash_sum    TEXT DEFAULT '',
         hash_init   TEXT DEFAULT ''
+
     );
     DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
         ON blocks (file_id, batch_id, block_id);`
 
 
-func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
+func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath,
+                                           blockType, hashAlg, hashInit, hashSum string) error {
     var err error
     request := `
         INSERT
-            INTO blocks(file_id, batch_id, block_id, block_size, data_size, file_path)
-        VALUES ($1, $2, $3, $4, $5, $6);`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, dataSize, filePath)
+            INTO blocks(file_id, batch_id, block_id, block_size, data_size, file_path,
+                                                      block_type, hash_alg, hash_init, hash_sum)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                          blockType, hashAlg, hashInit, hashSum)
     if err != nil {
         return err
     }

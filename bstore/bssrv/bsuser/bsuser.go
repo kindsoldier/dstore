@@ -6,6 +6,7 @@ package bsuser
 
 import (
     "errors"
+    "fmt"
     "ndstore/bstore/bssrv/bsureg"
     "ndstore/bstore/bscom"
 )
@@ -16,8 +17,8 @@ const UStateDisabled string  = "disabled"
 const URoleAdmin    string  = "admin"
 const URoleUser     string  = "user"
 
-const defaultAUser   string  = "admin"
-const defaultAPass   string  = "admin"
+const defaultAUser  string  = "admin"
+const defaultAPass  string  = "admin"
 
 const defaultUser   string  = "user"
 const defaultPass   string  = "user"
@@ -51,13 +52,32 @@ func (auth *Auth) SeedUsers() error {
     return err
 }
 
-func (auth *Auth) AddUser(userName, login, pass string) error {
+func (auth *Auth) AddUser(userName, login, pass, role, state string) error {
     var err error
     var ok bool
 
-    role, err := auth.reg.GetUserRole(userName)
-    if role != URoleAdmin {
+    // Check user role
+    userRole, err := auth.reg.GetUserRole(userName)
+    if userRole != URoleAdmin {
         return errors.New("insufficient rights for adding users")
+    }
+
+    // Set defaults
+    if len(role) < 1 {
+        role = URoleUser
+    }
+    if len(state) < 1 {
+        state = UStateEnabled
+    }
+
+    // Validate parameters
+    ok, err = validateUState(state)
+    if !ok {
+        return err
+    }
+    ok, err = validateURole(role)
+    if !ok {
+        return err
     }
     ok, err = validateLogin(login)
     if !ok {
@@ -67,7 +87,7 @@ func (auth *Auth) AddUser(userName, login, pass string) error {
     if !ok {
         return err
     }
-    err = auth.reg.AddUserDescr(login, pass, UStateEnabled, URoleAdmin)
+    err = auth.reg.AddUserDescr(login, pass, state, role)
     if err != nil {
         return err
     }
@@ -218,7 +238,7 @@ func validateURole(role string) (bool, error) {
     if role == URoleUser  {
         return ok, err
     }
-    err = errors.New("irrelevant role name")
+    err = fmt.Errorf("irrelevant role name: %s", role)
     ok = false
     return ok, err
 }
@@ -232,7 +252,7 @@ func validateUState(state string) (bool, error) {
     if state == UStateEnabled  {
         return ok, err
     }
-    err = errors.New("irrelevant state name")
+    err = fmt.Errorf("irrelevant state name: %s", state)
     ok = false
     return ok, err
 }
@@ -240,9 +260,9 @@ func validateUState(state string) (bool, error) {
 func validateLogin(login string) (bool, error) {
     var err error
     var ok bool = true
-    if len(login) == 0 {
+    if len(login) < 1 {
         ok = false
-        err = errors.New("zero len password")
+        err = errors.New("zero len of login")
     }
     return ok, err
 }
@@ -250,9 +270,9 @@ func validateLogin(login string) (bool, error) {
 func validatePass(pass string) (bool, error) {
     var err error
     var ok bool = true
-    if len(pass) == 0 {
+    if len(pass) < 1 {
         ok = false
-        err = errors.New("zero len password")
+        err = errors.New("zero len of password")
     }
     return ok, err
 }

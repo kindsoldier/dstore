@@ -26,7 +26,13 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     blockSize   := params.BlockSize
     dataSize    := params.DataSize
 
-    err = contr.store.SaveBlock(fileId, batchId, blockId, blockSize, dataSize, blockReader, binSize)
+    blockType   := params.BlockType
+    hashAlg     := params.HashAlg
+    hashInit    := params.HashInit
+    hashSum     := params.HashSum
+
+    err = contr.store.SaveBlock(fileId, batchId, blockId, blockSize, dataSize, blockReader,
+                                                binSize, blockType, hashAlg, hashInit, hashSum)
     if err != nil {
         context.SendError(err)
         return err

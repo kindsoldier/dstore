@@ -26,9 +26,16 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var blockId     int64   = 3
     var blockSize   int64   = 1024
     var dataSize    int64   = 1123
+
+    var blockType   string  = "a1"
+    var hashAlg     string  = "a2"
+    var hashInit    string  = "a3"
+    var hashSum     string  = "a4"
+
     var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
 
-    err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
+    err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                      blockType, hashAlg, hashInit, hashSum)
     assert.NoError(t, err)
     var exists bool
 
@@ -76,16 +83,23 @@ func BenchmarkInsert(b *testing.B) {
     b.ResetTimer()
 
     const numRange int = 1024
+
+    var blockType   string  = "a1"
+    var hashAlg     string  = "a2"
+    var hashInit    string  = "a3"
+    var hashSum     string  = "a4"
+
+    var blockSize   int64   = 1024
+    var dataSize    int64   = 123
+
     pBench := func(pb *testing.PB) {
         for pb.Next() {
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = int64(rand.Intn(numRange))
             var blockId     int64   = int64(rand.Intn(numRange))
-            var blockSize   int64   = 1024
-            var dataSize    int64   = 123
             var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
-
-            err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
+            err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                      blockType, hashAlg, hashInit, hashSum)
             assert.NoError(b, err)
         }
     }
@@ -104,6 +118,10 @@ func BenchmarkSelect(b *testing.B) {
     err = reg.MigrateDB()
     assert.NoError(b, err)
 
+    var blockType   string  = "a1"
+    var hashAlg     string  = "a2"
+    var hashInit    string  = "a3"
+    var hashSum     string  = "a4"
 
     const numRange int = 1024 * 10
     var i int64
@@ -114,7 +132,9 @@ func BenchmarkSelect(b *testing.B) {
         var blockSize   int64   = 1024
         var dataSize    int64   = 123
         var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
-        err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
+        err = reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                      blockType, hashAlg, hashInit, hashSum)
+
         assert.NoError(b, err)
     }
 

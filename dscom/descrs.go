@@ -69,6 +69,9 @@ func NewBatchDescr() *BatchDescr {
     return &batch
 }
 
+const BlockData     string = "data"
+const BlockRecov    string = "reco"
+
 type BlockDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`
     BatchId     int64       `json:"batchId"     db:"batch_id"`
@@ -79,6 +82,7 @@ type BlockDescr struct {
     HashAlg     string      `json:"hashAlg"     db:"hash_alg"`
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`
+    BlockType   string      `json:"blockType"   db:"block_type"`
 }
 
 func NewBlockDescr() *BlockDescr {

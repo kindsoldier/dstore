@@ -15,7 +15,7 @@ type ListUsersParams struct {
 }
 
 type ListUsersResult struct {
-    Users  []*bscom.UserDescr     `json:"users,omitempty"`
+    Users  []*bscom.UserDescr     `json:"users"`
 }
 
 func NewListUsersResult() *ListUsersResult {

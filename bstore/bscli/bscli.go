@@ -40,6 +40,8 @@ type Util struct {
 
     Login       string
     Pass        string
+    Role        string
+    State       string
 
     FileId      int64
     BatchId     int64
@@ -154,7 +156,24 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case addUserCmd, checkUserCmd, updateUserCmd:
+        case addUserCmd, updateUserCmd:
+            flagSet := flag.NewFlagSet(addUserCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Login, "login", util.Login, "login")
+            flagSet.StringVar(&util.Pass, "pass", util.Pass, "pass")
+            flagSet.StringVar(&util.Role, "role", util.Role, "role")
+            flagSet.StringVar(&util.State, "state", util.State, "state")
+
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case checkUserCmd:
             flagSet := flag.NewFlagSet(addUserCmd, flag.ExitOnError)
             flagSet.StringVar(&util.Login, "login", util.Login, "login")
             flagSet.StringVar(&util.Pass, "pass", util.Pass, "pass")
@@ -355,6 +374,8 @@ func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*bsapi.AddUserResult, error) {
     params := bsapi.NewAddUserParams()
     params.Login = util.Login
     params.Pass = util.Pass
+    params.Role = util.Role
+    params.State = util.State
     result := bsapi.NewAddUserResult()
     err = dsrpc.Exec(util.URI, bsapi.AddUserMethod, params, result, auth)
     if err != nil {
@@ -381,6 +402,8 @@ func (util *Util) UpdateUserCmd(auth *dsrpc.Auth) (*bsapi.UpdateUserResult, erro
     params := bsapi.NewUpdateUserParams()
     params.Login = util.Login
     params.Pass = util.Pass
+    params.Role = util.Role
+    params.State = util.State
     result := bsapi.NewUpdateUserResult()
     err = dsrpc.Exec(util.URI, bsapi.UpdateUserMethod, params, result, auth)
     if err != nil {

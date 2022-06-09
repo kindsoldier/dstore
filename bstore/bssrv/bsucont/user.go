@@ -5,40 +5,12 @@
 package bsucont
 
 import (
-    "errors"
-    "io"
+    //"errors"
+    //"io"
     "ndstore/bstore/bsapi"
     "ndstore/dsrpc"
-    "ndstore/dslog"
+    //"ndstore/dslog"
 )
-
-func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
-    var err error
-    login := context.AuthIdent()
-    salt := context.AuthSalt()
-    hash := context.AuthHash()
-
-    usersDescr, err := contr.auth.GetUser(string(login))
-    if err != nil {
-        context.SendError(err)
-        return err
-    }
-    auth := context.Auth()
-    dslog.LogDebug("auth ", string(auth.JSON()))
-
-    pass := []byte(usersDescr.Pass)
-    ok := dsrpc.CheckHash(login, pass, salt, hash)
-    dslog.LogDebug("auth ok:", ok)
-    if !ok {
-        context.ReadBin(io.Discard)
-
-        err = errors.New("auth login or pass missmatch")
-        context.SendError(err)
-        return err
-    }
-    return err
-}
-
 
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     var err error
@@ -49,8 +21,10 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
+    role    := params.Role
+    state   := params.State
     userName := string(context.AuthIdent())
-    err = contr.auth.AddUser(userName, login, pass)
+    err = contr.auth.AddUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
         return err
@@ -105,8 +79,8 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     }
     login   := params.Login
     pass    := params.Pass
-    role    := "" // todo
-    state   := "" // todo
+    role    := params.Role
+    state   := params.State
     userName := string(context.AuthIdent())
 
     err = contr.auth.UpdateUser(userName, login, pass, role, state)

@@ -11,6 +11,7 @@ type UpdateUserParams struct {
     Login   string      `json:"login"`
     Pass    string      `json:"pass"`
     State   string      `json:"state"`
+    Role    string      `json:"role"`
 }
 
 type UpdateUserResult struct {

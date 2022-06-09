@@ -47,7 +47,7 @@ func (store *Store) SetFilePerm(filePerm fs.FileMode) {
 }
 
 func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int64, blockReader io.Reader,
-                                                                        binSize int64) error {
+                                    binSize int64, blockType, hashAlg, hashInit, hashSum string) error {
     var err error
 
     blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId)
@@ -75,7 +75,9 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
         return err
     }
     filePath := filepath.Join(subdirName, fileName)
-    err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
+    err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
+                                                            blockType, hashAlg, hashInit, hashSum)
+
     if err != nil {
         os.Remove(filePath)
         return err

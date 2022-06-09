@@ -11,6 +11,7 @@ type AddUserParams struct {
     Login   string      `json:"login"`
     Pass    string      `json:"pass"`
     State   string      `json:"state"`
+    Role    string      `json:"role"`
 }
 
 type AddUserResult struct {
