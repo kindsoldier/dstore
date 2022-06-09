@@ -28,9 +28,9 @@ func GetHello(uri string, auth *dsrpc.Auth) error {
     return err
 }
 
-func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize,
-                                dataSize int64, blockReader io.Reader, binSize int64, blockType,
-                                hashAlg, hashInit, hashSum string) error {
+func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize int64,
+                                            blockReader io.Reader, binSize int64, blockType,
+                                                    hashAlg, hashInit, hashSum string) error {
     var err error
     params := bsapi.NewSaveBlockParams()
     params.FileId   = fileId
@@ -94,4 +94,38 @@ func DeleteBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, b
         return err
     }
     return err
+}
+
+func BlockExists(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) (bool, error) {
+    var err error
+    var exists bool
+    params := bsapi.NewBlockExistsParams()
+    params.FileId   = fileId
+    params.BatchId  = batchId
+    params.BlockId  = blockId
+    params.BlockType = blockType
+    result := bsapi.NewBlockExistsResult()
+    err = dsrpc.Exec(uri, bsapi.BlockExistsMethod, params, result, auth)
+    exists = result.Exists
+    if err != nil {
+        return exists, err
+    }
+    return exists, err
+}
+
+func CheckBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) (bool, error) {
+    var err error
+    var correct bool
+    params := bsapi.NewCheckBlockParams()
+    params.FileId   = fileId
+    params.BatchId  = batchId
+    params.BlockId  = blockId
+    params.BlockType = blockType
+    result := bsapi.NewCheckBlockResult()
+    err = dsrpc.Exec(uri, bsapi.CheckBlockMethod, params, result, auth)
+    correct = result.Correct
+    if err != nil {
+        return correct, err
+    }
+    return correct, err
 }

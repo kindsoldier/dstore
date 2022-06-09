@@ -65,7 +65,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
         return err
     }
 
-    dataSize, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
+    _, dataSize, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
         return err
@@ -82,6 +82,61 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     }
     return err
 }
+
+func (contr *Contr) BlockExistsHandler(context *dsrpc.Context) error {
+    var err error
+    params := bsapi.NewBlockExistsParams()
+
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+    blockType   := params.BlockType
+
+    exists, _, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+    result := bsapi.NewBlockExistsResult()
+    result.Exists = exists
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return err
+    }
+    return err
+}
+
+func (contr *Contr) CheckBlockHandler(context *dsrpc.Context) error {
+    var err error
+    params := bsapi.NewCheckBlockParams()
+
+    err = context.BindParams(params)
+    if err != nil {
+        return err
+    }
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+    blockType   := params.BlockType
+
+    correct, err := contr.store.CheckBlock(fileId, batchId, blockId, blockType)
+    if err != nil {
+        context.SendError(err)
+        return err
+    }
+    result := bsapi.NewCheckBlockResult()
+    result.Correct = correct
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return err
+    }
+    return err
+}
+
 
 func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     var err error
@@ -108,6 +163,10 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     }
     return err
 }
+
+
+
+
 
 func (contr *Contr) ListBlocksHandler(context *dsrpc.Context) error {
     var err error

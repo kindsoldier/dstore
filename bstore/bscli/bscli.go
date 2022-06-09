@@ -66,6 +66,8 @@ const saveBlockCmd      string = "saveBlock"
 const loadBlocksCmd     string = "loadBlock"
 const listBlocksCmd     string = "listBlocks"
 const deleteBlockCmd    string = "deleteBlock"
+const blockExistsCmd    string = "blockExists"
+const checkBlockCmd     string = "checkBlock"
 
 const addUserCmd        string = "addUser"
 const checkUserCmd      string = "checkUser"
@@ -90,8 +92,8 @@ func (util *Util) GetOpt() error {
         fmt.Println("")
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
-        fmt.Printf("Command list: hello, saveBlock, loadBlock, listBlocks, deleteBlock \n")
-        fmt.Printf("               addUser, checkUser, updateUser, listUsers, deleteUser \n")
+        fmt.Printf("Command list: hello, saveBlock, loadBlock, listBlocks, deleteBlock, blockExists, checkBlock\n")
+        fmt.Printf("              addUser, checkUser, updateUser, listUsers, deleteUser \n")
 
         fmt.Printf("\n")
         fmt.Printf("Global options:\n")
@@ -129,7 +131,7 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case saveBlockCmd, loadBlocksCmd, deleteBlockCmd:
+        case saveBlockCmd, loadBlocksCmd, deleteBlockCmd, blockExistsCmd, checkBlockCmd:
             flagSet := flag.NewFlagSet(saveBlockCmd, flag.ExitOnError)
             flagSet.Int64Var(&util.FileId, "fileId", util.FileId, "file id")
             flagSet.Int64Var(&util.BatchId, "batchId", util.BatchId, "batch id")
@@ -265,6 +267,11 @@ func (util *Util) Exec() error {
             result, err = util.ListBlocksCmd(auth)
         case deleteBlockCmd:
             result, err = util.DeleteBlockCmd(auth)
+        case blockExistsCmd:
+            result, err = util.BlockExistsCmd(auth)
+        case checkBlockCmd:
+            result, err = util.CheckBlockCmd(auth)
+
         case addUserCmd:
             result, err = util.AddUserCmd(auth)
         case checkUserCmd:
@@ -378,6 +385,37 @@ func (util *Util) DeleteBlockCmd(auth *dsrpc.Auth) (*bsapi.DeleteBlockResult, er
     }
     return result, err
 }
+
+func (util *Util) BlockExistsCmd(auth *dsrpc.Auth) (*bsapi.BlockExistsResult, error) {
+    var err error
+    params := bsapi.NewBlockExistsParams()
+    params.FileId   = util.FileId
+    params.BatchId  = util.BatchId
+    params.BlockId  = util.BlockId
+    params.BlockType = util.BlockType
+    result := bsapi.NewBlockExistsResult()
+    err = dsrpc.Exec(util.URI, bsapi.BlockExistsMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) CheckBlockCmd(auth *dsrpc.Auth) (*bsapi.CheckBlockResult, error) {
+    var err error
+    params := bsapi.NewCheckBlockParams()
+    params.FileId   = util.FileId
+    params.BatchId  = util.BatchId
+    params.BlockId  = util.BlockId
+    params.BlockType = util.BlockType
+    result := bsapi.NewCheckBlockResult()
+    err = dsrpc.Exec(util.URI, bsapi.CheckBlockMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
 
 func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*bsapi.AddUserResult, error) {
     var err error

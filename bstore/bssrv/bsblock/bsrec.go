@@ -100,22 +100,52 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
     return err
 }
 
-func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string) (int64, error) {
+func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string) (bool, int64, error) {
     var err error
     var filePath string
+    var exists bool
     filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
-        return blockSize, err
+        return exists, blockSize, err
     }
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
     defer blockFile.Close()
     if err != nil {
-        return blockSize, err
+        return exists, blockSize, err
     }
-    return blockSize, err
+    exists = true
+    return exists, blockSize, err
 }
 
+func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string) (bool, error) {
+    var err error
+    var filePath string
+    var correct bool
+    filePath, dataSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    if err != nil {
+        return correct, err
+    }
+    filePath = filepath.Join(store.dataRoot, filePath)
+    blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
+    defer blockFile.Close()
+    if err != nil {
+        return correct, err
+    }
+
+    fileInfo, err := blockFile.Stat()
+    if err != nil {
+        return correct, err
+    }
+    fileSize := fileInfo.Size()
+
+    if fileSize != dataSize {
+        return correct, fmt.Errorf("data size and file size mismatch: %d %d", dataSize, fileSize)
+    }
+
+    correct = true
+    return correct, err
+}
 
 func (store *Store) LoadBlock(fileId, batchId, blockId int64,
                                                     blockWriter io.Writer, blockType string) error {

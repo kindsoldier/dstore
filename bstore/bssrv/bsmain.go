@@ -408,6 +408,8 @@ func (server *Server) RunService() error {
     serv.Handler(bsapi.LoadBlockMethod, blockContr.LoadBlockHandler)
     serv.Handler(bsapi.DeleteBlockMethod, blockContr.DeleteBlockHandler)
     serv.Handler(bsapi.ListBlocksMethod, blockContr.ListBlocksHandler)
+    serv.Handler(bsapi.BlockExistsMethod, blockContr.BlockExistsHandler)
+    serv.Handler(bsapi.CheckBlockMethod, blockContr.CheckBlockHandler)
 
     serv.Handler(bsapi.AddUserMethod, userContr.AddUserHandler)
     serv.Handler(bsapi.CheckUserMethod, userContr.CheckUserHandler)

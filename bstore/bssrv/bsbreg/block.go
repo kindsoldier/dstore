@@ -44,7 +44,7 @@ func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int6
     return err
 }
 
-func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
+func (reg *Reg) xxxUpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
     var request string
     request = `
@@ -65,9 +65,9 @@ func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize i
 func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (string, int64, error) {
     var err error
     var filePath string
-    var blockSize int64
+    var dataSize int64
     request := `
-        SELECT file_path, block_size
+        SELECT file_path, data_size
         FROM blocks
         WHERE file_id = $1
             AND batch_id = $2
@@ -78,13 +78,12 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType strin
     var block dscom.BlockDescr
     err = reg.db.Get(&block, request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return filePath, blockSize, err
+        return filePath, dataSize, err
     }
     filePath    = block.FilePath
-    blockSize   = block.BlockSize
-    return filePath, blockSize, err
+    dataSize   = block.DataSize
+    return filePath, dataSize, err
 }
-
 
 func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType string) (bool, error) {
     var err error
@@ -137,7 +136,7 @@ func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType strin
     return err
 }
 
-func (reg *Reg) xPurgeFile(fileId int64) error {
+func (reg *Reg) xxxPurgeFile(fileId int64) error {
     var err error
     request := `
         DELETE FROM blocks
@@ -149,7 +148,7 @@ func (reg *Reg) xPurgeFile(fileId int64) error {
     return err
 }
 
-func (reg *Reg) xPurgeCluster(userId int64) error {
+func (reg *Reg) xxxxPurgeCluster(userId int64) error {
     var err error
     request := `
         DELETE FROM blocks;`
