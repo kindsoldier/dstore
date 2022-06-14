@@ -5,11 +5,9 @@
 package bsucont
 
 import (
-    //"errors"
-    //"io"
     "ndstore/bstore/bsapi"
     "ndstore/dsrpc"
-    //"ndstore/dslog"
+    "ndstore/dserr"
 )
 
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
@@ -17,7 +15,7 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     params := bsapi.NewAddUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     pass    := params.Pass
@@ -27,15 +25,15 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     err = contr.auth.AddUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := bsapi.NewAddUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
@@ -43,7 +41,7 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     params := bsapi.NewCheckUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     pass    := params.Pass
@@ -52,22 +50,22 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     //err = context.ReadBin(io.Discard)
     //if err != nil {
     //    context.SendError(err)
-    //    return err
+    //    return dserr.Err(err)
     //}
 
     ok, err := contr.auth.CheckUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := bsapi.NewCheckUserResult()
     result.Match = ok
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
@@ -75,7 +73,7 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     params := bsapi.NewUpdateUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     pass    := params.Pass
@@ -86,15 +84,15 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     err = contr.auth.UpdateUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := bsapi.NewUpdateUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
@@ -102,7 +100,7 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
     params := bsapi.NewDeleteUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     userName := string(context.AuthIdent())
@@ -110,14 +108,14 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
     err = contr.auth.DeleteUser(userName, login)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewDeleteUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
@@ -125,19 +123,19 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
     params := bsapi.NewListUsersParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     userName    := string(context.AuthIdent())
     users, err := contr.auth.ListUsers(userName)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewListUsersResult()
     result.Users = users
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

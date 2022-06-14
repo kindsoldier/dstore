@@ -5,11 +5,13 @@
 package bsucont
 
 import (
+    "fmt"
     "errors"
     "io"
     "ndstore/bstore/bssrv/bsuser"
     "ndstore/dsrpc"
     "ndstore/dslog"
+    "ndstore/dserr"
 )
 
 func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
@@ -18,10 +20,21 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
     salt := context.AuthSalt()
     hash := context.AuthHash()
 
+    exists, err := contr.auth.UserExists(string(login))
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    if !exists {
+        err = fmt.Errorf("login %s not exists", string(login))
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+
     usersDescr, err := contr.auth.GetUser(string(login))
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     auth := context.Auth()
     dslog.LogDebug("auth ", string(auth.JSON()))
@@ -34,7 +47,7 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
 
         err = errors.New("auth login or pass missmatch")
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     if usersDescr.State != bsuser.UStateEnabled {
@@ -42,8 +55,8 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
 
         err = errors.New("user state is not enabled")
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
-    return err
+    return dserr.Err(err)
 }

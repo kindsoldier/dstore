@@ -8,6 +8,7 @@ import (
     "ndstore/bstore/bsapi"
     "ndstore/bstore/bssrv/bsblock"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 type Contr struct {
@@ -25,14 +26,14 @@ func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
     params := bsapi.NewGetHelloParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     result := bsapi.NewGetHelloResult()
     result.Message = GetHelloMsg
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

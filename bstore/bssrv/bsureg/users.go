@@ -5,6 +5,7 @@ package bsureg
 
 import (
     "ndstore/bstore/bscom"
+    "ndstore/dserr"
 )
 
 const usersSchema = `
@@ -27,9 +28,9 @@ func (reg *Reg) AddUserDescr(login, pass, state, role string) error {
         VALUES ($1, $2, $3, $4);`
     _, err = reg.db.Exec(request, login, pass, state, role)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
@@ -40,9 +41,9 @@ func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
         WHERE login = $4;`
     _, err = reg.db.Exec(request, pass, state, role, login)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) RenewUserDescr(descr *bscom.UserDescr) error {
@@ -53,9 +54,9 @@ func (reg *Reg) RenewUserDescr(descr *bscom.UserDescr) error {
         WHERE login = $4;`
     _, err = reg.db.Exec(request, descr.Pass, descr.State, descr.Role, descr.Login)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) GetUserDescr(login string) (*bscom.UserDescr, error) {
@@ -68,9 +69,9 @@ func (reg *Reg) GetUserDescr(login string) (*bscom.UserDescr, error) {
     user := bscom.NewUserDescr()
     err = reg.db.Get(user, request, login)
     if err != nil {
-        return user, err
+        return user, dserr.Err(err)
     }
-    return user, err
+    return user, dserr.Err(err)
 }
 
 func (reg *Reg) GetUserRole(login string) (string, error) {
@@ -83,9 +84,9 @@ func (reg *Reg) GetUserRole(login string) (string, error) {
     var role string
     err = reg.db.Get(&role, request, login)
     if err != nil  {
-        return role, err
+        return role, dserr.Err(err)
     }
-    return role, err
+    return role, dserr.Err(err)
 }
 
 func (reg *Reg) GetUserState(login string) (string, error) {
@@ -98,9 +99,9 @@ func (reg *Reg) GetUserState(login string) (string, error) {
     var state string
     err = reg.db.Get(&state, request, login)
     if err != nil  {
-        return state, err
+        return state, dserr.Err(err)
     }
-    return state, err
+    return state, dserr.Err(err)
 }
 
 func (reg *Reg) UserDescrExists(login string) (bool, error) {
@@ -114,12 +115,12 @@ func (reg *Reg) UserDescrExists(login string) (bool, error) {
     var count int64
     err = reg.db.Get(&count, request, login)
     if err != nil {
-        return exists, err
+        return exists, dserr.Err(err)
     }
     if count > 0 {
         exists = true
     }
-    return exists, err
+    return exists, dserr.Err(err)
 }
 
 func (reg *Reg) DeleteUserDescr(login string) error {
@@ -129,9 +130,9 @@ func (reg *Reg) DeleteUserDescr(login string) error {
         WHERE login = $1;`
     _, err = reg.db.Exec(request, login)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) ListUserDescrs() ([]*bscom.UserDescr, error) {
@@ -142,7 +143,7 @@ func (reg *Reg) ListUserDescrs() ([]*bscom.UserDescr, error) {
     users := make([]*bscom.UserDescr, 0)
     err = reg.db.Select(&users, request)
     if err != nil {
-        return users, err
+        return users, dserr.Err(err)
     }
-    return users, err
+    return users, dserr.Err(err)
 }

@@ -7,35 +7,33 @@ package fsrec
 import (
     "errors"
     "ndstore/dscom"
-)
+    "ndstore/dserr"
 
-const BStateNormal      string = "normal"
-const BStateDisabled    string = "disabled"
-const BStateWrong       string = "wrong"
+)
 
 func (store *Store) SeedBStores() error {
     var err error
 
     bStores, err := store.reg.ListBStoreDescrs()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     if len(bStores) > 0 {
-        return err
+        return dserr.Err(err)
     }
 
     const address   = "127.0.0.1"
-    const login     = "fstore"
-    const pass      = "fstore"
+    const login     = "admin"
+    const pass      = "admin"
     ports := []string{ "5101", "5102", "5103" }
     for _, port := range ports {
-        _, err = store.reg.AddBStoreDescr(address, port, login, pass, BStateNormal)
+        _, err = store.reg.AddBStoreDescr(address, port, login, pass, dscom.BStateNormal)
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (store *Store) AddBStore(userName, address, port, login, pass string) error {
@@ -43,20 +41,21 @@ func (store *Store) AddBStore(userName, address, port, login, pass string) error
 
     role, err := store.reg.GetUserRole(userName)
     if role != URoleAdmin {
-        return errors.New("insufficient rights for adding bStore")
+        err = errors.New("insufficient rights for adding bStore")
+        return dserr.Err(err)
     }
 
-    _, err = store.reg.AddBStoreDescr(address, port, login, pass, BStateNormal)
+    _, err = store.reg.AddBStoreDescr(address, port, login, pass, dscom.BStateNormal)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (store *Store) GetBStore(address, port string) (*dscom.BStoreDescr, error) {
     var err error
     bStore, err := store.reg.GetBStoreDescr(address, port)
-    return bStore, err
+    return bStore, dserr.Err(err)
 }
 
 func (store *Store) UpdateBStore(userName, address, port, login, pass string) error {
@@ -64,15 +63,16 @@ func (store *Store) UpdateBStore(userName, address, port, login, pass string) er
 
     role, err := store.reg.GetUserRole(userName)
     if role != URoleAdmin {
-        return errors.New("insufficient rights for updating bStore")
+        err = errors.New("insufficient rights for updating bStore")
+        return dserr.Err(err)
     }
 
     ok, err := validatePass(pass)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
-    err = store.reg.UpdateBStoreDescr(address, port, login, pass, BStateNormal)
-    return err
+    err = store.reg.UpdateBStoreDescr(address, port, login, pass, dscom.BStateNormal)
+    return dserr.Err(err)
 }
 
 func (store *Store) ListBStores(userName string) ([]*dscom.BStoreDescr, error) {
@@ -81,7 +81,8 @@ func (store *Store) ListBStores(userName string) ([]*dscom.BStoreDescr, error) {
 
     role, err := store.reg.GetUserRole(userName)
     if role != URoleAdmin {
-        return bStores, errors.New("insufficient rights for listing bStores")
+        err = errors.New("insufficient rights for listing bStores")
+        return bStores, dserr.Err(err)
     }
 
     bStores, err = store.reg.ListBStoreDescrs()
@@ -89,17 +90,18 @@ func (store *Store) ListBStores(userName string) ([]*dscom.BStoreDescr, error) {
     //    BStores[i].Pass = "xxxxx"
     //}
     if err != nil {
-        return bStores, err
+        return bStores, dserr.Err(err)
     }
-    return bStores, err
+    return bStores, dserr.Err(err)
 }
 
 func (store *Store) DeleteBStore(userName, address, port string) error {
     var err error
     role, err := store.reg.GetUserRole(userName)
     if role != URoleAdmin {
-        return errors.New("insufficient rights for delete bStore")
+        err = errors.New("insufficient rights for delete bStore")
+        return dserr.Err(err)
     }
     err = store.reg.DeleteBStoreDescr(address, port)
-    return err
+    return dserr.Err(err)
 }

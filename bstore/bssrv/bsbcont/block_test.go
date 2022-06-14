@@ -25,7 +25,7 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
     var err error
 
     rootDir := t.TempDir()
-    path := filepath.Join(rootDir, "blocks.db")
+    path := filepath.Join(rootDir, "tmp.blocks.db")
     reg := bsbreg.NewReg()
     err = reg.OpenDB(path)
     assert.NoError(t, err)
@@ -37,7 +37,8 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
 
     contr := NewContr(store)
 
-    data := make([]byte, 1024 * 1024)
+    dataSize := int64(101)
+    data := make([]byte, dataSize)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
@@ -47,10 +48,14 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
     params.FileId       = 2
     params.BatchId      = 3
     params.BlockId      = 4
+    params.DataSize     = dataSize
+    params.BlockSize    = 1024
+
     result := bsapi.NewSaveBlockResult()
 
     err = dsrpc.LocalPut(bsapi.SaveBlockMethod, reader, size, params, result, nil, contr.SaveBlockHandler)
     assert.NoError(t, err)
+
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
@@ -70,7 +75,7 @@ func Test_Block_Hello(t *testing.T) {
     var err error
 
     rootDir := t.TempDir()
-    path := filepath.Join(rootDir, "blocks.db")
+    path := filepath.Join(rootDir, "tmp.blocks.db")
     reg := bsbreg.NewReg()
 
     err = reg.OpenDB(path)

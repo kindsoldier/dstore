@@ -1,3 +1,8 @@
+/*
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ */
+
+
 package fsfile
 
 import (
@@ -16,6 +21,7 @@ import (
     "ndstore/dscom"
     "ndstore/dsrpc"
     "ndstore/bstore/bsfunc"
+    "ndstore/dserr"
 )
 
 
@@ -69,11 +75,11 @@ func (block *Block) Meta() (*dscom.BlockDescr, error) {
     meta.FilePath   = block.fileName()
     meta.DataSize, err  = block.Size()
     if err != nil {
-            return meta, err
+            return meta, dserr.Err(err)
     }
     meta.HashInit   = hex.EncodeToString(block.hashInit)
     meta.HashSum    = hex.EncodeToString(block.hashSum)
-    return meta, err
+    return meta, dserr.Err(err)
 }
 
 func (block *Block) Open() error {
@@ -83,10 +89,10 @@ func (block *Block) Open() error {
     openMode := os.O_APPEND|os.O_CREATE|os.O_RDWR
     file, err := os.OpenFile(filePath, openMode, fileMode)
     if err != nil {
-            return err
+            return dserr.Err(err)
     }
     block.file = file
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) Size() (int64, error) {
@@ -97,10 +103,10 @@ func (block *Block) Size() (int64, error) {
     }
     stat, err := block.file.Stat()
     if err != nil {
-            return size, err
+            return size, dserr.Err(err)
     }
     size = stat.Size()
-    return size, err
+    return size, dserr.Err(err)
 }
 
 
@@ -112,16 +118,16 @@ func (block *Block) Write(reader io.Reader) (int64, error) {
     }
     size, err := block.Size()
     if err != nil {
-            return written, err
+            return written, dserr.Err(err)
     }
     remains := block.blockSize - size
     multiWriter := io.MultiWriter(block.file, block.hasher)
     written, err = copyBytes(reader, multiWriter, remains)
     block.hashSum = block.hasher.Sum(nil)
     if err != nil {
-            return written, err
+            return written, dserr.Err(err)
     }
-    return written, err
+    return written, dserr.Err(err)
 }
 
 func (block *Block) Lwrite(reader io.Reader, need int64) (int64, error) {
@@ -136,7 +142,7 @@ func (block *Block) Lwrite(reader io.Reader, need int64) (int64, error) {
 
     size, err := block.Size()
     if err != nil {
-            return written, err
+            return written, dserr.Err(err)
     }
     remains := block.blockSize - size
     if need < remains {
@@ -146,25 +152,23 @@ func (block *Block) Lwrite(reader io.Reader, need int64) (int64, error) {
     written, err = copyBytes(reader, multiWriter, remains)
     block.hashSum = block.hasher.Sum(nil)
     if err != nil {
-            return written, err
+            return written, dserr.Err(err)
     }
     need -= written
     if need < 1 {
             return written, io.EOF
     }
-    return written, err
+    return written, dserr.Err(err)
 }
 
-func (block *Block) Save() error {
+func (block *Block) Save(pool dscom.IBSPool) error {
     var err error
 
     err = block.ToBegin()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
-    uri     := "localhost:5101"
-    auth    := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
     fileId  := block.fileId
     batchId := block.batchId
     blockId := block.blockId
@@ -172,22 +176,22 @@ func (block *Block) Save() error {
     blockReader := block.file
     dataSize, err  := block.Size()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     blockType   := dscom.BTypeData
     hashAlg     := dscom.HashTypeHW
     hashInit    := hex.EncodeToString(block.hashInit)
     hashSum     := hex.EncodeToString(block.hashSum)
 
-    err = bsfunc.SaveBlock(uri, auth, fileId, batchId, blockId, blockSize, blockReader,
-                                dataSize, blockType, hashAlg, hashInit, hashSum)
+    storeId, err := pool.SaveBlock(fileId, batchId, blockId, blockSize, blockReader,
+                                                dataSize, blockType, hashAlg, hashInit, hashSum)
 
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     block.remote = true
-    block.storeId = 1
-    return err
+    block.storeId = storeId
+    return dserr.Err(err)
 }
 
 func (block *Block) Read(writer io.Writer) (int64, error) {
@@ -198,11 +202,11 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
     }
     //size, err := block.Size()
     //if err != nil {
-            //return read, err
+            //return read, dserr.Err(err)
     //}
     //read, err = copyBytes(block.file, writer, size)
     //if err != nil {
-    //        return read, err
+    //        return read, dserr.Err(err)
     //}
 
     fileId      := block.fileId
@@ -216,16 +220,16 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
 
     _ = bsfunc.LoadBlock(uri, auth, fileId, batchId, blockId, blockWriter, blockType)
 
-    return read, err
+    return read, dserr.Err(err)
 }
 
 func (block *Block) Close() error {
     var err error
     if block.file == nil {
-        return err
+        return dserr.Err(err)
     }
     err = block.file.Close()
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) Purge() error {
@@ -234,9 +238,9 @@ func (block *Block) Purge() error {
     filePath := block.filePath()
     err = os.Remove(filePath)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) Truncate() error {
@@ -246,28 +250,28 @@ func (block *Block) Truncate() error {
     }
     err = block.file.Truncate(0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = block.file.Seek(0,0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) Seek(offset int64) error {
     _, err := block.file.Seek(offset, 0)
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) ToBegin() error {
     _, err := block.file.Seek(0, 0)
-    return err
+    return dserr.Err(err)
 }
 
 func (block *Block) ToEnd() error {
     _, err := block.file.Seek(0, 2)
-    return err
+    return dserr.Err(err)
 }
 
 
@@ -280,26 +284,27 @@ func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
 
     for {
         if remains == 0 {
-            return total, err
+            return total, dserr.Err(err)
         }
         if remains < bufSize {
             bufSize = remains
         }
         received, err := reader.Read(buffer[0:bufSize])
         if err != nil {
-            return total, err
+            return total, dserr.Err(err)
         }
         written, err := writer.Write(buffer[0:received])
         if err != nil {
-            return total, err
+            return total, dserr.Err(err)
         }
         if written != received {
-            return total, errors.New("write error")
+            err = errors.New("write error")
+            return total, dserr.Err(err)
         }
         total += int64(written)
         remains -= int64(written)
     }
-    return total, err
+    return total, dserr.Err(err)
 }
 
 func (block *Block) fileName() string {

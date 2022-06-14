@@ -8,6 +8,8 @@ import (
 
     "github.com/jmoiron/sqlx"
     _ "github.com/jackc/pgx/v4/stdlib"
+    "ndstore/dserr"
+
 )
 
 var ErrorNilRef error = errors.New("db ref is nil")
@@ -26,14 +28,14 @@ func (reg *Reg) OpenDB(dbPath string) error {
     db, err := sqlx.Open("pgx", dbPath)
 
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     err = db.Ping()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     reg.db = db
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) CloseDB() error {
@@ -41,7 +43,7 @@ func (reg *Reg) CloseDB() error {
     if reg.db != nil {
         reg.db.Close()
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) MigrateDB() error {
@@ -51,20 +53,20 @@ func (reg *Reg) MigrateDB() error {
     }
     _, err = reg.db.Exec(filesSchema)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = reg.db.Exec(entriesSchema)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = reg.db.Exec(bstoresSchema)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = reg.db.Exec(usersSchema)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
-    return err
+    return dserr.Err(err)
 }

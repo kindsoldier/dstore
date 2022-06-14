@@ -35,9 +35,12 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     err = store.SeedUsers()
     assert.NoError(t, err)
 
+    err = store.SeedBStores()
+    assert.NoError(t, err)
+
     fileName := "qwerty.txt"
 
-    data := make([]byte, 10 * 1024 * 1024 * 16)
+    data := make([]byte, 10)
     rand.Read(data)
 
     reader := bytes.NewReader(data)
@@ -46,6 +49,8 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     userName := "admin"
     err = store.SaveFile(userName, fileName, reader, dataSize)
     assert.NoError(t, err)
+
+    return
 
     writer := bytes.NewBuffer(make([]byte, 0))
 

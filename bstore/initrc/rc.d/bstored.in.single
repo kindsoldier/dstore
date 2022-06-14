@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# $Id$
+#
+# PROVIDE: bstored
+# REQUIRE: LOGIN
+
+. /etc/rc.subr
+
+name="bstored"
+rcvar="bstored_enable"
+
+pidfile="@srv_rundir@"/bstored.pid
+command="@prefix@/sbin/${name}"
+command_args="-daemon"
+procname="@prefix@/sbin/${name}"
+
+load_rc_config ${name}
+
+: ${bstored_enable:="NO"}
+
+run_rc_command "$1"
+#EOF

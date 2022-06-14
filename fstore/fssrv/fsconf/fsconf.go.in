@@ -6,6 +6,7 @@ import (
     "os"
     "io/fs"
     "github.com/go-yaml/yaml"
+    "ndstore/dserr"
 )
 
 
@@ -60,9 +61,9 @@ func (conf *Config) Read() error {
     confData, err := os.ReadFile(filename)
     err = yaml.Unmarshal(confData, conf)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (conf *Config) GetDBPath() string {

@@ -1,6 +1,8 @@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 
+SUBDIRS = initrc
+
 SUFFIXES = .go
 OBJEXT= none
 
@@ -44,7 +46,6 @@ clean-local:
 	rm -f bssrv/bssrv
 	rm -f bscli/bscli
 
-
 install-data-local:
 	test -z $(DESTDIR)$(SRV_CONFDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_CONFDIR)
 	test -z $(DESTDIR)$(SRV_LOGDIR) || $(MKDIR_P) $(DESTDIR)$(SRV_LOGDIR)
@@ -70,3 +71,5 @@ graph:
 EXTRA_DIST += \
 	bstore.svg \
 	dsrpc.svg
+
+

@@ -8,6 +8,7 @@ import (
     "io"
     "ndstore/bstore/bsapi"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
@@ -15,7 +16,7 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     params := bsapi.NewSaveBlockParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     binSize     := context.BinSize()
     blockReader := context.BinReader()
@@ -34,15 +35,15 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     err = contr.store.SaveBlock(fileId, batchId, blockId, blockSize, dataSize, blockReader,
                                                 binSize, blockType, hashAlg, hashInit, hashSum)
     if err != nil {
-        context.SendError(err)
-        return err
+        context.SendError(dserr.Err(err))
+        return dserr.Err(err)
     }
     result := bsapi.NewSaveBlockResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
@@ -50,7 +51,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     params := bsapi.NewLoadBlockParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     fileId      := params.FileId
@@ -62,25 +63,25 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     err = context.ReadBin(io.Discard)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     _, dataSize, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewLoadBlockResult()
     err = context.SendResult(result, dataSize)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     err = contr.store.LoadBlock(fileId, batchId, blockId, blockWriter, blockType)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) BlockExistsHandler(context *dsrpc.Context) error {
@@ -89,7 +90,7 @@ func (contr *Contr) BlockExistsHandler(context *dsrpc.Context) error {
 
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     fileId      := params.FileId
     batchId     := params.BatchId
@@ -99,15 +100,15 @@ func (contr *Contr) BlockExistsHandler(context *dsrpc.Context) error {
     exists, _, err := contr.store.BlockExists(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewBlockExistsResult()
     result.Exists = exists
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) CheckBlockHandler(context *dsrpc.Context) error {
@@ -116,7 +117,7 @@ func (contr *Contr) CheckBlockHandler(context *dsrpc.Context) error {
 
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     fileId      := params.FileId
     batchId     := params.BatchId
@@ -126,15 +127,15 @@ func (contr *Contr) CheckBlockHandler(context *dsrpc.Context) error {
     correct, err := contr.store.CheckBlock(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewCheckBlockResult()
     result.Correct = correct
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 
@@ -144,7 +145,7 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
 
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     fileId      := params.FileId
     batchId     := params.BatchId
@@ -154,14 +155,14 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     err = contr.store.DeleteBlock(fileId, batchId, blockId, blockType)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewDeleteBlockResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 
@@ -173,19 +174,19 @@ func (contr *Contr) ListBlocksHandler(context *dsrpc.Context) error {
     params := bsapi.NewListBlocksParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     blocks, err := contr.store.ListBlocks()
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := bsapi.NewListBlocksResult()
     result.Blocks = blocks
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

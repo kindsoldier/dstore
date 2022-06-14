@@ -7,6 +7,7 @@ package fdcont
 import (
     "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 func (contr *Contr) AddBStoreHandler(context *dsrpc.Context) error {
@@ -14,7 +15,7 @@ func (contr *Contr) AddBStoreHandler(context *dsrpc.Context) error {
     params := fsapi.NewAddBStoreParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     address := params.Address
     port    := params.Port
@@ -24,15 +25,15 @@ func (contr *Contr) AddBStoreHandler(context *dsrpc.Context) error {
     err = contr.store.AddBStore(userName, address, port, login, pass)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := fsapi.NewAddBStoreResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) UpdateBStoreHandler(context *dsrpc.Context) error {
@@ -40,7 +41,7 @@ func (contr *Contr) UpdateBStoreHandler(context *dsrpc.Context) error {
     params := fsapi.NewUpdateBStoreParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     address := params.Address
     port    := params.Port
@@ -50,15 +51,15 @@ func (contr *Contr) UpdateBStoreHandler(context *dsrpc.Context) error {
     err = contr.store.UpdateBStore(userName, address, port, login, pass)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := fsapi.NewUpdateBStoreResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) DeleteBStoreHandler(context *dsrpc.Context) error {
@@ -66,7 +67,7 @@ func (contr *Contr) DeleteBStoreHandler(context *dsrpc.Context) error {
     params := fsapi.NewDeleteBStoreParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     address := params.Address
     port    := params.Port
@@ -74,14 +75,14 @@ func (contr *Contr) DeleteBStoreHandler(context *dsrpc.Context) error {
     err = contr.store.DeleteBStore(userName, address, port)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewDeleteBStoreResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) ListBStoresHandler(context *dsrpc.Context) error {
@@ -89,19 +90,19 @@ func (contr *Contr) ListBStoresHandler(context *dsrpc.Context) error {
     params := fsapi.NewListBStoresParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     userName := string(context.AuthIdent())
     bstores, err := contr.store.ListBStores(userName)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewListBStoresResult()
     result.BStores = bstores
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

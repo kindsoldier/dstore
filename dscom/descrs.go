@@ -1,3 +1,7 @@
+/*
+ * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
+ */
+
 package dscom
 
 type UserDescr struct {
@@ -11,6 +15,12 @@ type UserDescr struct {
 func NewUserDescr() *UserDescr{
     return &UserDescr{}
 }
+
+
+
+const BStateNormal      string = "normal"
+const BStateDisabled    string = "disabled"
+const BStateWrong       string = "wrong"
 
 type BStoreDescr struct {
     BStoreId int64      `json:"bStoreId"    db:"bstore_id"`
@@ -46,6 +56,7 @@ type FileDescr struct {
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     BatchCount  int64       `json:"batchCount"  db:"batch_count"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
     Batchs      []*BatchDescr  `json:"batchs"   db:"-"`
 }
 
@@ -88,7 +99,7 @@ type BlockDescr struct {
     HashInit    string      `json:"hashInit"    db:"hash_init"`
     BlockType   string      `json:"blockType"   db:"block_type"`
 
-    StoreId     int64       `json:"storeId"     db:"storeId"`
+    BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
     HasLocal    bool        `json:"hasLocal"    db:"has_local"`
     HasRemote   bool        `json:"hasRemote"   db:"has_remote"`
 }

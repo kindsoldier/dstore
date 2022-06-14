@@ -18,6 +18,7 @@ import (
     "ndstore/bstore/bssrv/bsbreg"
     "ndstore/dsrpc"
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 const blockFileExt string = ".blk"
@@ -50,27 +51,28 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
                                     binSize int64, blockType, hashAlg, hashInit, hashSum string) error {
     var err error
 
-    blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId, blockType)
-    if err != nil {
-        return err
-    }
-    if blockExists {
-        return errors.New("block yet exists")
-    }
+    //blockExists, err := store.reg.BlockDescrExists(fileId, batchId, blockId, blockType)
+    //if err != nil {
+        //return dserr.Err(err)
+    //}
+    //if blockExists {
+        //err = errors.New("block yet exists")
+        //return dserr.Err(err)
+    //}
 
     err = validateFileId(fileId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     err = validateBatchId(batchId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     err = validateBlockId(blockId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     fileName := MakeBlockName(fileId, batchId, blockId)
@@ -83,11 +85,11 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
     blockFile, err := os.OpenFile(fullFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, store.filePerm)
     defer blockFile.Close()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = dsrpc.CopyBytes(blockReader, blockFile, binSize)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     filePath := filepath.Join(subdirName, fileName)
     err = store.reg.AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath,
@@ -95,9 +97,9 @@ func (store *Store) SaveBlock(fileId, batchId, blockId, blockSize, dataSize int6
 
     if err != nil {
         os.Remove(filePath)
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string) (bool, int64, error) {
@@ -106,16 +108,16 @@ func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string
     var exists bool
     filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
-        return exists, blockSize, err
+        return exists, blockSize, dserr.Err(err)
     }
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
     defer blockFile.Close()
     if err != nil {
-        return exists, blockSize, err
+        return exists, blockSize, dserr.Err(err)
     }
     exists = true
-    return exists, blockSize, err
+    return exists, blockSize, dserr.Err(err)
 }
 
 func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string) (bool, error) {
@@ -124,18 +126,18 @@ func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string)
     var correct bool
     filePath, dataSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
-        return correct, err
+        return correct, dserr.Err(err)
     }
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
     defer blockFile.Close()
     if err != nil {
-        return correct, err
+        return correct, dserr.Err(err)
     }
 
     fileInfo, err := blockFile.Stat()
     if err != nil {
-        return correct, err
+        return correct, dserr.Err(err)
     }
     fileSize := fileInfo.Size()
 
@@ -144,7 +146,7 @@ func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string)
     }
 
     correct = true
-    return correct, err
+    return correct, dserr.Err(err)
 }
 
 func (store *Store) LoadBlock(fileId, batchId, blockId int64,
@@ -153,19 +155,19 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64,
     var filePath string
     filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
     defer blockFile.Close()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     _, err = dsrpc.CopyBytes(blockFile, blockWriter, blockSize)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string) error {
@@ -173,27 +175,27 @@ func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string
     var filePath string
     filePath, _, err = store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     filePath = filepath.Join(store.dataRoot, filePath)
     err = os.Remove(filePath)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     err = store.reg.DeleteBlockDescr(fileId, batchId, blockId, blockType)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (store *Store) ListBlocks() ([]*dscom.BlockDescr, error) {
     var err error
     blocks, err := store.reg.ListBlockDescrs()
     if err != nil {
-        return blocks, err
+        return blocks, dserr.Err(err)
     }
-    return blocks, err
+    return blocks, dserr.Err(err)
 }
 
 func MakeBlockName(fileId, batchId, blockId int64) string {
@@ -225,7 +227,7 @@ func validateBlockId(id int64) error {
     if id < 0 {
         err = errors.New("block id must be equal or greater than 0")
     }
-    return err
+    return dserr.Err(err)
 }
 
 func validateFileId(id int64) error {
@@ -233,7 +235,7 @@ func validateFileId(id int64) error {
     if id < 0 {
         err = errors.New("file id must be equal or greater than 0")
     }
-    return err
+    return dserr.Err(err)
 }
 
 func validateBatchId(id int64) error {
@@ -241,5 +243,5 @@ func validateBatchId(id int64) error {
     if id < 0 {
         err = errors.New("batch id must be equal or greater than 0")
     }
-    return err
+    return dserr.Err(err)
 }

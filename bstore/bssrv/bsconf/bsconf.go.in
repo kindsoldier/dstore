@@ -5,6 +5,7 @@ import (
     "os"
     "io/fs"
     "github.com/go-yaml/yaml"
+    "ndstore/dserr"
 )
 
 
@@ -53,7 +54,7 @@ func (config *Config) Read() error {
     confData, err := os.ReadFile(config.ConfPath)
     err = yaml.Unmarshal(confData, config)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

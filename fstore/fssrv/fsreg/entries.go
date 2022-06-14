@@ -5,6 +5,7 @@ package fsreg
 
 import (
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 
@@ -29,9 +30,9 @@ func (reg *Reg) AddEntryDescr(userId int64, dirPath, fileName string, fileId int
         VALUES ($1, $2, $3, $4);`
     _, err = reg.db.Exec(request, userId, dirPath, fileName, fileId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) EntryDescrExists(userId int64, dirPath, fileName string) (bool, error) {
@@ -45,12 +46,12 @@ func (reg *Reg) EntryDescrExists(userId int64, dirPath, fileName string) (bool, 
     var count int64
     err = reg.db.Get(&count, request, userId, dirPath, fileName)
     if err != nil {
-        return exists, err
+        return exists, dserr.Err(err)
     }
     if count > 0 {
         exists = true
     }
-    return exists, err
+    return exists, dserr.Err(err)
 }
 
 func (reg *Reg) GetEntryDescr(userId int64, dirPath, fileName string) (*dscom.EntryDescr, error) {
@@ -63,9 +64,9 @@ func (reg *Reg) GetEntryDescr(userId int64, dirPath, fileName string) (*dscom.En
     entry := dscom.NewEntryDescr()
     err = reg.db.Get(entry, request, userId, dirPath, fileName)
     if err != nil {
-        return entry, err
+        return entry, dserr.Err(err)
     }
-    return entry, err
+    return entry, dserr.Err(err)
 }
 
 func (reg *Reg) DeleteEntryDescr(userId int64, dirPath, fileName string) error {
@@ -75,9 +76,9 @@ func (reg *Reg) DeleteEntryDescr(userId int64, dirPath, fileName string) error {
         WHERE user_id = $1 AND dir_path = $2 AND file_name = $3;`
     _, err = reg.db.Exec(request, userId, dirPath, fileName)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) ListEntryDescr(userId int64, dirPath string) ([]*dscom.EntryDescr, error) {
@@ -90,7 +91,7 @@ func (reg *Reg) ListEntryDescr(userId int64, dirPath string) ([]*dscom.EntryDesc
     entries := make([]*dscom.EntryDescr, 0)
     err = reg.db.Select(&entries, request, userId)
     if err != nil {
-        return entries, err
+        return entries, dserr.Err(err)
     }
-    return entries, err
+    return entries, dserr.Err(err)
 }

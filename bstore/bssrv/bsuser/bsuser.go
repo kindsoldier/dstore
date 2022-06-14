@@ -9,6 +9,7 @@ import (
     "fmt"
     "ndstore/bstore/bssrv/bsureg"
     "ndstore/bstore/bscom"
+    "ndstore/dserr"
 )
 
 const UStateEnabled  string  = "enabled"
@@ -37,19 +38,19 @@ func (auth *Auth) SeedUsers() error {
     var err error
     users, err := auth.reg.ListUserDescrs()
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     if len(users) < 1 {
         err = auth.reg.AddUserDescr(defaultAUser, defaultAPass, UStateEnabled, URoleAdmin)
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
         err = auth.reg.AddUserDescr(defaultUser, defaultPass, UStateEnabled, URoleUser)
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (auth *Auth) AddUser(userName, login, pass, role, state string) error {
@@ -59,7 +60,8 @@ func (auth *Auth) AddUser(userName, login, pass, role, state string) error {
     // Check user role
     userRole, err := auth.reg.GetUserRole(userName)
     if userRole != URoleAdmin {
-        return errors.New("insufficient rights for adding users")
+        err = errors.New("insufficient rights for adding users")
+        return dserr.Err(err)
     }
 
     // Set defaults
@@ -73,31 +75,38 @@ func (auth *Auth) AddUser(userName, login, pass, role, state string) error {
     // Validate parameters
     ok, err = validateUState(state)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     ok, err = validateURole(role)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     ok, err = validateLogin(login)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     ok, err = validatePass(pass)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     err = auth.reg.AddUserDescr(login, pass, state, role)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
+
+func (auth *Auth) UserExists(login string) (bool, error) {
+    var err error
+    exists, err := auth.reg.UserDescrExists(login)
+    return exists, dserr.Err(err)
+}
+
 
 func (auth *Auth) GetUser(login string) (*bscom.UserDescr, error) {
     var err error
     user, err := auth.reg.GetUserDescr(login)
-    return user,err
+    return user, dserr.Err(err)
 }
 
 func (auth *Auth) CheckUser(userName, login, pass string) (bool, error) {
@@ -110,18 +119,19 @@ func (auth *Auth) CheckUser(userName, login, pass string) (bool, error) {
 
     userRole, err := auth.reg.GetUserRole(userName)
     if userRole != URoleAdmin && userName != login {
-        return ok, errors.New("insufficient rights for checking other users")
+        err = errors.New("insufficient rights for checking other users")
+        return ok, dserr.Err(err)
     }
 
     user, err := auth.reg.GetUserDescr(login)
 
     if err != nil {
-        return ok, err
+        return ok, dserr.Err(err)
     }
     if pass == user.Pass {
         ok = true
     }
-    return ok, err
+    return ok, dserr.Err(err)
 }
 
 func (auth *Auth) UpdateUser(userName, login, newPass, newRole, newState string) error {
@@ -130,7 +140,7 @@ func (auth *Auth) UpdateUser(userName, login, newPass, newRole, newState string)
     // Get current role
     userRole, err := auth.reg.GetUserRole(userName)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     // Set defaults
@@ -140,13 +150,14 @@ func (auth *Auth) UpdateUser(userName, login, newPass, newRole, newState string)
 
     // Rigth control
     if  userName != login && userRole != URoleAdmin {
-        return errors.New("insufficient rights for updating other users")
+        err = errors.New("insufficient rights for updating other users")
+        return dserr.Err(err)
     }
 
     // Get old profile and copy to new
     oldUserDescr, err := auth.reg.GetUserDescr(login)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     newUserDescr := bscom.NewUserDescr()
     newUserDescr.Login  = oldUserDescr.Login
@@ -167,33 +178,35 @@ func (auth *Auth) UpdateUser(userName, login, newPass, newRole, newState string)
 
     // Rigth control
     if newUserDescr.Role != oldUserDescr.Role && userRole != URoleAdmin {
-        return errors.New("insufficient rights for changing role")
+        err = errors.New("insufficient rights for changing role")
+        return dserr.Err(err)
     }
     if newUserDescr.State != oldUserDescr.State && userRole != URoleAdmin {
-        return errors.New("insufficient rights for changing state")
+        err = errors.New("insufficient rights for changing state")
+        return dserr.Err(err)
     }
 
     // Validation new property
     var ok bool
     ok, err = validateUState(newUserDescr.State)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     ok, err = validateURole(newUserDescr.Role)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
     ok, err = validatePass(newUserDescr.Pass)
     if !ok {
-        return err
+        return dserr.Err(err)
     }
 
     // Update user profile
     err = auth.reg.RenewUserDescr(newUserDescr)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (auth *Auth) ListUsers(userName string) ([]*bscom.UserDescr, error) {
@@ -201,16 +214,17 @@ func (auth *Auth) ListUsers(userName string) ([]*bscom.UserDescr, error) {
     users := make([]*bscom.UserDescr, 0)
     userRole, err := auth.reg.GetUserRole(userName)
     if userRole != URoleAdmin {
-        return users, errors.New("insufficient rights for listing users")
+        err = errors.New("insufficient rights for listing users")
+        return users, dserr.Err(err)
     }
     users, err = auth.reg.ListUserDescrs()
     //for i := range users {
     //    users[i].Pass = "xxxxx"
     //}
     if err != nil {
-        return users, err
+        return users, dserr.Err(err)
     }
-    return users, err
+    return users, dserr.Err(err)
 }
 
 func (auth *Auth) DeleteUser(userName string, login string) error {
@@ -218,14 +232,15 @@ func (auth *Auth) DeleteUser(userName string, login string) error {
 
     userRole, err := auth.reg.GetUserRole(userName)
     if userRole != URoleAdmin {
-        return errors.New("insufficient rights for deleting users")
+        err = errors.New("insufficient rights for deleting users")
+        return dserr.Err(err)
     }
 
     err = auth.reg.DeleteUserDescr(login)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 
@@ -233,28 +248,28 @@ func validateURole(role string) (bool, error) {
     var err error
     var ok bool = true
     if role == URoleAdmin  {
-        return ok, err
+        return ok, dserr.Err(err)
     }
     if role == URoleUser  {
-        return ok, err
+        return ok, dserr.Err(err)
     }
     err = fmt.Errorf("irrelevant role name: %s", role)
     ok = false
-    return ok, err
+    return ok, dserr.Err(err)
 }
 
 func validateUState(state string) (bool, error) {
     var err error
     var ok bool = true
     if state == UStateDisabled  {
-        return ok, err
+        return ok, dserr.Err(err)
     }
     if state == UStateEnabled  {
-        return ok, err
+        return ok, dserr.Err(err)
     }
     err = fmt.Errorf("irrelevant state name: %s", state)
     ok = false
-    return ok, err
+    return ok, dserr.Err(err)
 }
 
 func validateLogin(login string) (bool, error) {
@@ -264,7 +279,7 @@ func validateLogin(login string) (bool, error) {
         ok = false
         err = errors.New("zero len of login")
     }
-    return ok, err
+    return ok, dserr.Err(err)
 }
 
 func validatePass(pass string) (bool, error) {
@@ -274,5 +289,5 @@ func validatePass(pass string) (bool, error) {
         ok = false
         err = errors.New("zero len of password")
     }
-    return ok, err
+    return ok, dserr.Err(err)
 }

@@ -5,6 +5,7 @@ package bsbreg
 
 import (
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 
@@ -39,12 +40,12 @@ func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int6
     _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, dataSize, filePath,
                                                           blockType, hashAlg, hashInit, hashSum)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
-func (reg *Reg) xxxUpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
+func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
     var err error
     var request string
     request = `
@@ -57,9 +58,9 @@ func (reg *Reg) xxxUpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSiz
             AND block_id = $6;`
     _, err = reg.db.Exec(request, blockSize, dataSize, filePath, fileId, batchId, blockId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (string, int64, error) {
@@ -78,11 +79,11 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType strin
     var block dscom.BlockDescr
     err = reg.db.Get(&block, request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return filePath, dataSize, err
+        return filePath, dataSize, dserr.Err(err)
     }
     filePath    = block.FilePath
     dataSize   = block.DataSize
-    return filePath, dataSize, err
+    return filePath, dataSize, dserr.Err(err)
 }
 
 func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType string) (bool, error) {
@@ -99,12 +100,12 @@ func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType strin
     var count int64
     err = reg.db.Get(&count, request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return exists, err
+        return exists, dserr.Err(err)
     }
     if count > 0 {
         exists = true
     }
-    return exists, err
+    return exists, dserr.Err(err)
 }
 
 func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
@@ -116,9 +117,9 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
         FROM blocks;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
-        return blocks, err
+        return blocks, dserr.Err(err)
     }
-    return blocks, err
+    return blocks, dserr.Err(err)
 }
 
 func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType string) error {
@@ -131,9 +132,9 @@ func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType strin
             AND block_type = $4;`
     _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) xxxPurgeFile(fileId int64) error {
@@ -143,9 +144,9 @@ func (reg *Reg) xxxPurgeFile(fileId int64) error {
         WHERE file_id = $1;`
     _, err = reg.db.Exec(request, fileId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) xxxxPurgeCluster(userId int64) error {
@@ -154,7 +155,7 @@ func (reg *Reg) xxxxPurgeCluster(userId int64) error {
         DELETE FROM blocks;`
     _, err = reg.db.Exec(request, userId)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

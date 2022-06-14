@@ -8,6 +8,7 @@ import (
     "io"
     "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 
@@ -17,7 +18,7 @@ func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
 
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     fileSize    := context.BinSize()
@@ -28,15 +29,15 @@ func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
     err = contr.store.SaveFile(userName, filePath, fileReader, fileSize)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := fsapi.NewSaveFileResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
@@ -44,7 +45,7 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     params := fsapi.NewLoadFileParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     filePath    := params.FilePath
@@ -54,25 +55,25 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     err = context.ReadBin(io.Discard)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     fileSize, err := contr.store.FileExists(userName, filePath)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewLoadFileResult()
     err = context.SendResult(result, fileSize)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
 
     err = contr.store.LoadFile(userName, filePath, fileWriter)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
@@ -81,7 +82,7 @@ func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
 
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     filePath    := params.FilePath
     userName    := string(context.AuthIdent())
@@ -89,14 +90,14 @@ func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
     err = contr.store.DeleteFile(userName, filePath)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewDeleteFileResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
@@ -104,7 +105,7 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
     params := fsapi.NewListFilesParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     dirPath     := params.DirPath
     userName    := string(context.AuthIdent())
@@ -112,13 +113,13 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
     entries, err := contr.store.ListFiles(userName, dirPath)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewListFilesResult()
     result.Entries = entries
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

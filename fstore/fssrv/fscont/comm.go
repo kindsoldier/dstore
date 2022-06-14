@@ -8,6 +8,7 @@ import (
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 
@@ -26,13 +27,13 @@ func (contr *Contr) GetHelloHandler(context *dsrpc.Context) error {
     params := fsapi.NewGetHelloParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewGetHelloResult()
     result.Message = GetHelloMsg
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

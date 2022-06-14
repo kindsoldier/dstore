@@ -10,6 +10,7 @@ import (
     "ndstore/bstore/bsapi"
     "ndstore/dsrpc"
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 const HelloMessage string = "hello"
@@ -23,9 +24,9 @@ func GetHello(uri string, auth *dsrpc.Auth) error {
 
     err = dsrpc.Exec(uri, bsapi.GetHelloMethod, params, result, auth)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize int64,
@@ -47,9 +48,9 @@ func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize
 
     err = dsrpc.Put(uri, bsapi.SaveBlockMethod, blockReader, binSize, params, result, auth)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func LoadBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64,
@@ -64,9 +65,9 @@ func LoadBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64,
     result := bsapi.NewLoadBlockResult()
     err = dsrpc.Get(uri, bsapi.LoadBlockMethod, blockWriter, params, result, auth)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func ListBlocks(uri string, auth *dsrpc.Auth) ([]*dscom.BlockDescr, error) {
@@ -76,10 +77,10 @@ func ListBlocks(uri string, auth *dsrpc.Auth) ([]*dscom.BlockDescr, error) {
     result := bsapi.NewListBlocksResult()
     err = dsrpc.Exec(uri, bsapi.ListBlocksMethod, params, result, auth)
     if err != nil {
-        return blockDescrs, err
+        return blockDescrs, dserr.Err(err)
     }
     blockDescrs = result.Blocks
-    return blockDescrs, err
+    return blockDescrs, dserr.Err(err)
 }
 
 func DeleteBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) error {
@@ -92,9 +93,9 @@ func DeleteBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, b
     result := bsapi.NewDeleteBlockResult()
     err = dsrpc.Exec(uri, bsapi.DeleteBlockMethod, params, result, auth)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func BlockExists(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) (bool, error) {
@@ -109,9 +110,9 @@ func BlockExists(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, b
     err = dsrpc.Exec(uri, bsapi.BlockExistsMethod, params, result, auth)
     exists = result.Exists
     if err != nil {
-        return exists, err
+        return exists, dserr.Err(err)
     }
-    return exists, err
+    return exists, dserr.Err(err)
 }
 
 func CheckBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) (bool, error) {
@@ -126,7 +127,7 @@ func CheckBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, bl
     err = dsrpc.Exec(uri, bsapi.CheckBlockMethod, params, result, auth)
     correct = result.Correct
     if err != nil {
-        return correct, err
+        return correct, dserr.Err(err)
     }
-    return correct, err
+    return correct, dserr.Err(err)
 }

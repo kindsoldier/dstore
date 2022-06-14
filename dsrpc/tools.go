@@ -16,14 +16,6 @@ func ReadBytes(reader io.Reader, size int64) ([]byte, error) {
     return buffer[0:read], err
 }
 
-func Err2Err(message string, err error) error {
-    return errors.New(fmt.Sprintf("%s: %v", message, err))
-}
-
-func NewErr(message string) error {
-    return errors.New(message)
-}
-
 func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error) {
     var err error
     var bSize int64 = 1024 * 4
@@ -33,10 +25,10 @@ func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error
 
     for {
         if reader == nil {
-            return total, NewErr("reader is nil")
+            return total, errors.New("reader is nil")
         }
         if writer == nil {
-            return total, NewErr("writer is nil")
+            return total, errors.New("writer is nil")
         }
         if remains == 0 {
             return total, err
@@ -46,14 +38,14 @@ func CopyBytes(reader io.Reader, writer io.Writer, dataSize int64) (int64, error
         }
         received, err := reader.Read(buffer[0:bSize])
         if err != nil {
-            return total, Err2Err("read error", err)
+            return total, fmt.Errorf("read error: %v", err)
         }
         recorded, err := writer.Write(buffer[0:received])
         if err != nil {
-            return total, Err2Err("write error", err)
+            return total, fmt.Errorf("write error: %v", err)
         }
         if recorded != received {
-            return total, NewErr("write error")
+            return total, errors.New("size mismatch")
         }
         total += int64(recorded)
         remains -= int64(recorded)

@@ -10,6 +10,7 @@ import (
     "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
     "ndstore/dslog"
+    "ndstore/dserr"
 )
 
 func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
@@ -23,7 +24,7 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
         context.ReadBin(io.Discard)
         extErr := errors.New("auth missmatch")
         context.SendError(extErr)
-        return err
+        return dserr.Err(err)
     }
 
     auth := context.Auth()
@@ -37,9 +38,9 @@ func (contr *Contr) AuthMidware(context *dsrpc.Context) error {
         context.ReadBin(io.Discard)
         extErr := errors.New("auth missmatch")
         context.SendError(extErr)
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
@@ -47,7 +48,7 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewAddUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     pass    := params.Pass
@@ -55,15 +56,15 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     err = contr.store.AddUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := fsapi.NewAddUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
@@ -71,7 +72,7 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewCheckUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login       := params.Login
     pass        := params.Pass
@@ -79,15 +80,15 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     ok, err := contr.store.CheckUser(userName, login, pass)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewCheckUserResult()
     result.Match = ok
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
@@ -95,7 +96,7 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewUpdateUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login       := params.Login
     pass        := params.Pass
@@ -105,15 +106,15 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     err = contr.store.UpdateUser(userName, login, pass, role, state)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
 
     result := fsapi.NewUpdateUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
@@ -121,21 +122,21 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewDeleteUserParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     login   := params.Login
     userName    := string(context.AuthIdent())
     err = contr.store.DeleteUser(userName, login)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewDeleteUserResult()
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
@@ -143,19 +144,19 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
     params := fsapi.NewListUsersParams()
     err = context.BindParams(params)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
     userName := string(context.AuthIdent())
     users, err := contr.store.ListUsers(userName)
     if err != nil {
         context.SendError(err)
-        return err
+        return dserr.Err(err)
     }
     result := fsapi.NewListUsersResult()
     result.Users = users
     err = context.SendResult(result, 0)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }

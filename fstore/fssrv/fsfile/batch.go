@@ -3,6 +3,7 @@ package fsfile
 import (
     "io"
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 type Batch struct {
@@ -36,11 +37,11 @@ func (batch *Batch) Meta() (*dscom.BatchDescr, error) {
     for i := range batch.blocks {
         blockMeta, err := batch.blocks[i].Meta()
         if err != nil {
-            return batchMeta, err
+            return batchMeta, dserr.Err(err)
         }
         batchMeta.Blocks = append(batchMeta.Blocks, blockMeta)
     }
-    return batchMeta, err
+    return batchMeta, dserr.Err(err)
 }
 
 
@@ -49,10 +50,10 @@ func (batch *Batch) Open() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err = batch.blocks[i].Open()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) Write(reader io.Reader) (int64, error) {
@@ -62,10 +63,10 @@ func (batch *Batch) Write(reader io.Reader) (int64, error) {
         blockWritten, err := batch.blocks[i].Write(reader)
         written += blockWritten
         if err != nil {
-            return written, err
+            return written, dserr.Err(err)
         }
     }
-    return written, err
+    return written, dserr.Err(err)
 }
 
 func (batch *Batch) Lwrite(reader io.Reader, need int64) (int64, error) {
@@ -78,22 +79,22 @@ func (batch *Batch) Lwrite(reader io.Reader, need int64) (int64, error) {
         blockWritten, err := batch.blocks[i].Lwrite(reader, need)
         written += blockWritten
         if err != nil {
-            return written, err
+            return written, dserr.Err(err)
         }
         need -= blockWritten
     }
-    return written, err
+    return written, dserr.Err(err)
 }
 
-func (batch *Batch) Save() error {
+func (batch *Batch) Save(pool dscom.IBSPool) error {
     var err error
     for i := int64(0); i < batch.batchSize; i++ {
-        err = batch.blocks[i].Save()
+        err = batch.blocks[i].Save(pool)
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) Read(writer io.Writer) (int64, error) {
@@ -103,10 +104,10 @@ func (batch *Batch) Read(writer io.Writer) (int64, error) {
         blockRead, err := batch.blocks[i].Read(writer)
         read += blockRead
         if err != nil {
-            return read, err
+            return read, dserr.Err(err)
         }
     }
-    return read, err
+    return read, dserr.Err(err)
 }
 
 func (batch *Batch) Close() error {
@@ -114,10 +115,10 @@ func (batch *Batch) Close() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].Close()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) Truncate() error {
@@ -125,10 +126,10 @@ func (batch *Batch) Truncate() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].Truncate()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) Purge() error {
@@ -136,10 +137,10 @@ func (batch *Batch) Purge() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].Purge()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) Size() (int64, error) {
@@ -149,10 +150,10 @@ func (batch *Batch) Size() (int64, error) {
         blockSize, err := batch.blocks[i].Size()
         size += blockSize
         if err != nil {
-            return size, err
+            return size, dserr.Err(err)
         }
     }
-    return size, err
+    return size, dserr.Err(err)
 }
 
 func (batch *Batch) ToBegin() error {
@@ -160,10 +161,10 @@ func (batch *Batch) ToBegin() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].ToBegin()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (batch *Batch) ToEnd() error {
@@ -171,8 +172,8 @@ func (batch *Batch) ToEnd() error {
     for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].ToEnd()
         if err != nil {
-            return err
+            return dserr.Err(err)
         }
     }
-    return err
+    return dserr.Err(err)
 }

@@ -5,6 +5,7 @@ package fsreg
 
 import (
     "ndstore/dscom"
+    "ndstore/dserr"
 )
 
 const bstoresSchema = `
@@ -31,9 +32,9 @@ func (reg *Reg) AddBStoreDescr(address, port, login, pass, state string) (int64,
     var storeId int64
     err = reg.db.Get(&storeId, request, address, port, login, pass, state)
     if err != nil {
-        return storeId, err
+        return storeId, dserr.Err(err)
     }
-    return storeId, err
+    return storeId, dserr.Err(err)
 }
 
 func (reg *Reg) UpdateBStoreDescr(address, port, login, pass, state string) error {
@@ -44,9 +45,9 @@ func (reg *Reg) UpdateBStoreDescr(address, port, login, pass, state string) erro
         WHERE address = $1 AND port = $2;`
     _, err = reg.db.Exec(request, address, port, login, pass, state)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) RenewBStoreDescr(descr *dscom.BStoreDescr) error {
@@ -57,9 +58,9 @@ func (reg *Reg) RenewBStoreDescr(descr *dscom.BStoreDescr) error {
         WHERE address = $1 AND port = $2;`
     _, err = reg.db.Exec(request, descr.Address, descr.Port, descr.Login, descr.Pass, descr.State)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) BStoreDescrExists(address, port string) (bool, error) {
@@ -73,12 +74,12 @@ func (reg *Reg) BStoreDescrExists(address, port string) (bool, error) {
     var count int64
     err = reg.db.Get(&count, request, address, port)
     if err != nil {
-        return exists, err
+        return exists, dserr.Err(err)
     }
     if count > 0 {
         exists = true
     }
-    return exists, err
+    return exists, dserr.Err(err)
 }
 
 func (reg *Reg) GetBStoreDescr(address, port string) (*dscom.BStoreDescr, error) {
@@ -91,9 +92,9 @@ func (reg *Reg) GetBStoreDescr(address, port string) (*dscom.BStoreDescr, error)
     bstore := dscom.NewBStoreDescr()
     err = reg.db.Get(bstore, request, address, port)
     if err != nil {
-        return bstore, err
+        return bstore, dserr.Err(err)
     }
-    return bstore, err
+    return bstore, dserr.Err(err)
 }
 
 func (reg *Reg) DeleteBStoreDescr(address, port string) error {
@@ -103,9 +104,9 @@ func (reg *Reg) DeleteBStoreDescr(address, port string) error {
         WHERE address = $1 AND port = $2;`
     _, err = reg.db.Exec(request, address, port)
     if err != nil {
-        return err
+        return dserr.Err(err)
     }
-    return err
+    return dserr.Err(err)
 }
 
 func (reg *Reg) ListBStoreDescrs() ([]*dscom.BStoreDescr, error) {
@@ -116,7 +117,7 @@ func (reg *Reg) ListBStoreDescrs() ([]*dscom.BStoreDescr, error) {
     bstores := make([]*dscom.BStoreDescr, 0)
     err = reg.db.Select(&bstores, request)
     if err != nil {
-        return bstores, err
+        return bstores, dserr.Err(err)
     }
-    return bstores, err
+    return bstores, dserr.Err(err)
 }

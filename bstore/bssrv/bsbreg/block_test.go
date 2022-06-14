@@ -67,10 +67,10 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     assert.Equal(t, exists, false)
 
 
-    nFileName, nBlockSize, err := reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    nFileName, nDataSize, err := reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, filePath, nFileName)
-    assert.Equal(t, blockSize, nBlockSize)
+    assert.Equal(t, dataSize, nDataSize)
 
 
     _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId, "hohoho")
@@ -84,17 +84,16 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     err = reg.UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize, filePath)
     assert.NoError(t, err)
 
-    nFileName, nBlockSize, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    nFileName, nDataSize, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, filePath, nFileName)
-    assert.Equal(t, blockSize, nBlockSize)
+    assert.Equal(t, dataSize, nDataSize)
 
     err = reg.DeleteBlockDescr(fileId, batchId, blockId, "hohoho")
     assert.NoError(t, err)
 
     err = reg.DeleteBlockDescr(fileId, batchId, blockId, "hihihi")
     assert.NoError(t, err)
-
 
     err = reg.DeleteBlockDescr(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
