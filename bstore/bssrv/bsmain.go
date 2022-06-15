@@ -16,8 +16,6 @@ import (
     "io"
 
     "ndstore/bstore/bsapi"
-    "ndstore/dslog"
-    "ndstore/dsrpc"
     "ndstore/bstore/bssrv/bsconf"
 
     "ndstore/bstore/bssrv/bsbcont"
@@ -27,6 +25,10 @@ import (
     "ndstore/bstore/bssrv/bsucont"
     "ndstore/bstore/bssrv/bsureg"
     "ndstore/bstore/bssrv/bsuser"
+
+    "ndstore/dslog"
+    "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 const successExit   int = 0
@@ -120,9 +122,10 @@ func (server *Server) GetOptions() error {
     var err error
     exeName := filepath.Base(os.Args[0])
 
-    flag.StringVar(&server.Params.RunDir, "run", server.Params.RunDir, "run direcory")
-    flag.StringVar(&server.Params.LogDir, "log", server.Params.LogDir, "log direcory")
-    flag.StringVar(&server.Params.DataDir, "data", server.Params.DataDir, "data directory")
+    flag.StringVar(&server.Params.RunDir, "rundir", server.Params.RunDir, "run direcory")
+    flag.StringVar(&server.Params.LogDir, "logdir", server.Params.LogDir, "log direcory")
+    flag.StringVar(&server.Params.DataDir, "datadir", server.Params.DataDir, "data directory")
+    flag.BoolVar(&server.Params.DebugMode, "debug", server.Params.DebugMode, "debug mode")
 
     flag.StringVar(&server.Params.Port, "port", server.Params.Port, "listen port")
     flag.BoolVar(&server.Backgr, "daemon", server.Backgr, "run as daemon")
@@ -344,9 +347,6 @@ func (server *Server) SetSHandler() error {
 func (server *Server) StopAll() error {
     var err error
     dslog.LogInfo("stop processes")
-    //if server.logFile != nil {
-    //    server.logFile.Close()
-    //}
     return err
 }
 
@@ -355,8 +355,16 @@ func (server *Server) RunService() error {
     var err error
 
     dataRoot    := server.Params.DataDir
+    runDir      := server.Params.RunDir
+    logDir      := server.Params.LogDir
+
     dirPerm     := server.Params.DirPerm
     filePerm    := server.Params.FilePerm
+    develMode   := server.Params.DevelMode
+    debugMode   := server.Params.DebugMode
+
+    dserr.SetDevelMode(develMode)
+    dslog.SetDebugMode(debugMode)
 
     blockReg := bsbreg.NewReg()
     blockDBPath := filepath.Join(dataRoot, "blocks.db")
@@ -376,7 +384,10 @@ func (server *Server) RunService() error {
 
     blockContr := bsbcont.NewContr(storeModel)
     dslog.LogDebug("dataDir is", dataRoot)
+    dslog.LogDebug("runDir is", runDir)
+    dslog.LogDebug("logDir is", logDir)
 
+    go storeModel.WasteCollector()
 
     userReg := bsureg.NewReg()
     userDBPath := filepath.Join(dataRoot, "users.db")
@@ -399,8 +410,12 @@ func (server *Server) RunService() error {
 
     serv := dsrpc.NewService()
 
-    serv.PreMiddleware(dsrpc.LogRequest)
-    serv.PreMiddleware(userContr.AuthMidware)
+    serv.PreMiddleware(userContr.AuthMidware(debugMode))
+    if debugMode {
+        serv.PreMiddleware(dsrpc.LogRequest)
+        serv.PostMiddleware(dsrpc.LogResponse)
+    }
+    serv.PostMiddleware(dsrpc.LogAccess)
 
     serv.Handler(bsapi.GetHelloMethod, blockContr.GetHelloHandler)
 
@@ -416,9 +431,6 @@ func (server *Server) RunService() error {
     serv.Handler(bsapi.UpdateUserMethod, userContr.UpdateUserHandler)
     serv.Handler(bsapi.ListUsersMethod, userContr.ListUsersHandler)
     serv.Handler(bsapi.DeleteUserMethod, userContr.DeleteUserHandler)
-
-    serv.PostMiddleware(dsrpc.LogResponse)
-    serv.PostMiddleware(dsrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

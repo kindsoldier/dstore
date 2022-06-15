@@ -8,20 +8,20 @@ import (
     "ndstore/dserr"
 )
 
-
 const blockSchema = `
     DROP TABLE IF EXISTS blocks;
     CREATE TABLE IF NOT EXISTS blocks (
-        file_id     INTEGER,
-        batch_id    INTEGER,
-        block_id    INTEGER,
-        block_size  INTEGER,
-        data_size   INTEGER,
-        block_type  TEXT DEFAULT '',
-        file_path   TEXT DEFAULT '',
-        hash_alg    TEXT DEFAULT '',
-        hash_sum    TEXT DEFAULT '',
-        hash_init   TEXT DEFAULT ''
+        file_id         INTEGER,
+        batch_id        INTEGER,
+        block_id        INTEGER,
+        u_counter       INTEGER,
+        block_size      INTEGER,
+        data_size       INTEGER,
+        block_type      TEXT DEFAULT '',
+        file_path       TEXT DEFAULT '',
+        hash_alg        TEXT DEFAULT '',
+        hash_sum        TEXT DEFAULT '',
+        hash_init       TEXT DEFAULT ''
 
     );
     DROP INDEX IF EXISTS block_idx;
@@ -29,66 +29,76 @@ const blockSchema = `
         ON blocks (file_id, batch_id, block_id, block_type);`
 
 
-func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath,
-                                           blockType, hashAlg, hashInit, hashSum string) error {
+func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize int64,
+                                            filePath, blockType, hashAlg, hashInit, hashSum string) error {
     var err error
     request := `
         INSERT
-            INTO blocks(file_id, batch_id, block_id, block_size, data_size, file_path,
-                                                      block_type, hash_alg, hash_init, hash_sum)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockSize, dataSize, filePath,
-                                                          blockType, hashAlg, hashInit, hashSum)
+            INTO blocks(file_id, batch_id, block_id, u_counter, block_size, data_size,
+                                                    file_path, block_type, hash_alg, hash_init, hash_sum)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, uCounter, blockSize, dataSize,
+                                                    filePath, blockType, hashAlg, hashInit, hashSum)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, blockSize, dataSize int64, filePath string) error {
+func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize int64,
+                                                                    filePath, blockType string) error {
     var err error
     var request string
     request = `
         UPDATE blocks SET
-            block_size = $1,
+            u_counter = $1,
+            block_size = $2,
             data_size = $3,
-            file_path = $2
-        WHERE file_id = $4
-            AND batch_id = $5
-            AND block_id = $6;`
-    _, err = reg.db.Exec(request, blockSize, dataSize, filePath, fileId, batchId, blockId)
+            file_path = $4
+        WHERE file_id = $5
+            AND batch_id = $6
+            AND block_id = $7
+            AND block_type = $8;`
+    _, err = reg.db.Exec(request, uCounter, blockSize, dataSize, filePath, fileId, batchId, blockId, blockType)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (string, int64, error) {
+func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (bool, bool, string, int64, error) {
     var err error
+    var exists bool
+    var used bool
     var filePath string
     var dataSize int64
     request := `
-        SELECT file_path, data_size
+        SELECT file_path, data_size, u_counter
         FROM blocks
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
             AND block_type = $4
         LIMIT 1;`
-
-    var block dscom.BlockDescr
-    err = reg.db.Get(&block, request, fileId, batchId, blockId, blockType)
+    blocks := make([]*dscom.BlockDescr, 0)
+    err = reg.db.Select(&blocks, request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return filePath, dataSize, dserr.Err(err)
+        return exists, used, filePath, dataSize, dserr.Err(err)
     }
-    filePath    = block.FilePath
-    dataSize   = block.DataSize
-    return filePath, dataSize, dserr.Err(err)
+    if len(blocks) > 0 {
+        exists   = true
+        filePath = blocks[0].FilePath
+        dataSize = blocks[0].DataSize
+        if blocks[0].UCounter > 0 {
+            used = true
+        }
+    }
+    return exists, used, filePath, dataSize, dserr.Err(err)
 }
 
-func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType string) (bool, error) {
+func (reg *Reg) BlockDescrUsed(fileId, batchId, blockId int64, blockType string) (bool, error) {
     var err error
-    var exists bool
+    var used bool
     request := `
         SELECT count(file_path) AS count
         FROM blocks
@@ -96,24 +106,80 @@ func (reg *Reg) BlockDescrExists(fileId, batchId, blockId int64, blockType strin
             AND batch_id = $2
             AND block_id = $3
             AND block_type = $4
+            AND u_counter > 0
         LIMIT 1;`
     var count int64
     err = reg.db.Get(&count, request, fileId, batchId, blockId, blockType)
     if err != nil {
-        return exists, dserr.Err(err)
+        return used, dserr.Err(err)
     }
     if count > 0 {
-        exists = true
+        used = true
     }
-    return exists, dserr.Err(err)
+    return used, dserr.Err(err)
+}
+
+func (reg *Reg) GetUnusedDescr() (bool, *dscom.BlockDescr, error) {
+    var err     error
+    var exists  bool
+    var blockDescr *dscom.BlockDescr
+    blocks := make([]*dscom.BlockDescr, 0)
+    request := `
+        SELECT file_id, batch_id, block_id, u_counter, block_size, data_size,
+                                    file_path, hash_alg, hash_sum, hash_init, block_type
+        FROM blocks
+        WHERE u_counter < 1
+        LIMIT 1;`
+    err = reg.db.Select(&blocks, request)
+    if err != nil {
+        return exists, blockDescr, dserr.Err(err)
+    }
+    if len(blocks) > 0 {
+        exists = true
+        blockDescr = blocks[0]
+    }
+    return exists, blockDescr, dserr.Err(err)
+}
+
+func (reg *Reg) IncDescrUCounter(fileId, batchId, blockId int64, blockType string) error {
+    var err error
+    request := `
+        UPDATE blocks SET
+            u_counter = u_counter + 1
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+func (reg *Reg) DecDescrUCounter(fileId, batchId, blockId int64, blockType string) error {
+    var err error
+    request := `
+        UPDATE blocks SET
+            u_counter = u_counter - 1
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+            AND u_counter > 0;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
 }
 
 func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     var err error
     blocks := make([]*dscom.BlockDescr, 0)
     request := `
-        SELECT file_id, batch_id, block_id, block_size, data_size, file_path,
-            hash_alg, hash_sum, hash_init, block_type
+        SELECT file_id, batch_id, block_id, u_counter, block_size, data_size,
+                                    file_path, hash_alg, hash_sum, hash_init, block_type
         FROM blocks;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
@@ -122,7 +188,7 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     return blocks, dserr.Err(err)
 }
 
-func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType string) error {
+func (reg *Reg) DropBlockDescr(fileId, batchId, blockId int64, blockType string) error {
     var err error
     request := `
         DELETE FROM blocks
@@ -137,7 +203,8 @@ func (reg *Reg) DeleteBlockDescr(fileId, batchId, blockId int64, blockType strin
     return dserr.Err(err)
 }
 
-func (reg *Reg) xxxPurgeFile(fileId int64) error {
+
+func (reg *Reg) xxPurgeFileDescr(fileId int64) error {
     var err error
     request := `
         DELETE FROM blocks
@@ -149,11 +216,11 @@ func (reg *Reg) xxxPurgeFile(fileId int64) error {
     return dserr.Err(err)
 }
 
-func (reg *Reg) xxxxPurgeCluster(userId int64) error {
+func (reg *Reg) PurgeAllDescrs() error {
     var err error
     request := `
         DELETE FROM blocks;`
-    _, err = reg.db.Exec(request, userId)
+    _, err = reg.db.Exec(request)
     if err != nil {
         return dserr.Err(err)
     }

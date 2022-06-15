@@ -131,3 +131,14 @@ func CheckBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, bl
     }
     return correct, dserr.Err(err)
 }
+
+func PurgeAll(uri string, auth *dsrpc.Auth) error {
+    var err error
+    params := bsapi.NewPurgeAllParams()
+    result := bsapi.NewPurgeAllResult()
+    err = dsrpc.Exec(uri, bsapi.PurgeAllMethod, params, result, auth)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}

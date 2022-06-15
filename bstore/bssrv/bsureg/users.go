@@ -9,14 +9,14 @@ import (
 )
 
 const usersSchema = `
-    DROP TABLE IF EXISTS users;
+    --- DROP TABLE IF EXISTS users;
     CREATE TABLE IF NOT EXISTS users (
         login       TEXT,
         pass        TEXT,
         state       TEXT,
         role        TEXT
     );
-    DROP INDEX IF EXISTS user_idx;
+    --- DROP INDEX IF EXISTS user_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS user_idx
         ON users (login);`
 

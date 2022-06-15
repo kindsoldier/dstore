@@ -8,10 +8,11 @@ package bsapi
 const DeleteBlockMethod string = "deleteBlock"
 
 type DeleteBlockParams struct {
-    BlockType   string          `json:"blockType"`
     FileId      int64           `json:"fileId"`
     BatchId     int64           `json:"batchId"`
     BlockId     int64           `json:"blockId"`
+    BlockType   string          `json:"blockType"`
+
 }
 
 type DeleteBlockResult struct {

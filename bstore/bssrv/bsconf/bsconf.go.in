@@ -27,6 +27,9 @@ type Config struct {
 
     FilePerm    fs.FileMode `json:"-"       yaml:"-"`
     DirPerm     fs.FileMode `json:"-"       yaml:"-"`
+
+    DebugMode   bool        `json:"debug"   yaml:"debug"`
+    DevelMode   bool        `json:"-"       yaml:"-"`
 }
 
 func NewConfig() *Config {
@@ -45,6 +48,9 @@ func NewConfig() *Config {
     config.DirPerm  = 0755
 
     config.ConfPath = filepath.Join(configDir, configName)
+
+    config.DebugMode = true
+    config.DevelMode = true
 
     return &config
 }

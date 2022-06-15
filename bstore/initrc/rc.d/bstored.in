@@ -30,10 +30,11 @@ bstored_list() {
 
 bstored_start() {
     serv="$1"
-    rundir="@srv_rundir@"/$serv
-    datadir="@srv_datadir@"/$serv
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
     command="@prefix@/sbin/${name}"
-    command_args="-daemon -port $serv -run $rundir -data $datadir"
+    command_args="-daemon -port $serv -logdir $logdir -rundir $rundir -datadir $datadir"
     echo "Start bstored $serv."
     $command $command_args
 }
@@ -41,8 +42,11 @@ bstored_start() {
 bstored_stop() { 
     serv="$1"
     pidfile="@srv_rundir@"/${serv}/bstored.pid
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
     command="@prefix@/sbin/${name}"
-    command_args="-daemon -run $rundir -data $datadir"
+    command_args="-daemon -port $serv -logdir $logdir -rundir $rundir -datadir $datadir"
     pid=$(check_pidfile $pidfile $command)
     test ! -z "$pid" && ( kill "$pid"; echo "Stopping bstored $serv.")
     wait_for_pids $pid && rm -f "$pidfile"
@@ -57,8 +61,11 @@ bstored_restart() {
 bstored_reload() {
     serv="$1"
     pidfile="@srv_rundir@"/${serv}/bstored.pid
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
     command="@prefix@/sbin/${name}"
-    command_args="-daemon -run $rundir -data $datadir"
+    command_args="-daemon -port $serv -logdir $logdir -rundir $rundir -datadir $datadir"
     pid=$(check_pidfile $pidfile $command)
     test ! -z "$pid" && ( kill -HUP "$pid")
 }
@@ -66,15 +73,22 @@ bstored_reload() {
 load_rc_config $name
 
 : ${bstored_enable=NO}
+: ${bstored_samples="5101 5102 5103 5104 5105 5106 5107"}
 
 rc_command=$1
-servlist="5101 5102 5103"
 
 test ! -z "$bstored_samples" && servlist="$bstored_samples"
 test ! -z "$2" && shift && servlist="$@"
 
-for serv in $servlist; do 
-        pidfile="@srv_rundir@"/${serv}/bstored.pid
-        run_rc_command "$rc_command" "$serv"
-done
+
+case $rc_command in 
+    "restart"|"start"|"stop"|"status"|"list"|"reload") 
+        for serv in $servlist; do 
+            run_rc_command "$rc_command" "$serv"
+        done
+        ;;
+    *)
+        run_rc_command "$rc_command"
+        ;;
+esac
 #EOF
