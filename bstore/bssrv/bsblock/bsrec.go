@@ -209,6 +209,12 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64, blockType string, 
         return dserr.Err(err)
     }
 
+    err = store.reg.IncDescrUCounter(fileId, batchId, blockId, blockType)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    defer store.reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
     defer blockFile.Close()
