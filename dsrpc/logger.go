@@ -33,7 +33,7 @@ func logError(messages ...any) {
 
 func logAccess(messages ...any) {
     stamp := time.Now().Format(time.RFC3339Nano)
-    fmt.Fprintln(messageWriter, stamp, "access", messages)
+    fmt.Fprintln(accessWriter, stamp, "access", messages)
 }
 
 func SetAccessWriter(writer io.Writer) {

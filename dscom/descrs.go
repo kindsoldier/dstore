@@ -17,7 +17,6 @@ func NewUserDescr() *UserDescr{
 }
 
 
-
 const BStateNormal      string = "normal"
 const BStateDisabled    string = "disabled"
 const BStateWrong       string = "wrong"
@@ -52,11 +51,9 @@ func NewEntryDescr() *EntryDescr {
 
 type FileDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`
-    FileSize    int64       `json:"fileSize"    db:"file_size"`
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
-    BatchCount  int64       `json:"batchCount"  db:"batch_count"`
-    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
+    UCounter    int64       `json:"uCounter"    db:"u_counter"`
     Batchs      []*BatchDescr  `json:"batchs"   db:"-"`
 }
 
@@ -83,25 +80,26 @@ func NewBatchDescr() *BatchDescr {
 const BTypeData     string = "data"
 const BTypeRecov    string = "reco"
 
-const HashTypeHW    string = "hw"
-const HashTypeNone  string = "none"
-
+const HashTypeHW    string = "hway"
 
 type BlockDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`
     BatchId     int64       `json:"batchId"     db:"batch_id"`
     BlockId     int64       `json:"blockId"     db:"block_id"`
+    BlockType   string      `json:"blockType"   db:"block_type"`
+
+    UCounter    int64       `json:"uCounter"    db:"u_counter"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
-    FilePath    string      `json:"filePath"    db:"file_path"`
     DataSize    int64       `json:"dataSize"    db:"data_size"`
+    FilePath    string      `json:"filePath"    db:"file_path"`
     HashAlg     string      `json:"hashAlg"     db:"hash_alg"`
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`
-    BlockType   string      `json:"blockType"   db:"block_type"`
 
+    FStoreId    int64       `json:"fstoreId"    db:"fstore_id"`
     BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
-    HasLocal    bool        `json:"hasLocal"    db:"has_local"`
-    HasRemote   bool        `json:"hasRemote"   db:"has_remote"`
+    SavedLoc    bool        `json:"savedLoc"    db:"saved_loc"`
+    SavedRem    bool        `json:"savedRem"    db:"saved_rem"`
 }
 
 func NewBlockDescr() *BlockDescr {

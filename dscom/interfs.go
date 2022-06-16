@@ -5,10 +5,11 @@
 package dscom
 
 import (
-    "io"
+    //"io"
+    "os"
 )
 
 type IBSPool interface {
-    SaveBlock(fileId, batchId, blockId, blockSize int64, blockReader io.Reader, dataSize int64,
+    SaveBlock(fileId, batchId, blockId, blockSize int64, blockReader *os.File, dataSize int64,
                                     blockType, hashAlg, hashInit, hashSum string) (int64, error)
 }

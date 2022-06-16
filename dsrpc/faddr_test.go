@@ -9,7 +9,7 @@ package dsrpc
 import (
     "net"
     "testing"
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 func TestFConn0(t *testing.T) {
@@ -24,13 +24,13 @@ func TestFConn0(t *testing.T) {
         if err != nil {
             t.Error(err)
         }
-        assert.Equal(t, wc, len(cData))
+        require.Equal(t, wc, len(cData))
 
         sData := make([]byte, len(cData))
         rc, err := sConn.Read(sData)
-        assert.NoError(t, err)
-        assert.Equal(t, rc, len(cData))
-        assert.Equal(t, cData, sData)
+        require.NoError(t, err)
+        require.Equal(t, rc, len(cData))
+        require.Equal(t, cData, sData)
     }
 }
 
@@ -46,12 +46,12 @@ func TestFConn1(t *testing.T) {
         if err != nil {
             t.Error(err)
         }
-        assert.Equal(t, wc, len(cData))
+        require.Equal(t, wc, len(cData))
 
         sData := make([]byte, len(cData))
         rc, err := sConn.Read(sData)
-        assert.NoError(t, err)
-        assert.Equal(t, rc, len(cData))
-        assert.Equal(t, cData, sData)
+        require.NoError(t, err)
+        require.Equal(t, rc, len(cData))
+        require.Equal(t, cData, sData)
     }
 }

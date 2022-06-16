@@ -8,7 +8,7 @@ import (
     "testing"
     "path/filepath"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/bstore/bsapi"
     "ndstore/bstore/bssrv/bsuser"
@@ -24,16 +24,16 @@ func Test_User_AddCheckDelete(t *testing.T) {
     path := filepath.Join(rootDir, "users.db")
     reg := bsureg.NewReg()
     err = reg.OpenDB(path)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     authModel := bsuser.NewAuth(reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = authModel.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     contr := NewContr(authModel)
 
@@ -44,62 +44,62 @@ func Test_User_AddCheckDelete(t *testing.T) {
     addParams.Pass     = "123456"
     addResult := bsapi.NewAddUserResult()
     err = dsrpc.LocalExec(bsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     addParams = bsapi.NewAddUserParams()
     addParams.Login    = "qwerty"
     addParams.Pass     = "123456xx"
     addResult = bsapi.NewAddUserResult()
     err = dsrpc.LocalExec(bsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.Error(t, err)
+    require.Error(t, err)
 
     addParams = bsapi.NewAddUserParams()
     addParams.Login    = "йцукен"
     addParams.Pass     = "567890"
     addResult = bsapi.NewAddUserResult()
     err = dsrpc.LocalExec(bsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     checkParams := bsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"
     checkParams.Pass     = "123456"
     checkResult := bsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(bsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, true, checkResult.Match)
+    require.NoError(t, err)
+    require.Equal(t, true, checkResult.Match)
 
     checkParams = bsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"
     checkParams.Pass     = "123456XXX"
     checkResult = bsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(bsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.NoError(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     checkParams = bsapi.NewCheckUserParams()
     checkParams.Login    = "qwertyXXX"
     checkParams.Pass     = "123456"
     checkResult = bsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(bsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.Error(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.Error(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     deleteParams := bsapi.NewDeleteUserParams()
     deleteParams.Login    = "qwerty"
     deleteResult := bsapi.NewDeleteUserResult()
     err = dsrpc.LocalExec(bsapi.DeleteUserMethod, deleteParams, deleteResult, auth, contr.DeleteUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     checkParams = bsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"
     checkParams.Pass     = "123456"
     checkResult = bsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(bsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.Error(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.Error(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 }
 
@@ -110,16 +110,16 @@ func Test_User_Hello(t *testing.T) {
     path := filepath.Join(rootDir, "blocks.db")
     reg := bsureg.NewReg()
     err = reg.OpenDB(path)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := bsuser.NewAuth(reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = store.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     auth := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
 
@@ -131,10 +131,10 @@ func Test_User_Hello(t *testing.T) {
     result := bsapi.NewGetHelloResult()
     err = dsrpc.LocalExec(bsapi.GetHelloMethod, params, result, auth, contr.GetHelloHandler)
 
-    assert.NoError(t, err)
-    assert.Equal(t, helloResp, result.Message)
+    require.NoError(t, err)
+    require.Equal(t, helloResp, result.Message)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 }

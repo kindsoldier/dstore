@@ -15,7 +15,7 @@ import (
     "testing"
     "time"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 func TestLocalExec(t *testing.T) {
@@ -27,7 +27,7 @@ func TestLocalExec(t *testing.T) {
     auth := CreateAuth([]byte("qwert"), []byte("12345"))
 
     err = LocalExec(HelloMethod, params, result, auth, helloHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
 }
@@ -49,7 +49,7 @@ func TestLocalSave(t *testing.T) {
     reader := bytes.NewReader(binBytes)
 
     err = LocalPut(SaveMethod, reader, binSize, params, result, auth, saveHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
@@ -68,7 +68,7 @@ func TestLocalLoad(t *testing.T) {
     writer := bytes.NewBuffer(binBytes)
 
     err = LocalGet(LoadMethod, writer, params, result, auth, loadHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     resultJSON, _ := json.Marshal(result)
     logDebug("method result:", string(resultJSON))
@@ -81,21 +81,21 @@ func TestNetExec(t *testing.T) {
     time.Sleep(10 * time.Millisecond)
     err := clientHello()
 
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }
 
 func TestNetSave(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientSave()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }
 
 func TestNetLoad(t *testing.T) {
     go testServ(false)
     time.Sleep(10 * time.Millisecond)
     err := clientLoad()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }
 
 func BenchmarkNetPut(b *testing.B) {

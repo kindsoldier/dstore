@@ -7,7 +7,7 @@ import (
     //"math/rand"
     "ndstore/dsrpc"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 func BenchmarkHello(b *testing.B) {
@@ -22,7 +22,7 @@ func BenchmarkHello(b *testing.B) {
     pBench := func(pb *testing.PB) {
         for pb.Next() {
             _, err := util.GetHelloCmd(auth)
-            assert.NoError(b, err)
+            require.NoError(b, err)
         }
     }
     b.SetParallelism(10)

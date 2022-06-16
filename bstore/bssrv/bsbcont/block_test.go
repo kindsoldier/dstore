@@ -15,7 +15,7 @@ import (
     "ndstore/bstore/bssrv/bsbreg"
     "ndstore/dsrpc"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 
@@ -28,12 +28,12 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
     path := filepath.Join(rootDir, "tmp.blocks.db")
     reg := bsbreg.NewReg()
     err = reg.OpenDB(path)
-    assert.NoError(t, err)
+    require.NoError(t, err)
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := bsblock.NewStore(rootDir, reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     contr := NewContr(store)
 
@@ -54,21 +54,21 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
     result := bsapi.NewSaveBlockResult()
 
     err = dsrpc.LocalPut(bsapi.SaveBlockMethod, reader, size, params, result, nil, contr.SaveBlockHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
     err = dsrpc.LocalGet(bsapi.LoadBlockMethod, writer, params, result, nil, contr.LoadBlockHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, len(data), len(writer.Bytes()))
-    assert.Equal(t, data, writer.Bytes())
+    require.NoError(t, err)
+    require.Equal(t, len(data), len(writer.Bytes()))
+    require.Equal(t, data, writer.Bytes())
 
     err = dsrpc.LocalExec(bsapi.DeleteBlockMethod, params, result, nil, contr.DeleteBlockHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }
 
 func Test_Block_Hello(t *testing.T) {
@@ -79,13 +79,13 @@ func Test_Block_Hello(t *testing.T) {
     reg := bsbreg.NewReg()
 
     err = reg.OpenDB(path)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := bsblock.NewStore(rootDir, reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     contr := NewContr(store)
 
@@ -95,10 +95,10 @@ func Test_Block_Hello(t *testing.T) {
     result := bsapi.NewGetHelloResult()
     err = dsrpc.LocalExec(bsapi.GetHelloMethod, params, result, nil, contr.GetHelloHandler)
 
-    assert.NoError(t, err)
-    assert.Equal(t, helloResp, result.Message)
+    require.NoError(t, err)
+    require.Equal(t, helloResp, result.Message)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 }
