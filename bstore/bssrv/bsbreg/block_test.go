@@ -12,8 +12,7 @@ import (
 func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var err error
 
-    path := filepath.Join(t.TempDir(), "block.db")
-    path = "./aaa.db"
+    path := filepath.Join(t.TempDir(), "tmp.block.db")
     reg := NewReg()
     err = reg.OpenDB(path)
     assert.NoError(t, err)
@@ -51,72 +50,63 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     assert.NoError(t, err)
 
 
-    used, err = reg.BlockDescrUsed(fileId, batchId, blockId, blockType)
+    exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, used, true)
+    assert.Equal(t, exists, true)
 
-    used, err = reg.BlockDescrUsed(fileId, batchId, blockId, "hohoho")
+
+    exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, "hohoho")
     assert.NoError(t, err)
+    assert.Equal(t, exists, false)
     assert.Equal(t, used, false)
 
-    used, err = reg.BlockDescrUsed(fileId, batchId, blockId, "hihihi")
+    exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, "hihihi")
     assert.NoError(t, err)
-    assert.Equal(t, used, true)
-
-
-    used, err = reg.BlockDescrUsed(fileId + 1, batchId, blockId, blockType)
-    assert.NoError(t, err)
-    assert.Equal(t, used, false)
-
-    exists, used, nFileName, nDataSize, err := reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
-    assert.NoError(t, err)
-    assert.Equal(t, filePath, nFileName)
-    assert.Equal(t, dataSize, nDataSize)
     assert.Equal(t, exists, true)
     assert.Equal(t, used, true)
 
+    exists, used, _, _, err = reg.GetBlockParams(fileId + 1, batchId, blockId, blockType)
+    assert.NoError(t, err)
+    assert.Equal(t, exists, false)
+    assert.Equal(t, used, false)
 
-    err = reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+    exists, used, nFileName, nDataSize, err := reg.GetBlockParams(fileId, batchId, blockId, blockType)
+    assert.NoError(t, err)
+    assert.Equal(t, exists, true)
+    assert.Equal(t, used, true)
+    assert.Equal(t, filePath, nFileName)
+    assert.Equal(t, dataSize, nDataSize)
+
+
+    err = reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 
-    err = reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+    err = reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 
-    err = reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+    err = reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 
-    exists, blockDescr, err := reg.GetUnusedDescr()
+    exists, blockDescr, err := reg.GetUnusedBlockDescr()
     assert.NoError(t, err)
     assert.Equal(t, exists, true)
     assert.NotEqual(t, blockDescr, nil)
     assert.Equal(t, blockDescr.UCounter, int64(0))
 
-    used, err = reg.BlockDescrUsed(fileId, batchId, blockId, blockType)
+    _, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, used, false)
 
-    err = reg.IncDescrUCounter(fileId, batchId, blockId, blockType)
+    err = reg.IncBlockDescrUC(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 
-    used, err = reg.BlockDescrUsed(fileId, batchId, blockId, blockType)
-    assert.NoError(t, err)
-    assert.Equal(t, used, true)
-
-    exists, used, _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId, "hohoho")
+    exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, "hohoho")
     assert.NoError(t, err)
     assert.Equal(t, exists, false)
     assert.Equal(t, used, false)
 
-
-    //fileId  += 1
-    //batchId += 1
-    //blockId += 1
-    blockSize += 1024
-    filePath = fmt.Sprintf("x/y/z/qwerty%020d", fileId)
-    err = reg.UpdateBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath, blockType)
-    assert.NoError(t, err)
-
-    exists, used, nFileName, nDataSize, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, nFileName, nDataSize, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, filePath, nFileName)
     assert.Equal(t, dataSize, nDataSize)
@@ -132,7 +122,7 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     err = reg.DropBlockDescr(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
 
-    exists, used, nFileName, nDataSize, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, nFileName, nDataSize, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     assert.NoError(t, err)
     assert.Equal(t, nFileName, "")
     assert.Equal(t, nDataSize, int64(0))
@@ -218,7 +208,7 @@ func BenchmarkSelect(b *testing.B) {
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = 1
             var blockId     int64   = 1
-            _, _, _, _, err = reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+            _, _, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
             assert.NoError(b, err)
         }
     }

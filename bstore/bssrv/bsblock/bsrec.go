@@ -60,7 +60,7 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64,  blockType string,
     var err error
     const uCounter int64 = 1
 
-    exists, used, _, _, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, _, _, err := store.reg.GetBlockParams(fileId, batchId, blockId, blockType)
 
     if err != nil {
         return dserr.Err(err)
@@ -139,11 +139,11 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64,  blockType string,
     return dserr.Err(err)
 }
 
-func (store *Store) BlockExists(fileId, batchId, blockId int64, blockType string) (bool, int64, error) {
+func (store *Store) BlockParams(fileId, batchId, blockId int64, blockType string) (bool, int64, error) {
     var err error
     var filePath string
     var exists bool
-    exists, used, filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, filePath, blockSize, err := store.reg.GetBlockParams(fileId, batchId, blockId, blockType)
     if err != nil {
         return exists, blockSize, dserr.Err(err)
     }
@@ -167,7 +167,7 @@ func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string)
     var err error
     var filePath string
     var correct bool
-    exists, used, filePath, dataSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, filePath, dataSize, err := store.reg.GetBlockParams(fileId, batchId, blockId, blockType)
     if err != nil {
         return correct, dserr.Err(err)
     }
@@ -200,7 +200,7 @@ func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string)
 func (store *Store) LoadBlock(fileId, batchId, blockId int64, blockType string, blockWriter io.Writer) error {
     var err error
     var filePath string
-    exists, used, filePath, blockSize, err := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, filePath, blockSize, err := store.reg.GetBlockParams(fileId, batchId, blockId, blockType)
     if err != nil {
         return dserr.Err(err)
     }
@@ -209,11 +209,11 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64, blockType string, 
         return dserr.Err(err)
     }
 
-    err = store.reg.IncDescrUCounter(fileId, batchId, blockId, blockType)
+    err = store.reg.IncBlockDescrUC(fileId, batchId, blockId, blockType)
     if err != nil {
         return dserr.Err(err)
     }
-    defer store.reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+    defer store.reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
 
     filePath = filepath.Join(store.dataRoot, filePath)
     blockFile, err := os.OpenFile(filePath, os.O_RDONLY, 0)
@@ -231,7 +231,7 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64, blockType string, 
 
 func (store *Store) WasteCollector() {
     for {
-        exists, bl, err := store.reg.GetUnusedDescr()
+        exists, bl, err := store.reg.GetUnusedBlockDescr()
         if exists && err == nil {
             err = store.dropBlock(bl.FileId, bl.BatchId, bl.BlockId, bl.BlockType)
             if err != nil {
@@ -255,7 +255,7 @@ func (store *Store) pushWC() {
 func (store *Store) dropBlock(fileId, batchId, blockId  int64, blockType string) error {
     var err error
     var filePath string
-    exists, used, filePath, _, _ := store.reg.GetBlockFilePath(fileId, batchId, blockId, blockType)
+    exists, used, filePath, _, _ := store.reg.GetBlockParams(fileId, batchId, blockId, blockType)
     if err != nil {
         return dserr.Err(err)
     }
@@ -282,7 +282,7 @@ func (store *Store) dropBlock(fileId, batchId, blockId  int64, blockType string)
 
 func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string) error {
     var err error
-    err = store.reg.DecDescrUCounter(fileId, batchId, blockId, blockType)
+    err = store.reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
     defer store.pushWC()
     if err != nil {
         return dserr.Err(err)

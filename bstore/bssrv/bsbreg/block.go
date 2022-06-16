@@ -9,7 +9,7 @@ import (
 )
 
 const blockSchema = `
-    DROP TABLE IF EXISTS blocks;
+    --- DROP TABLE IF EXISTS blocks;
     CREATE TABLE IF NOT EXISTS blocks (
         file_id         INTEGER,
         batch_id        INTEGER,
@@ -22,9 +22,8 @@ const blockSchema = `
         hash_alg        TEXT DEFAULT '',
         hash_sum        TEXT DEFAULT '',
         hash_init       TEXT DEFAULT ''
-
     );
-    DROP INDEX IF EXISTS block_idx;
+    --- DROP INDEX IF EXISTS block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS block_idx
         ON blocks (file_id, batch_id, block_id, block_type);`
 
@@ -45,28 +44,7 @@ func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dat
     return dserr.Err(err)
 }
 
-func (reg *Reg) UpdateBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize int64,
-                                                                    filePath, blockType string) error {
-    var err error
-    var request string
-    request = `
-        UPDATE blocks SET
-            u_counter = $1,
-            block_size = $2,
-            data_size = $3,
-            file_path = $4
-        WHERE file_id = $5
-            AND batch_id = $6
-            AND block_id = $7
-            AND block_type = $8;`
-    _, err = reg.db.Exec(request, uCounter, blockSize, dataSize, filePath, fileId, batchId, blockId, blockType)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    return dserr.Err(err)
-}
-
-func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType string) (bool, bool, string, int64, error) {
+func (reg *Reg) GetBlockParams(fileId, batchId, blockId int64, blockType string) (bool, bool, string, int64, error) {
     var err error
     var exists bool
     var used bool
@@ -96,30 +74,7 @@ func (reg *Reg) GetBlockFilePath(fileId, batchId, blockId int64, blockType strin
     return exists, used, filePath, dataSize, dserr.Err(err)
 }
 
-func (reg *Reg) BlockDescrUsed(fileId, batchId, blockId int64, blockType string) (bool, error) {
-    var err error
-    var used bool
-    request := `
-        SELECT count(file_path) AS count
-        FROM blocks
-        WHERE file_id = $1
-            AND batch_id = $2
-            AND block_id = $3
-            AND block_type = $4
-            AND u_counter > 0
-        LIMIT 1;`
-    var count int64
-    err = reg.db.Get(&count, request, fileId, batchId, blockId, blockType)
-    if err != nil {
-        return used, dserr.Err(err)
-    }
-    if count > 0 {
-        used = true
-    }
-    return used, dserr.Err(err)
-}
-
-func (reg *Reg) GetUnusedDescr() (bool, *dscom.BlockDescr, error) {
+func (reg *Reg) GetUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
     var err     error
     var exists  bool
     var blockDescr *dscom.BlockDescr
@@ -141,7 +96,7 @@ func (reg *Reg) GetUnusedDescr() (bool, *dscom.BlockDescr, error) {
     return exists, blockDescr, dserr.Err(err)
 }
 
-func (reg *Reg) IncDescrUCounter(fileId, batchId, blockId int64, blockType string) error {
+func (reg *Reg) IncBlockDescrUC(fileId, batchId, blockId int64, blockType string) error {
     var err error
     request := `
         UPDATE blocks SET
@@ -157,7 +112,7 @@ func (reg *Reg) IncDescrUCounter(fileId, batchId, blockId int64, blockType strin
     return dserr.Err(err)
 }
 
-func (reg *Reg) DecDescrUCounter(fileId, batchId, blockId int64, blockType string) error {
+func (reg *Reg) DecBlockDescrUC(fileId, batchId, blockId int64, blockType string) error {
     var err error
     request := `
         UPDATE blocks SET
@@ -197,19 +152,6 @@ func (reg *Reg) DropBlockDescr(fileId, batchId, blockId int64, blockType string)
             AND block_id = $3
             AND block_type = $4;`
     _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    return dserr.Err(err)
-}
-
-
-func (reg *Reg) xxPurgeFileDescr(fileId int64) error {
-    var err error
-    request := `
-        DELETE FROM blocks
-        WHERE file_id = $1;`
-    _, err = reg.db.Exec(request, fileId)
     if err != nil {
         return dserr.Err(err)
     }
