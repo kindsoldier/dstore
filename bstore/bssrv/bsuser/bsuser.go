@@ -41,11 +41,21 @@ func (auth *Auth) SeedUsers() error {
         return dserr.Err(err)
     }
     if len(users) < 1 {
-        err = auth.reg.AddUserDescr(defaultAUser, defaultAPass, UStateEnabled, URoleAdmin)
+        userDescr := bscom.NewUserDescr()
+        userDescr.Login = defaultAUser
+        userDescr.Pass  = defaultAPass
+        userDescr.State = UStateEnabled
+        userDescr.Role  = URoleAdmin
+        err = auth.reg.AddUserDescr(userDescr)
         if err != nil {
             return dserr.Err(err)
         }
-        err = auth.reg.AddUserDescr(defaultUser, defaultPass, UStateEnabled, URoleUser)
+        userDescr = bscom.NewUserDescr()
+        userDescr.Login = defaultUser
+        userDescr.Pass  = defaultPass
+        userDescr.State = UStateEnabled
+        userDescr.Role  = URoleUser
+        err = auth.reg.AddUserDescr(userDescr)
         if err != nil {
             return dserr.Err(err)
         }
@@ -89,7 +99,13 @@ func (auth *Auth) AddUser(userName, login, pass, role, state string) error {
     if !ok {
         return dserr.Err(err)
     }
-    err = auth.reg.AddUserDescr(login, pass, state, role)
+    userDescr := bscom.NewUserDescr()
+    userDescr.Login = login
+    userDescr.Pass  = pass
+    userDescr.State = state
+    userDescr.Role  = role
+
+    err = auth.reg.AddUserDescr(userDescr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -202,7 +218,7 @@ func (auth *Auth) UpdateUser(userName, login, newPass, newRole, newState string)
     }
 
     // Update user profile
-    err = auth.reg.RenewUserDescr(newUserDescr)
+    err = auth.reg.UpdateUserDescr(newUserDescr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -236,7 +252,7 @@ func (auth *Auth) DeleteUser(userName string, login string) error {
         return dserr.Err(err)
     }
 
-    err = auth.reg.DeleteUserDescr(login)
+    err = auth.reg.EraseUserDescr(login)
     if err != nil {
         return dserr.Err(err)
     }

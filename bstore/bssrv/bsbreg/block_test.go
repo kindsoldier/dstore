@@ -23,11 +23,14 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var fileId      int64   = 1
     var batchId     int64   = 2
     var blockId     int64   = 3
+    var blockType   string  = "unk"
+
+    descr1 := dscom.NewBlockDescr()
+
     var uCounter    int64   = 1
     var blockSize   int64   = 1024
     var dataSize    int64   = 1123
 
-    var blockType   string  = "unk"
     var hashAlg     string  = "a2"
     var hashInit    string  = "a3"
     var hashSum     string  = "a4"
@@ -113,13 +116,13 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, exists, true)
     require.Equal(t, used, true)
 
-    err = reg.DropBlockDescr(fileId, batchId, blockId, "hohoho")
+    err = reg.EraseBlockDescr(fileId, batchId, blockId, "hohoho")
     require.NoError(t, err)
 
-    err = reg.DropBlockDescr(fileId, batchId, blockId, "hihihi")
+    err = reg.EraseBlockDescr(fileId, batchId, blockId, "hihihi")
     require.NoError(t, err)
 
-    err = reg.DropBlockDescr(fileId, batchId, blockId, blockType)
+    err = reg.EraseBlockDescr(fileId, batchId, blockId, blockType)
     require.NoError(t, err)
 
     exists, used, nFileName, nDataSize, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)

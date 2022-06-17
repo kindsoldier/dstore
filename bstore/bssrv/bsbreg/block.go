@@ -28,16 +28,14 @@ const blockSchema = `
         ON blocks (file_id, batch_id, block_id, block_type);`
 
 
-func (reg *Reg) AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize int64,
-                                            filePath, blockType, hashAlg, hashInit, hashSum string) error {
+func (reg *Reg) AddBlockDescr(descr *dscom.BlockDescr) error {
     var err error
     request := `
-        INSERT
-            INTO blocks(file_id, batch_id, block_id, u_counter, block_size, data_size,
+        INSERT INTO blocks(file_id, batch_id, block_id, u_counter, block_size, data_size,
                                                     file_path, block_type, hash_alg, hash_init, hash_sum)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, uCounter, blockSize, dataSize,
-                                                    filePath, blockType, hashAlg, hashInit, hashSum)
+    _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BlockId, descr.UCounter, descr.BlockSize, descr.DataSize,
+                                                    descr.FilePath, descr.BlockType, descr.HashAlg, descr.HashInit, descr.HashSum)
     if err != nil {
         return dserr.Err(err)
     }
@@ -143,7 +141,7 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     return blocks, dserr.Err(err)
 }
 
-func (reg *Reg) DropBlockDescr(fileId, batchId, blockId int64, blockType string) error {
+func (reg *Reg) EraseBlockDescr(fileId, batchId, blockId int64, blockType string) error {
     var err error
     request := `
         DELETE FROM blocks
@@ -158,7 +156,7 @@ func (reg *Reg) DropBlockDescr(fileId, batchId, blockId int64, blockType string)
     return dserr.Err(err)
 }
 
-func (reg *Reg) PurgeAllDescrs() error {
+func (reg *Reg) EraseAllDescrs() error {
     var err error
     request := `
         DELETE FROM blocks;`

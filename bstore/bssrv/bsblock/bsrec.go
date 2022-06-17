@@ -54,7 +54,7 @@ func (store *Store) SetFilePerm(filePerm fs.FileMode) {
 }
 
 
-func (store *Store) SaveBlock(fileId, batchId, blockId int64,  blockType string, blockSize, dataSize int64,
+func (store *Store) SaveBlock(fileId, batchId, blockId int64, blockType string, blockSize, dataSize int64,
                             hashAlg, hashInit, hashSum string, blockReader io.Reader, binSize int64) error {
 
     var err error
@@ -93,12 +93,9 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64,  blockType string,
     }
 
 
-    fileName := MakeBlockName(fileId, batchId, blockId, blockType)
-    subdirName := MakeDirName(fileName)
-    dirPath := filepath.Join(store.dataRoot, subdirName)
-    os.MkdirAll(dirPath, store.dirPerm)
-
-    fullFilePath := filepath.Join(dirPath, fileName)
+    filePath := makeFilePath(fileId, batchId, blockId, blockType)
+    fullFilePath := filepath.Join(store.dataRoot, filePath)
+    os.MkdirAll(filepath.Dir(fullFilePath), store.dirPerm)
 
     blockFile, err := os.OpenFile(fullFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, store.filePerm)
     defer blockFile.Close()
@@ -128,9 +125,19 @@ func (store *Store) SaveBlock(fileId, batchId, blockId int64,  blockType string,
             }
     }
 
-    filePath := filepath.Join(subdirName, fileName)
-    err = store.reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize,
-                                                    filePath, blockType, hashAlg, hashInit, hashSum)
+    descr := dscom.NewBlockDescr()
+    descr.FileId    = fileId
+    descr.BatchId   = batchId
+    descr.BlockId   = blockId
+    descr.UCounter  = uCounter
+    descr.BlockSize = blockSize
+    descr.DataSize  = dataSize
+    descr.FilePath  = filePath
+    descr.BlockType = blockType
+    descr.HashAlg   = hashAlg
+    descr.HashInit  = hashInit
+    descr.HashSum   = hashSum
+    err = store.reg.AddBlockDescr(descr)
 
     if err != nil {
         os.Remove(filePath)
@@ -273,7 +280,7 @@ func (store *Store) dropBlock(fileId, batchId, blockId  int64, blockType string)
             return dserr.Err(err)
         }
     }
-    err = store.reg.DropBlockDescr(fileId, batchId, blockId, blockType)
+    err = store.reg.EraseBlockDescr(fileId, batchId, blockId, blockType)
     if err != nil {
         return dserr.Err(err)
     }
@@ -304,12 +311,12 @@ func (store *Store) PurgeAll() error {
         //if err != nil {
         //    return dserr.Err(err)
         //}
-        err = store.reg.DropBlockDescr(block.FileId, block.BatchId, block.BlockId, block.BlockType)
+        err = store.reg.EraseBlockDescr(block.FileId, block.BatchId, block.BlockId, block.BlockType)
         if err != nil {
             return dserr.Err(err)
         }
     }
-    //err = store.reg.PurgeAll()
+    //err = store.reg.EraseAll()
     //if err != nil {
     //    return dserr.Err(err)
     //}
@@ -325,28 +332,19 @@ func (store *Store) ListBlocks() ([]*dscom.BlockDescr, error) {
     return blocks, dserr.Err(err)
 }
 
-func MakeBlockName(fileId, batchId, blockId int64, blockType string) string {
+
+func makeFilePath(fileId, batchId, blockId int64, blockType string) string {
     origin := fmt.Sprintf("%020d-%020d-%020d-%020d-%s", fileId, batchId, blockId, blockType)
     hasher := sha1.New()
     hasher.Write([]byte(origin))
     hashSum := hasher.Sum(nil)
     hashHex := hex.EncodeToString(hashSum)
     fileName := hashHex + blockFileExt
-    return fileName
-}
-
-func MakeDirName(fileName string) string {
-    hasher := sha1.New()
-    hasher.Write([]byte(fileName))
-    hashSum := hasher.Sum(nil)
-    hashHex := make([]byte, hex.EncodedLen(len(hashSum)))
-    hex.Encode(hashHex, hashSum)
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[2:3])
     dirName := filepath.Join(l1, l2)
-    return dirName
+    return filepath.Join(dirName, fileName)
 }
-
 
 func validateBlockId(id int64) error {
     var err error

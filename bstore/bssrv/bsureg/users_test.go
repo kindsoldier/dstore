@@ -4,6 +4,7 @@ import (
     "path/filepath"
     "testing"
     "github.com/stretchr/testify/require"
+    "ndstore/bstore/bscom"
 )
 
 func Test_UserDescr_InsertSelectDelete(t *testing.T) {
@@ -18,58 +19,53 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     err = reg.MigrateDB()
     require.NoError(t, err)
 
-    var login   string  = "qwerty"
-    var pass    string  = "12345"
-    var state   string  = "undef"
-    var role    string  = "admin"
+    login := "qwerty"
 
-    err = reg.DeleteUserDescr(login)
+    descr1 := bscom.NewUserDescr()
+    descr1.Login  = login
+    descr1.Pass   = "12345"
+    descr1.State  = "undef"
+    descr1.Role   = "admin"
+
+    err = reg.EraseUserDescr(login)
     require.NoError(t, err)
 
-    err = reg.AddUserDescr(login, pass, state, role)
+    err = reg.AddUserDescr(descr1)
     require.NoError(t, err)
 
-    err = reg.AddUserDescr(login, pass, state, role)
+    err = reg.AddUserDescr(descr1)
     require.Error(t, err)
 
     exists, err := reg.UserDescrExists(login)
     require.NoError(t, err)
     require.Equal(t, true, exists)
 
-    user, err := reg.GetUserDescr(login)
+    descr2, err := reg.GetUserDescr(login)
     require.NoError(t, err)
-    require.Equal(t, login, user.Login)
-    require.Equal(t, pass, user.Pass)
-    require.Equal(t, role, user.Role)
+    require.Equal(t, descr1.Login, descr2.Login)
+    require.Equal(t, descr1.Pass, descr2.Pass)
+    require.Equal(t, descr1.Role, descr2.Role)
 
-    pass = "56789"
-    user.Pass = pass
+    descr2.Pass = "56789"
+    descr2.State = "disabled"
+    descr2.Role = "somerole"
 
-    state = "disabled"
-    user.State = state
-
-    role = "somerole"
-    user.Role = state
-
-    err = reg.RenewUserDescr(user)
+    err = reg.UpdateUserDescr(descr2)
     require.NoError(t, err)
 
-    err = reg.UpdateUserDescr(login, pass, state, role)
+    descr3, err := reg.GetUserDescr(login)
     require.NoError(t, err)
-
-    user, err = reg.GetUserDescr(login)
-    require.NoError(t, err)
-    require.NotNil(t, user)
-    require.Equal(t, login, user.Login)
-    require.Equal(t, pass, user.Pass)
-    require.Equal(t, role, user.Role)
+    require.NotNil(t, descr3)
+    require.Equal(t, descr2.Login, descr3.Login)
+    require.Equal(t, descr2.Pass, descr3.Pass)
+    require.Equal(t, descr2.Role, descr3.Role)
 
     wrongLogin := "foobar"
-    user, err = reg.GetUserDescr(wrongLogin)
+    descr4, err := reg.GetUserDescr(wrongLogin)
     require.Error(t, err)
-    require.NotNil(t, user)
+    require.NotNil(t, descr4)
 
-    err = reg.DeleteUserDescr(login)
+    err = reg.EraseUserDescr(login)
     require.NoError(t, err)
 
     _, err = reg.GetUserDescr(login)

@@ -21,32 +21,20 @@ const usersSchema = `
         ON users (login);`
 
 
-func (reg *Reg) AddUserDescr(login, pass, state, role string) error {
+
+func (reg *Reg) AddUserDescr(descr *bscom.UserDescr) error {
     var err error
     request := `
         INSERT INTO users(login, pass, state, role)
         VALUES ($1, $2, $3, $4);`
-    _, err = reg.db.Exec(request, login, pass, state, role)
+    _, err = reg.db.Exec(request, descr.Login, descr.Pass, descr.State, descr.Role)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
-    var err error
-    request := `
-        UPDATE users
-        SET pass = $1, state = $2, role = $3
-        WHERE login = $4;`
-    _, err = reg.db.Exec(request, pass, state, role, login)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    return dserr.Err(err)
-}
-
-func (reg *Reg) RenewUserDescr(descr *bscom.UserDescr) error {
+func (reg *Reg) UpdateUserDescr(descr *bscom.UserDescr) error {
     var err error
     request := `
         UPDATE users
@@ -123,7 +111,7 @@ func (reg *Reg) UserDescrExists(login string) (bool, error) {
     return exists, dserr.Err(err)
 }
 
-func (reg *Reg) DeleteUserDescr(login string) error {
+func (reg *Reg) EraseUserDescr(login string) error {
     var err error
     request := `
         DELETE FROM users
