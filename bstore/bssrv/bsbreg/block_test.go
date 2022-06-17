@@ -5,8 +5,8 @@ import (
     "path/filepath"
     "testing"
     "math/rand"
-
     "github.com/stretchr/testify/require"
+    "ndstore/dscom"
 )
 
 func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
@@ -25,39 +25,43 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     var blockId     int64   = 3
     var blockType   string  = "unk"
 
-    descr1 := dscom.NewBlockDescr()
+    descr0 := dscom.NewBlockDescr()
 
-    var uCounter    int64   = 1
-    var blockSize   int64   = 1024
-    var dataSize    int64   = 1123
-
-    var hashAlg     string  = "a2"
-    var hashInit    string  = "a3"
-    var hashSum     string  = "a4"
+    descr0.FileId      = fileId
+    descr0.BatchId     = batchId
+    descr0.BlockId     = blockId
+    descr0.BlockType   = blockType
 
 
-    var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
+    descr0.UCounter     = 1
+    descr0.BlockSize    = 1024
+    descr0.DataSize     = 1123
+
+    descr0.HashAlg       = "a2"
+    descr0.HashInit      = "a3"
+    descr0.HashSum       = "a4"
+    descr0.FilePath      = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
+
     var exists bool
     var used bool
 
-    err = reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath,
-                                                      blockType, hashAlg, hashInit, hashSum)
+    err = reg.AddBlockDescr(descr0)
     require.NoError(t, err)
 
-    err = reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath,
-                                                      blockType, hashAlg, hashInit, hashSum)
+    err = reg.AddBlockDescr(descr0)
     require.Error(t, err)
 
-    err = reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath,
-                                                      "hihihi", hashAlg, hashInit, hashSum)
+    descr7 := dscom.NewBlockDescr()
+    *descr7 = *descr0
+    descr7.BlockType = "hihihi"
+    require.NotEqual(t, descr7, descr0)
+    err = reg.AddBlockDescr(descr7)
     require.NoError(t, err)
-
 
     exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     require.NoError(t, err)
     require.Equal(t, used, true)
     require.Equal(t, exists, true)
-
 
     exists, used, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, "hohoho")
     require.NoError(t, err)
@@ -78,9 +82,8 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, exists, true)
     require.Equal(t, used, true)
-    require.Equal(t, filePath, nFileName)
-    require.Equal(t, dataSize, nDataSize)
-
+    require.Equal(t, descr0.FilePath, nFileName)
+    require.Equal(t, descr0.DataSize, nDataSize)
 
     err = reg.DecBlockDescrUC(fileId, batchId, blockId, blockType)
     require.NoError(t, err)
@@ -111,10 +114,11 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
 
     exists, used, nFileName, nDataSize, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
     require.NoError(t, err)
-    require.Equal(t, filePath, nFileName)
-    require.Equal(t, dataSize, nDataSize)
     require.Equal(t, exists, true)
     require.Equal(t, used, true)
+    require.Equal(t, descr0.FilePath, nFileName)
+    require.Equal(t, descr0.DataSize, nDataSize)
+
 
     err = reg.EraseBlockDescr(fileId, batchId, blockId, "hohoho")
     require.NoError(t, err)
@@ -148,23 +152,30 @@ func BenchmarkInsert(b *testing.B) {
 
     const numRange int = 1024
 
-    var blockType   string  = "a1"
-    var hashAlg     string  = "a2"
-    var hashInit    string  = "a3"
-    var hashSum     string  = "a4"
-    var uCounter    int64   = 1
-
-    var blockSize   int64   = 1024
-    var dataSize    int64   = 123
-
     pBench := func(pb *testing.PB) {
         for pb.Next() {
+
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = int64(rand.Intn(numRange))
             var blockId     int64   = int64(rand.Intn(numRange))
-            var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
-            err = reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath,
-                                                      blockType, hashAlg, hashInit, hashSum)
+            var blockType   string  = "unk"
+
+            descr0 := dscom.NewBlockDescr()
+
+            descr0.FileId      = fileId
+            descr0.BatchId     = batchId
+            descr0.BlockId     = blockId
+            descr0.BlockType   = blockType
+
+            descr0.UCounter     = 1
+            descr0.BlockSize    = 1024
+            descr0.DataSize     = 1123
+            descr0.HashAlg       = "a2"
+            descr0.HashInit      = "a3"
+            descr0.HashSum       = "a4"
+            descr0.FilePath      = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
+
+            err = reg.AddBlockDescr(descr0)
             require.NoError(b, err)
         }
     }
@@ -182,25 +193,31 @@ func BenchmarkSelect(b *testing.B) {
 
     err = reg.MigrateDB()
     require.NoError(b, err)
-    var hashAlg     string  = "a2"
-    var hashInit    string  = "a3"
-    var hashSum     string  = "a4"
-    var blockType   string  = "unk"
-
-    var uCounter int64 = 1
-
-    const numRange int = 1024 * 10
+    numRange := 1024
     var i int64
     for i = 0; i < int64(numRange); i++ {
-        var fileId      int64   = i
-        var batchId     int64   = 1
-        var blockId     int64   = 1
-        var blockSize   int64   = 1024
-        var dataSize    int64   = 123
-        var filePath    string  = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
-        err = reg.AddBlockDescr(fileId, batchId, blockId, uCounter, blockSize, dataSize, filePath,
-                                                      blockType, hashAlg, hashInit, hashSum)
 
+            var fileId      int64   = int64(rand.Intn(numRange))
+            var batchId     int64   = 1
+            var blockId     int64   = 1
+            var blockType   string  = "unk"
+
+            descr0 := dscom.NewBlockDescr()
+
+            descr0.FileId      = fileId
+            descr0.BatchId     = batchId
+            descr0.BlockId     = blockId
+            descr0.BlockType    = blockType
+
+            descr0.UCounter     = 1
+            descr0.BlockSize    = 1024
+            descr0.DataSize     = 1123
+            descr0.HashAlg       = "a2"
+            descr0.HashInit      = "a3"
+            descr0.HashSum       = "a4"
+            descr0.FilePath      = fmt.Sprintf("a/b/c/qwerty%020d", fileId)
+
+            err = reg.AddBlockDescr(descr0)
         require.NoError(b, err)
     }
 
@@ -211,6 +228,7 @@ func BenchmarkSelect(b *testing.B) {
             var fileId      int64   = int64(rand.Intn(numRange))
             var batchId     int64   = 1
             var blockId     int64   = 1
+            var blockType   string  = "unk"
             _, _, _, _, err = reg.GetBlockParams(fileId, batchId, blockId, blockType)
             require.NoError(b, err)
         }

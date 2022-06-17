@@ -32,10 +32,10 @@ func (reg *Reg) AddBlockDescr(descr *dscom.BlockDescr) error {
     var err error
     request := `
         INSERT INTO blocks(file_id, batch_id, block_id, u_counter, block_size, data_size,
-                                                    file_path, block_type, hash_alg, hash_init, hash_sum)
+                                file_path, block_type, hash_alg, hash_init, hash_sum)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`
     _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BlockId, descr.UCounter, descr.BlockSize, descr.DataSize,
-                                                    descr.FilePath, descr.BlockType, descr.HashAlg, descr.HashInit, descr.HashSum)
+                                descr.FilePath, descr.BlockType, descr.HashAlg, descr.HashInit, descr.HashSum)
     if err != nil {
         return dserr.Err(err)
     }

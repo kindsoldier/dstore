@@ -332,7 +332,6 @@ func (store *Store) ListBlocks() ([]*dscom.BlockDescr, error) {
     return blocks, dserr.Err(err)
 }
 
-
 func makeFilePath(fileId, batchId, blockId int64, blockType string) string {
     origin := fmt.Sprintf("%020d-%020d-%020d-%020d-%s", fileId, batchId, blockId, blockType)
     hasher := sha1.New()
