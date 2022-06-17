@@ -42,9 +42,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
 
     descr2, err := reg.GetUserDescr(login)
     require.NoError(t, err)
-    require.Equal(t, descr1.Login, descr2.Login)
-    require.Equal(t, descr1.Pass, descr2.Pass)
-    require.Equal(t, descr1.Role, descr2.Role)
+    require.Equal(t, descr1, descr2)
 
     descr2.Pass = "56789"
     descr2.State = "disabled"
@@ -56,9 +54,7 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     descr3, err := reg.GetUserDescr(login)
     require.NoError(t, err)
     require.NotNil(t, descr3)
-    require.Equal(t, descr2.Login, descr3.Login)
-    require.Equal(t, descr2.Pass, descr3.Pass)
-    require.Equal(t, descr2.Role, descr3.Role)
+    require.Equal(t, descr2, descr3)
 
     wrongLogin := "foobar"
     descr4, err := reg.GetUserDescr(wrongLogin)
