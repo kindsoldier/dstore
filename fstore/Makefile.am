@@ -7,33 +7,7 @@ OBJEXT= none
 sbin_PROGRAMS = fstored fstorecli
 fstored_SOURCES = fssrv/fsmain.go
 
-EXTRA_fstored_SOURCES = \
-	fssrv/fscont/user.go \
-	fssrv/fscont/comm_test.go \
-	fssrv/fscont/file_test.go \
-	fssrv/fscont/file.go \
-	fssrv/fscont/comm.go \
-	fssrv/fsrec/user.go \
-	fssrv/fsrec/file.go \
-	fssrv/fsrec/comm.go \
-	fssrv/fsrec/comm_test.go \
-	fssrv/fsrec/file_test.go \
-	fssrv/fsconf/fsconf.go.in \
-	fssrv/fsfile/file.go \
-	fssrv/fsfile/block.go \
-	fssrv/fsfile/batch_test.go \
-	fssrv/fsfile/file_test.go \
-	fssrv/fsfile/block_test.go \
-	fssrv/fsfile/batch.go \
-	fssrv/fsreg/users.go \
-	fssrv/fsreg/comm.go \
-	fssrv/fsreg/entries_test.go \
-	fssrv/fsreg/bstores_test.go \
-	fssrv/fsreg/entries.go \
-	fssrv/fsreg/bstores.go \
-	fssrv/fsreg/files_test.go \
-	fssrv/fsreg/users_test.go \
-	fssrv/fsreg/files.go
+EXTRA_fstored_SOURCES = 
 
 
 fstorecli_SOURCES = fscli/fscli.go

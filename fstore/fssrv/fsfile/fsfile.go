@@ -6,6 +6,7 @@ import (
     "ndstore/fstore/fssrv/fsreg"
     "ndstore/dscom"
     "ndstore/dserr"
+    "ndstore/dslog"
 )
 
 type File struct {
@@ -78,6 +79,13 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
     var err error
     var written int64
 
+    updater := func() {
+        file.fileSize += written
+        dslog.LogDebug("file size", file.fileSize)
+        file.updateFileDescr()
+    }
+    defer updater()
+
     for i := range file.batchs {
         if need < 1 {
             return written, io.EOF
@@ -99,7 +107,6 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
             return written, dserr.Err(err)
         }
         file.batchs = append(file.batchs, batch)
-        err = file.updateFileDescr()
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -109,11 +116,6 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
             return written, dserr.Err(err)
         }
         need -= batchWritten
-    }
-    file.fileSize += written
-    err = file.updateFileDescr()
-    if err != nil {
-        return written, dserr.Err(err)
     }
     return written, dserr.Err(err)
 }
@@ -192,6 +194,7 @@ func (file *File) toDescr() *dscom.FileDescr {
     descr.FileId    = file.fileId
     descr.BatchSize = file.batchSize
     descr.BlockSize = file.blockSize
+    descr.FileSize  = file.fileSize
     descr.BatchCount = file.batchCount()
     return descr
 }

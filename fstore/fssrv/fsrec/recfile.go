@@ -99,7 +99,7 @@ func (store *Store) FileExists(userName string, filePath string) (bool, int64, e
     if err != nil {
         return exists, fileSize, dserr.Err(err)
     }
-    exists, _, err = store.reg.GetFileDescr(entry.FileId)
+    exists, fileDescr, err := store.reg.GetFileDescr(entry.FileId)
     if err != nil {
         return exists, fileSize, dserr.Err(err)
     }

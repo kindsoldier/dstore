@@ -5,6 +5,7 @@
 package fdcont
 
 import (
+    "errors"
     "io"
     "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
@@ -58,11 +59,17 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
         return dserr.Err(err)
     }
 
-    fileSize, err := contr.store.FileExists(userName, filePath)
+    exists, fileSize, err := contr.store.FileExists(userName, filePath)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
     }
+    if !exists {
+        err = errors.New("file not exists")
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+
     result := fsapi.NewLoadFileResult()
     err = context.SendResult(result, fileSize)
     if err != nil {
