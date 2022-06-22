@@ -4,7 +4,7 @@ import (
     "math/rand"
     "testing"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
@@ -15,32 +15,32 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     var fileId      int64 = int64(rand.Intn(1024))
     var userId      int64 = 8
 
-    dbPath := "postgres://pgsql@localhost/test"
+    dbPath := "postgres://test@localhost/test"
     reg := NewReg()
 
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.DeleteEntryDescr(userId, dirPath, fileName)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.AddEntryDescr(userId, dirPath, fileName, fileId)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     exists, err := reg.EntryDescrExists(userId, dirPath, fileName)
-    assert.NoError(t, err)
-    assert.Equal(t, true, exists)
+    require.NoError(t, err)
+    require.Equal(t, true, exists)
 
     entry, err := reg.GetEntryDescr(userId, dirPath, fileName)
-    assert.NoError(t, err)
-    assert.Equal(t, fileId, entry.FileId)
+    require.NoError(t, err)
+    require.Equal(t, fileId, entry.FileId)
 
     err = reg.DeleteEntryDescr(userId, dirPath, fileName)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }

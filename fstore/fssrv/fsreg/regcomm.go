@@ -51,19 +51,27 @@ func (reg *Reg) MigrateDB() error {
     if reg.db == nil {
         return ErrorNilRef
     }
-    _, err = reg.db.Exec(filesSchema)
+    _, err = reg.db.Exec(blockSchema)
     if err != nil {
         return dserr.Err(err)
     }
-    _, err = reg.db.Exec(entriesSchema)
+    _, err = reg.db.Exec(batchSchema)
     if err != nil {
         return dserr.Err(err)
     }
-    _, err = reg.db.Exec(bstoresSchema)
+    _, err = reg.db.Exec(fileSchema)
     if err != nil {
         return dserr.Err(err)
     }
-    _, err = reg.db.Exec(usersSchema)
+    _, err = reg.db.Exec(entrieSchema)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    _, err = reg.db.Exec(bstoreSchema)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    _, err = reg.db.Exec(userSchema)
     if err != nil {
         return dserr.Err(err)
     }

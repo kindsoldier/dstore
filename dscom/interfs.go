@@ -5,11 +5,24 @@
 package dscom
 
 import (
-    //"io"
-    "os"
+    "io"
 )
+type IFileSender interface {
+}
 
-type IBSPool interface {
-    SaveBlock(fileId, batchId, blockId, blockSize int64, blockReader *os.File, dataSize int64,
-                                    blockType, hashAlg, hashInit, hashSum string) (int64, error)
+type IFileReg interface {
+}
+
+type IBatch interface {
+    Read(writer io.Writer) (int64, error)
+    Write(reader io.Reader, need int64) (int64, error)
+    Clean() error
+    Close() error
+}
+
+type IBlock interface {
+    Read(writer io.Writer) (int64, error)
+    Write(reader io.Reader, need int64) (int64, error)
+    Clean() error
+    Close() error
 }

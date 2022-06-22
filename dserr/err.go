@@ -13,8 +13,9 @@ func SetDevelMode(mode bool) {
 }
 
 func Err(err error) error {
-    if err == io.EOF {
-        return err
+    switch err {
+        case io.EOF:
+            return err
     }
     if err != nil {
         switch {

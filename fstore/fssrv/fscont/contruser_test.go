@@ -6,7 +6,7 @@ package fdcont
 
 import (
     "testing"
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
@@ -22,16 +22,16 @@ func Test_User_AddCheckDelete(t *testing.T) {
     dbPath := "postgres://pgsql@localhost/test"
     reg := fsreg.NewReg()
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     model := fsrec.NewStore(rootDir, reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = model.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     contr := NewContr(model)
 
@@ -42,15 +42,15 @@ func Test_User_AddCheckDelete(t *testing.T) {
     addParams.Pass     = "123456"
     addResult := fsapi.NewAddUserResult()
     err = dsrpc.LocalExec(fsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     checkParams := fsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"
     checkParams.Pass     = "123456"
     checkResult := fsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, true, checkResult.Match)
+    require.NoError(t, err)
+    require.Equal(t, true, checkResult.Match)
 
 
     addParams = fsapi.NewAddUserParams()
@@ -58,14 +58,14 @@ func Test_User_AddCheckDelete(t *testing.T) {
     addParams.Pass     = "123456xx"
     addResult = fsapi.NewAddUserResult()
     err = dsrpc.LocalExec(fsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.Error(t, err)
+    require.Error(t, err)
 
     addParams = fsapi.NewAddUserParams()
     addParams.Login    = "йцукен"
     addParams.Pass     = "567890"
     addResult = fsapi.NewAddUserResult()
     err = dsrpc.LocalExec(fsapi.AddUserMethod, addParams, addResult, auth, contr.AddUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 
     checkParams = fsapi.NewCheckUserParams()
@@ -73,32 +73,32 @@ func Test_User_AddCheckDelete(t *testing.T) {
     checkParams.Pass     = "123456XXX"
     checkResult = fsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.NoError(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     checkParams = fsapi.NewCheckUserParams()
     checkParams.Login    = "qwertyXXX"
     checkParams.Pass     = "123456"
     checkResult = fsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.Error(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.Error(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     deleteParams := fsapi.NewDeleteUserParams()
     deleteParams.Login    = "qwerty"
     deleteResult := fsapi.NewDeleteUserResult()
     err = dsrpc.LocalExec(fsapi.DeleteUserMethod, deleteParams, deleteResult, auth, contr.DeleteUserHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     checkParams = fsapi.NewCheckUserParams()
     checkParams.Login    = "qwerty"
     checkParams.Pass     = "123456"
     checkResult = fsapi.NewCheckUserResult()
     err = dsrpc.LocalExec(fsapi.CheckUserMethod, checkParams, checkResult, auth, contr.CheckUserHandler)
-    assert.Error(t, err)
-    assert.Equal(t, false, checkResult.Match)
+    require.Error(t, err)
+    require.Equal(t, false, checkResult.Match)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
 }

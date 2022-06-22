@@ -8,8 +8,8 @@ import (
     "io"
     "path/filepath"
 
-    "ndstore/dscom"
     "ndstore/fstore/fssrv/fsfile"
+    "ndstore/dscom"
     "ndstore/dserr"
 )
 
@@ -23,32 +23,19 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
         return dserr.Err(err)
     }
 
-    fileId, err := store.reg.GetNewFileId()
-    if err != nil {
-        return dserr.Err(err)
-    }
-
     const batchSize   int64 = 5
-    const blockSize   int64 = 1 * 1024 * 1024
+    const blockSize   int64 = 1024 * 1024
 
-    file := fsfile.NewFile(store.dataRoot, fileId, batchSize, blockSize)
-    err = file.Open()
+    fileId, file, err := fsfile.NewFile(store.reg, store.dataRoot, batchSize, blockSize)
     defer file.Close()
     if err != nil {
         return dserr.Err(err)
     }
-    _, err = file.Lwrite(fileReader, fileSize)
+    _, err = file.Write(fileReader, fileSize)
     if err != nil && err != io.EOF {
         return dserr.Err(err)
     }
-    meta, err := file.Meta()
-    if err != nil {
-        return dserr.Err(err)
-    }
-    err = store.reg.AddFileDescr(meta)
-    if err != nil {
-        return dserr.Err(err)
-    }
+
     dirPath, fileName := pathSplit(filePath)
 
     err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
@@ -56,42 +43,69 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
         return dserr.Err(err)
     }
 
-    pool := NewBSPool(store.reg)
-    err = pool.LoadPool()
+    err = file.Close()
     if err != nil {
         return dserr.Err(err)
     }
 
-    err = file.Save(pool)
-    if err != nil {
-        return dserr.Err(err)
-    }
+    //meta, err = store.reg.GetFileDescr(fileId)
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
+
+    //file = fsfile.RenewFile(store.dataRoot, meta)
+    //err = file.Open()
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
+
+    //pool := NewBSPool(store.reg)
+    //err = pool.LoadPool()
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
+
+    //err = file.Save(pool)
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
+
+    //meta, err = file.Meta()
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
+
+    //err = store.reg.UpdateFileDescr(meta)
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
 
     return dserr.Err(err)
 }
 
-func (store *Store) FileExists(userName string, filePath string) (int64, error) {
+func (store *Store) FileExists(userName string, filePath string) (bool, int64, error) {
     var err error
     var fileSize int64
+    var exists bool
 
     userId, err := store.reg.GetUserId(userName)
     if err != nil {
-        return fileSize, dserr.Err(err)
+        return exists, fileSize, dserr.Err(err)
     }
 
     dirPath, fileName := pathSplit(filePath)
 
     entry, err := store.reg.GetEntryDescr(userId, dirPath, fileName)
     if err != nil {
-        return fileSize, dserr.Err(err)
+        return exists, fileSize, dserr.Err(err)
     }
-    fileMeta, err := store.reg.GetFileDescr(entry.FileId)
+    exists, _, err = store.reg.GetFileDescr(entry.FileId)
     if err != nil {
-        return fileSize, dserr.Err(err)
+        return exists, fileSize, dserr.Err(err)
     }
-    fileSize = fileMeta.FileSize
+    fileSize = fileDescr.FileSize
 
-    return fileSize, dserr.Err(err)
+    return exists, fileSize, dserr.Err(err)
 }
 
 func (store *Store) LoadFile(userName string, filePath string, fileWriter io.Writer) error {
@@ -101,19 +115,12 @@ func (store *Store) LoadFile(userName string, filePath string, fileWriter io.Wri
     if err != nil {
         return dserr.Err(err)
     }
-
     dirPath, fileName := pathSplit(filePath)
-
     entry, err := store.reg.GetEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return dserr.Err(err)
     }
-    meta, err := store.reg.GetFileDescr(entry.FileId)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    file := fsfile.RenewFile(store.dataRoot, meta)
-    err = file.Open()
+    file, err := fsfile.OpenFile(store.reg, store.dataRoot, entry.FileId)
     defer file.Close()
     if err != nil {
         return dserr.Err(err)
@@ -139,25 +146,16 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
         return dserr.Err(err)
     }
     fileId := entry.FileId
-    meta, err := store.reg.GetFileDescr(fileId)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    file := fsfile.RenewFile(store.dataRoot, meta)
-    err = file.Open()
+    file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
     defer file.Close()
     if err != nil {
         return dserr.Err(err)
     }
-    err = file.Purge()
-    if err != nil {
-        return dserr.Err(err)
-    }
+    //err = file.Purge()
+    //if err != nil {
+    //    return dserr.Err(err)
+    //}
     err = store.reg.DeleteEntryDescr(userId, dirPath, fileName)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    err = store.reg.DeleteFileDescr(fileId)
     if err != nil {
         return dserr.Err(err)
     }

@@ -5,7 +5,7 @@ import (
     "math/rand"
     "testing"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
@@ -23,16 +23,16 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     reg := fsreg.NewReg()
 
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := fsrec.NewStore(t.TempDir(), reg)
     contr := NewContr(store)
 
     err = store.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     auth := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
 
@@ -48,7 +48,7 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     size := int64(len(data))
 
     err = dsrpc.LocalPut(fsapi.SaveFileMethod, reader, size, saveParams, saveResult, auth, contr.SaveFileHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
@@ -57,16 +57,16 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     loadResult := fsapi.NewLoadFileResult()
 
     err = dsrpc.LocalGet(fsapi.LoadFileMethod, writer, loadParams, loadResult, auth, contr.LoadFileHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, len(data), len(writer.Bytes()))
-    assert.Equal(t, data, writer.Bytes())
+    require.NoError(t, err)
+    require.Equal(t, len(data), len(writer.Bytes()))
+    require.Equal(t, data, writer.Bytes())
 
     listParams := fsapi.NewListFilesParams()
     listParams.DirPath = "../../aaaa/"
     listResult := fsapi.NewListFilesResult()
 
     err = dsrpc.LocalExec(fsapi.ListFilesMethod, listParams, listResult, auth, contr.ListFilesHandler)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     for _, entry := range listResult.Entries {
         fmt.Println(entry.DirPath, entry.FileName)
@@ -75,8 +75,8 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     //deleteParams.FilePath = "qwert.txt"
     //deleteResult := fsapi.NewDeleteFileResult()
     //err = dsrpc.LocalExec(fsapi.DeleteFileMethod, deleteParams, deleteResult, auth, contr.DeleteFileHandler)
-    //assert.NoError(t, err)
+    //require.NoError(t, err)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }

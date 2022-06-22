@@ -2,7 +2,7 @@ package fdcont
 
 import (
     "testing"
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/fstore/fsapi"
     "ndstore/fstore/fssrv/fsrec"
@@ -17,9 +17,9 @@ func Test_File_Hello(t *testing.T) {
     dbPath := "postgres://pgsql@localhost/test"
     reg := fsreg.NewReg()
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := fsrec.NewStore(t.TempDir(), reg)
     contr := NewContr(store)
@@ -29,9 +29,9 @@ func Test_File_Hello(t *testing.T) {
     params.Message = GetHelloMsg
     result := fsapi.NewGetHelloResult()
     err = dsrpc.LocalExec(fsapi.GetHelloMethod, params, result, nil, contr.GetHelloHandler)
-    assert.NoError(t, err)
-    assert.Equal(t, helloResp, result.Message)
+    require.NoError(t, err)
+    require.Equal(t, helloResp, result.Message)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }

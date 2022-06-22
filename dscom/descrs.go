@@ -53,13 +53,13 @@ type FileDescr struct {
     FileId      int64       `json:"fileId"      db:"file_id"`
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
+    BatchCount  int64       `json:"batchCount"  db:"batch_count"`
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
-    Batchs      []*BatchDescr  `json:"batchs"   db:"-"`
+    FileSize    int64       `json:"fileSize"    db:"file_size"`
 }
 
 func NewFileDescr() *FileDescr {
     var file FileDescr
-    file.Batchs = make([]*BatchDescr, 0)
     return &file
 }
 
@@ -68,12 +68,10 @@ type BatchDescr struct {
     BatchId     int64       `json:"batchId"     db:"batch_id"`
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
-    Blocks      []*BlockDescr  `json:"blocks"   db:"-"`
 }
 
 func NewBatchDescr() *BatchDescr {
     var batch BatchDescr
-    batch.Blocks = make([]*BlockDescr, 0)
     return &batch
 }
 
@@ -96,10 +94,12 @@ type BlockDescr struct {
     HashSum     string      `json:"hashSum"     db:"hash_sum"`
     HashInit    string      `json:"hashInit"    db:"hash_init"`
 
-    FStoreId    int64       `json:"fstoreId"    db:"fstore_id"`
-    BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
     SavedLoc    bool        `json:"savedLoc"    db:"saved_loc"`
     SavedRem    bool        `json:"savedRem"    db:"saved_rem"`
+    LocUpdated  bool        `json:"locUpdated"  db:"loc_updated"`
+
+    FStoreId    int64       `json:"fstoreId"    db:"fstore_id"`
+    BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
 }
 
 func NewBlockDescr() *BlockDescr {

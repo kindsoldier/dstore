@@ -29,11 +29,24 @@ func (store *Store) SeedUsers() error {
         return dserr.Err(err)
     }
     if len(users) < 1 {
-        _, err = store.reg.AddUserDescr(defaultAUser, defaultAPass, UStateEnabled, URoleAdmin)
+        var userDescr *dscom.UserDescr
+        userDescr = dscom.NewUserDescr()
+        userDescr.Login = defaultAUser
+        userDescr.Pass  = defaultAPass
+        userDescr.State = UStateEnabled
+        userDescr.Role  = URoleAdmin
+
+        _, err = store.reg.AddUserDescr(userDescr)
         if err != nil {
             return dserr.Err(err)
         }
-        _, err = store.reg.AddUserDescr(defaultUser, defaultPass, UStateEnabled, URoleUser)
+        userDescr = dscom.NewUserDescr()
+        userDescr.Login = defaultUser
+        userDescr.Pass  = defaultPass
+        userDescr.State = UStateEnabled
+        userDescr.Role  = URoleAdmin
+
+        _, err = store.reg.AddUserDescr(userDescr)
         if err != nil {
             return dserr.Err(err)
         }
@@ -58,7 +71,13 @@ func (store *Store) AddUser(userName, login, pass string) error {
     if !ok {
         return dserr.Err(err)
     }
-    _, err = store.reg.AddUserDescr(login, pass, UStateEnabled, URoleAdmin)
+
+    userDescr := dscom.NewUserDescr()
+    userDescr.Login = login
+    userDescr.Pass  = pass
+    userDescr.State = UStateEnabled
+    userDescr.Role  = URoleUser
+    _, err = store.reg.AddUserDescr(userDescr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -165,7 +184,7 @@ func (store *Store) UpdateUser(userName, login, newPass, newRole, newState strin
     }
 
     // Update user profile
-    err = store.reg.RenewUserDescr(newUserDescr)
+    err = store.reg.UpdateUserDescr(newUserDescr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -199,7 +218,7 @@ func (store *Store) DeleteUser(userName string, login string) error {
         return dserr.Err(err)
     }
 
-    err = store.reg.DeleteUserDescr(login)
+    err = store.reg.EraseUserDescr(login)
     if err != nil {
         return dserr.Err(err)
     }

@@ -30,13 +30,21 @@ func init() {
     logrus.SetFormatter(new(logFormatter))
 }
 
+func SetDebugMode(debugMode bool) {
+    if debugMode {
+        logrus.SetLevel(logrus.DebugLevel)
+        return
+    }
+    logrus.SetLevel(logrus.ErrorLevel)
+}
+
 func SetLevel(level int) error {
     var err error
     switch level {
         case DebugLevel:
             logrus.SetLevel(logrus.DebugLevel)
         case ErrorLevel:
-            logrus.SetLevel(logrus.DebugLevel)
+            logrus.SetLevel(logrus.ErrorLevel)
         default:
             return errors.New("wrong log level")
     }

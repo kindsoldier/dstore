@@ -6,7 +6,7 @@ package fsrec
 
 import (
     "testing"
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/fstore/fssrv/fsreg"
 )
@@ -19,33 +19,36 @@ func Test_User_AddCheckDelete(t *testing.T) {
     dbPath := "postgres://pgsql@localhost/test"
     reg := fsreg.NewReg()
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     model := NewStore(rootDir, reg)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = model.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     login   := "qwerty"
     pass    := "1234567"
     userName := "admin"
+
+    err = model.DeleteUser(userName, login)
+    require.NoError(t, err)
+
     err = model.AddUser(userName, login, pass)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     user, err := model.GetUser(login)
-    assert.NoError(t, err)
-    assert.Equal(t, login, user.Login)
-    assert.Equal(t, pass, user.Pass)
+    require.NoError(t, err)
+    require.Equal(t, login, user.Login)
+    require.Equal(t, pass, user.Pass)
 
     ok, err := model.CheckUser(userName, login, pass)
-    assert.NoError(t, err)
-    assert.Equal(t, true, ok)
-
+    require.NoError(t, err)
+    require.Equal(t, true, ok)
 
     err = reg.CloseDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }

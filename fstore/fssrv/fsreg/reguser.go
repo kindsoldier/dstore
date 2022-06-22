@@ -8,28 +8,28 @@ import (
     "ndstore/dserr"
 )
 
-const usersSchema = `
-    DROP TABLE IF EXISTS users;
-    CREATE TABLE IF NOT EXISTS users (
+const userSchema = `
+    DROP TABLE IF EXISTS fs_users;
+    CREATE TABLE IF NOT EXISTS fs_users (
         user_id     INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE ),
         login       TEXT,
         pass        TEXT,
         state       TEXT,
         role        TEXT
     );
-    DROP INDEX IF EXISTS user_idx;
-    CREATE UNIQUE INDEX IF NOT EXISTS user_idx
-        ON users (login);`
+    DROP INDEX IF EXISTS fs_user_idx;
+    CREATE UNIQUE INDEX IF NOT EXISTS fs_user_idx
+        ON fs_users(login);`
 
 
-func (reg *Reg) AddUserDescr(login, pass, state, role string) (int64, error) {
+func (reg *Reg) AddUserDescr(descr *dscom.UserDescr) (int64, error) {
     var err error
     request := `
-        INSERT INTO users(login, pass, state, role)
+        INSERT INTO fs_users(login, pass, state, role)
         VALUES ($1, $2, $3, $4)
         RETURNING user_id;`
     var userId int64
-    err = reg.db.Get(&userId, request, login, pass, state, role)
+    err = reg.db.Get(&userId, request, descr.Login, descr.Pass, descr.State, descr.Role)
     if err != nil {
         return userId, dserr.Err(err)
     }
@@ -41,7 +41,7 @@ func (reg *Reg) UserDescrExists(login string) (bool, error) {
     var exists bool
     request := `
         SELECT count(user_id) AS count
-        FROM users
+        FROM fs_users
         WHERE login = $1
         LIMIT 1;`
     var count int64
@@ -59,7 +59,7 @@ func (reg *Reg) GetUserDescr(login string) (*dscom.UserDescr, error) {
     var err error
     request := `
         SELECT user_id, login, pass, state, role
-        FROM users
+        FROM fs_users
         WHERE login = $1
         LIMIT 1;`
     user := dscom.NewUserDescr()
@@ -74,7 +74,7 @@ func (reg *Reg) GetUserId(login string) (int64, error) {
     var err error
     request := `
         SELECT user_id
-        FROM users
+        FROM fs_users
         WHERE login = $1
         LIMIT 1;`
     var userId int64
@@ -89,7 +89,7 @@ func (reg *Reg) GetUserRole(login string) (string, error) {
     var err error
     request := `
         SELECT role
-        FROM users
+        FROM fs_users
         WHERE login = $1
         LIMIT 1;`
     var role string
@@ -100,24 +100,10 @@ func (reg *Reg) GetUserRole(login string) (string, error) {
     return role, dserr.Err(err)
 }
 
-
-func (reg *Reg) UpdateUserDescr(login, pass, state, role string) error {
+func (reg *Reg) UpdateUserDescr(descr *dscom.UserDescr) error {
     var err error
     request := `
-        UPDATE users
-        SET login = $1, pass = $2, state = $3, role = $4
-        WHERE login = $1;`
-    _, err = reg.db.Exec(request, login, pass, state, role)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    return dserr.Err(err)
-}
-
-func (reg *Reg) RenewUserDescr(descr *dscom.UserDescr) error {
-    var err error
-    request := `
-        UPDATE users
+        UPDATE fs_users
         SET login = $1, pass = $2, state = $3, role = $4
         WHERE user_id = $5;`
     _, err = reg.db.Exec(request, descr.Login, descr.Pass, descr.State, descr.Role, descr.UserId)
@@ -127,10 +113,10 @@ func (reg *Reg) RenewUserDescr(descr *dscom.UserDescr) error {
     return dserr.Err(err)
 }
 
-func (reg *Reg) DeleteUserDescr(login string) error {
+func (reg *Reg) EraseUserDescr(login string) error {
     var err error
     request := `
-        DELETE FROM users
+        DELETE FROM fs_users
         WHERE login = $1;`
     _, err = reg.db.Exec(request, login)
     if err != nil {
@@ -143,7 +129,7 @@ func (reg *Reg) ListUserDescrs() ([]*dscom.UserDescr, error) {
     var err error
     request := `
         SELECT user_id, login, pass, state, role
-        FROM users;`
+        FROM fs_users;`
     users := make([]*dscom.UserDescr, 0)
     err = reg.db.Select(&users, request)
     if err != nil {

@@ -10,7 +10,7 @@ import (
     "math/rand"
     "testing"
 
-    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 
     "ndstore/fstore/fssrv/fsreg"
 )
@@ -25,18 +25,18 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     reg := fsreg.NewReg()
 
     err = reg.OpenDB(dbPath)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = reg.MigrateDB()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     store := NewStore(baseDir, reg)
 
     err = store.SeedUsers()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     err = store.SeedBStores()
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
     fileName := "qwerty.txt"
 
@@ -47,18 +47,22 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     dataSize := int64(len(data))
 
     userName := "admin"
-    err = store.SaveFile(userName, fileName, reader, dataSize)
-    assert.NoError(t, err)
 
-    return
+    //err = store.DeleteFile(userName, fileName)
+    //require.NoError(t, err)
+
+    err = store.SaveFile(userName, fileName, reader, dataSize)
+    require.NoError(t, err)
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
     err = store.LoadFile(userName, fileName, writer)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 
-    assert.Equal(t, data, writer.Bytes())
+    require.Equal(t, data, writer.Bytes())
+
+    return
 
     err = store.DeleteFile(userName, fileName)
-    assert.NoError(t, err)
+    require.NoError(t, err)
 }
