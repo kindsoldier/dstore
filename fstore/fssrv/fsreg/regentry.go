@@ -10,7 +10,7 @@ import (
 
 
 const entrieSchema = `
-    DROP TABLE IF EXISTS fs_entries;
+    --- DROP TABLE IF EXISTS fs_entries;
     CREATE TABLE IF NOT EXISTS fs_entries (
         entry_id   INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE),
         user_id    INTEGER,
@@ -18,7 +18,7 @@ const entrieSchema = `
         dir_path   TEXT,
         file_name  TEXT
     );
-    DROP INDEX IF EXISTS fs_entry_idx;
+    --- DROP INDEX IF EXISTS fs_entry_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_entry_idx
         ON fs_entries(user_id, dir_path, file_name);
     `

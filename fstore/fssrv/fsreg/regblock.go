@@ -9,7 +9,7 @@ import (
 )
 
 const blockSchema = `
-    DROP TABLE IF EXISTS fs_blocks;
+    --- DROP TABLE IF EXISTS fs_blocks;
     CREATE TABLE IF NOT EXISTS fs_blocks (
         file_id         INTEGER,
         batch_id        INTEGER,
@@ -27,7 +27,7 @@ const blockSchema = `
         saved_loc       BOOL,
         loc_updated     BOOL
     );
-    DROP INDEX IF EXISTS fs_block_idx;
+    --- DROP INDEX IF EXISTS fs_block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_block_idx
         ON fs_blocks(file_id, batch_id, block_id, block_type);`
 
@@ -114,6 +114,24 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     }
     return blocks, dserr.Err(err)
 }
+
+func (reg *Reg) ListBlockDescrsByFileId(fileId int64) ([]*dscom.BlockDescr, error) {
+    var err error
+    blocks := make([]*dscom.BlockDescr, 0)
+    request := `
+        SELECT file_id, batch_id, block_id, block_size, data_size,
+                                    file_path, block_type, hash_alg, hash_init, hash_sum,
+                                    fstore_id, bstore_id, saved_loc, saved_rem, loc_updated
+        FROM fs_blocks
+        WHERE file_id = $1;`
+    err = reg.db.Select(&blocks, request, fileId)
+    if err != nil {
+        return blocks, dserr.Err(err)
+    }
+    return blocks, dserr.Err(err)
+}
+
+
 
 func (reg *Reg) EraseBlockDescr(fileId, batchId, blockId int64, blockType string) error {
     var err error

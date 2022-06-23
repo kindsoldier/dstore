@@ -9,14 +9,14 @@ import (
 )
 
 const batchSchema = `
-    DROP TABLE IF EXISTS fs_batchs;
+    --- DROP TABLE IF EXISTS fs_batchs;
     CREATE TABLE IF NOT EXISTS fs_batchs (
         file_id         INTEGER,
         batch_id        INTEGER,
         batch_size      INTEGER,
         block_size      INTEGER
     );
-    DROP INDEX IF EXISTS fs_batch_idx;
+    --- DROP INDEX IF EXISTS fs_batch_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_batch_idx
         ON fs_batchs(file_id, batch_id);`
 
@@ -68,7 +68,7 @@ func (reg *Reg) GetBatchDescr(fileId, batchId int64) (bool, *dscom.BatchDescr, e
 }
 
 
-func (reg *Reg) ListBatchDescrs(fileId int64) ([]*dscom.BatchDescr, error) {
+func (reg *Reg) ListBatchDescrsByFileId(fileId int64) ([]*dscom.BatchDescr, error) {
     var err error
     batchs := make([]*dscom.BatchDescr, 0)
     request := `
@@ -82,6 +82,7 @@ func (reg *Reg) ListBatchDescrs(fileId int64) ([]*dscom.BatchDescr, error) {
     }
     return batchs, dserr.Err(err)
 }
+
 
 func (reg *Reg) EraseBatchDescr(fileId, batchId int64) error {
     var err error

@@ -5,19 +5,21 @@ import (
     "io"
     "ndstore/dscom"
     "ndstore/dserr"
-    "ndstore/fstore/fssrv/fsreg"
 )
 
 type Batch struct {
-    reg         *fsreg.Reg
+    reg         dscom.IFSReg
     baseDir     string
     fileId      int64
     batchId     int64
     batchSize   int64
     blocks      []*Block
+
+    batchIsErased   bool
+    openWOerror    bool
 }
 
-func NewBatch(reg *fsreg.Reg, baseDir string, fileId, batchId, batchSize, blockSize int64) (*Batch, error) {
+func NewBatch(reg dscom.IFSReg, baseDir string, fileId, batchId, batchSize, blockSize int64) (*Batch, error) {
     var batch Batch
     var err error
     batch.reg       = reg
@@ -41,10 +43,11 @@ func NewBatch(reg *fsreg.Reg, baseDir string, fileId, batchId, batchSize, blockS
         }
         batch.blocks[i] = block
     }
+    batch.openWOerror = true
     return &batch, dserr.Err(err)
 }
 
-func OpenBatch(reg *fsreg.Reg, baseDir string, fileId, batchId int64) (*Batch, error) {
+func OpenBatch(reg dscom.IFSReg, baseDir string, fileId, batchId int64) (*Batch, error) {
     var err error
     var batch Batch
     exists, descr, err := reg.GetBatchDescr(fileId, batchId)
@@ -73,13 +76,23 @@ func OpenBatch(reg *fsreg.Reg, baseDir string, fileId, batchId int64) (*Batch, e
         }
         batch.blocks[i] = block
     }
+    batch.openWOerror = true
     return &batch, dserr.Err(err)
 }
 
 func (batch *Batch) Write(reader io.Reader, need int64) (int64, error) {
     var err error
     var written int64
-    for i := int64(0); i < batch.batchSize; i++ {
+    if !batch.openWOerror {
+        err = errors.New("batch opened with error")
+        return written, dserr.Err(err)
+    }
+    if batch.batchIsErased {
+        err = errors.New("batch is erased")
+        return written, dserr.Err(err)
+    }
+
+    for i := 0; i < batch.countBlocks(); i++ {
         if need < 1 {
             return written, err
         }
@@ -101,7 +114,15 @@ func (batch *Batch) Write(reader io.Reader, need int64) (int64, error) {
 func (batch *Batch) Read(writer io.Writer) (int64, error) {
     var err error
     var read int64
-    for i := int64(0); i < batch.batchSize; i++ {
+    if !batch.openWOerror {
+        err = errors.New("batch opened with error")
+        return read, dserr.Err(err)
+    }
+    if batch.batchIsErased {
+        err = errors.New("batch is erased")
+        return read, dserr.Err(err)
+    }
+    for i := 0; i < batch.countBlocks(); i++ {
         blockRead, err := batch.blocks[i].Read(writer)
         read += blockRead
         if err != nil {
@@ -113,10 +134,15 @@ func (batch *Batch) Read(writer io.Writer) (int64, error) {
 
 func (batch *Batch) Close() error {
     var err error
-    for i := int64(0); i < batch.batchSize; i++ {
-        err := batch.blocks[i].Close()
-        if err != nil {
-            return dserr.Err(err)
+    if batch.batchIsErased {
+        return dserr.Err(err)
+    }
+    if batch.openWOerror {
+        for i := 0; i < batch.countBlocks(); i++ {
+            err := batch.blocks[i].Close()
+            if err != nil {
+                return dserr.Err(err)
+            }
         }
     }
     return dserr.Err(err)
@@ -135,20 +161,26 @@ func (batch *Batch) Close() error {
 
 func (batch *Batch) Erase() error {
     var err error
-    for i := int64(0); i < batch.batchSize; i++ {
-        err := batch.blocks[i].Erase()
-        if err != nil {
-            return dserr.Err(err)
+    for i := 0; i < batch.countBlocks(); i++ {
+        if batch.blocks != nil {
+            err := batch.blocks[i].Erase()
+            if err != nil {
+                return dserr.Err(err)
+            }
         }
     }
-    batch.blocks = make([]*Block, batch.batchSize)
+    batch.blocks = make([]*Block, 0)
     err = batch.reg.EraseBatchDescr(batch.fileId, batch.batchId)
     if err != nil {
         return dserr.Err(err)
     }
+    batch.batchIsErased = true
     return dserr.Err(err)
 }
 
+func (batch *Batch) countBlocks() int {
+    return len(batch.blocks)
+}
 
 func (batch *Batch) addBatchDescr() error {
     descr := batch.toDescr()

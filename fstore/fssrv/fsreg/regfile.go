@@ -10,7 +10,7 @@ import (
 
 
 const fileSchema = `
-    DROP TABLE IF EXISTS fs_files;
+    --- DROP TABLE IF EXISTS fs_files;
     CREATE TABLE IF NOT EXISTS fs_files (
         file_id         INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE ),
         batch_size      INTEGER,
@@ -19,7 +19,7 @@ const fileSchema = `
         u_counter       INTEGER,
         file_size       INTEGER
     );
-    DROP INDEX IF EXISTS fs_file_idx;
+    --- DROP INDEX IF EXISTS fs_file_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_file_idx
         ON fs_files(file_id);`
 
@@ -42,9 +42,9 @@ func (reg *Reg) AddFileDescr(descr *dscom.FileDescr) (int64, error) {
 func (reg *Reg) UpdateFileDescr(descr *dscom.FileDescr) error {
     var err error
     request := `
-        UPDATE fs_files SET batch_size = $1, block_size = $2, u_counter = $3, batch_count = $4, file_size = $5
-        WHERE file_id = $6;`
-    _, err = reg.db.Exec(request, descr.BatchSize, descr.BlockSize, descr.UCounter, descr.BatchCount,
+        UPDATE fs_files SET batch_size = $1, block_size = $2, batch_count = $3, file_size = $4
+        WHERE file_id = $5;`
+    _, err = reg.db.Exec(request, descr.BatchSize, descr.BlockSize, descr.BatchCount,
                                                                                 descr.FileSize,
                                                                                 descr.FileId)
     if err != nil {

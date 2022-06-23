@@ -9,7 +9,7 @@ import (
 )
 
 const userSchema = `
-    DROP TABLE IF EXISTS fs_users;
+    --- DROP TABLE IF EXISTS fs_users;
     CREATE TABLE IF NOT EXISTS fs_users (
         user_id     INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE ),
         login       TEXT,
@@ -17,7 +17,7 @@ const userSchema = `
         state       TEXT,
         role        TEXT
     );
-    DROP INDEX IF EXISTS fs_user_idx;
+    --- DROP INDEX IF EXISTS fs_user_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_user_idx
         ON fs_users(login);`
 

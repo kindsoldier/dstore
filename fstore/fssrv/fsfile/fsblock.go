@@ -20,20 +20,19 @@ import (
 
     "github.com/minio/highwayhash"
 
-    "ndstore/fstore/fssrv/fsreg"
     "ndstore/dscom"
     "ndstore/dserr"
 )
 
-
-
 type Block struct {
-    reg         *fsreg.Reg
+    reg         dscom.IBlockReg
     baseDir     string
+
     fileId      int64
     batchId     int64
     blockId     int64
     blockType   string
+
     blockSize   int64
     dataSize    int64
     filePath    string
@@ -47,12 +46,15 @@ type Block struct {
     hashAlg     string
     hashSum     []byte
     hashInit    []byte
+
+    openWOerror     bool
+    blockIsErased   bool
 }
 
 const fileMode fs.FileMode  = 0644
 const dirMode fs.FileMode   = 0755
 
-func NewBlock(reg *fsreg.Reg, baseDir string, fileId, batchId, blockId int64, blockType string,
+func NewBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, blockId int64, blockType string,
                                                                 blockSize int64) (*Block, error) {
     var block Block
     var err error
@@ -74,10 +76,11 @@ func NewBlock(reg *fsreg.Reg, baseDir string, fileId, batchId, blockId int64, bl
     if err != nil {
         return &block, dserr.Err(err)
     }
+    block.openWOerror = true
     return &block, dserr.Err(err)
 }
 
-func OpenBlock(reg *fsreg.Reg, baseDir string, fileId, batchId, blockId int64, blockType string) (*Block, error) {
+func OpenBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, blockId int64, blockType string) (*Block, error) {
     var err error
     var block Block
     exists, descr, err := reg.GetBlockDescr(fileId, batchId, blockId, blockType)
@@ -89,8 +92,8 @@ func OpenBlock(reg *fsreg.Reg, baseDir string, fileId, batchId, blockId int64, b
         return &block, dserr.Err(err)
     }
 
-    block.reg       = reg
     block.baseDir   = baseDir
+    block.reg       = reg
 
     block.fileId    = descr.FileId
     block.batchId   = descr.BatchId
@@ -119,15 +122,20 @@ func OpenBlock(reg *fsreg.Reg, baseDir string, fileId, batchId, blockId int64, b
     block.savedLoc  = descr.SavedLoc
     block.savedRem  = descr.SavedRem
     block.locUpdated = descr.LocUpdated
-
+    block.openWOerror = true
     return &block, dserr.Err(err)
 }
 
 func (block *Block) Close() error {
     var err error
-    err = block.updateBlockDescr()
-    if err != nil {
-            return dserr.Err(err)
+    if block.blockIsErased {
+        return dserr.Err(err)
+    }
+    if block.openWOerror {
+        err = block.updateBlockDescr()
+        if err != nil {
+                return dserr.Err(err)
+        }
     }
     return dserr.Err(err)
 }
@@ -138,6 +146,14 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
     var openMode int
     var file *os.File
 
+    if !block.openWOerror {
+        err = errors.New("block opened with error")
+        return written, dserr.Err(err)
+    }
+    if block.blockIsErased {
+        err = errors.New("block is erased")
+        return written, dserr.Err(err)
+    }
     // Return if block full
     if need < 1 {
         return written, dserr.Err(err)
@@ -211,6 +227,15 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
     var written int64
     var openMode int
     var file *os.File
+
+    if !block.openWOerror {
+        err = errors.New("block opened with error")
+        return written, dserr.Err(err)
+    }
+    if block.blockIsErased {
+        err = errors.New("block is erased")
+        return written, dserr.Err(err)
+    }
     // Return if block is empty
     if block.dataSize < 1 {
         //err = errors.New("empty block")
@@ -270,34 +295,46 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
     return written, dserr.Err(err)
 }
 
-//func (block *Block) Clean() error {
-//    var err error
-//    fullFilePath := filepath.Join(block.baseDir, block.filePath)
-//    // Remove file
-//    if block.blockSize < 1 {        // todo: more strong validation
-//        err = os.Remove(fullFilePath)
-//        if err != nil {
-//                return dserr.Err(err)
-//        }
-//    }
-//    // Clean metadata
-//    block.dataSize = 0
-//    block.savedLoc = false
-//    block.hashSum = make([]byte, 0)
-//    // Sync block descr
-//    err = block.updateBlockDescr()
-//    if err != nil {
-//            return dserr.Err(err)
-//    }
-//    return dserr.Err(err)
-//}
+func (block *Block) Clean() error {
+    var err error
+    if !block.openWOerror {
+        err = errors.New("block opened with error")
+        return dserr.Err(err)
+    }
+    if block.blockIsErased {
+        err = errors.New("block is erased")
+        return dserr.Err(err)
+    }
+    // Remove file
+    fullFilePath := filepath.Join(block.baseDir, block.filePath)
+    if block.blockSize > 0 {        // todo: more strong validation
+        err = removeFile(fullFilePath)
+        if err != nil {
+                return dserr.Err(err)
+        }
+    }
+    // Clean metadata
+    block.dataSize = 0
+    block.savedLoc = false
+    block.hashSum = make([]byte, 0)
+    // Sync block descr
+    err = block.updateBlockDescr()
+    if err != nil {
+            return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
 
 func (block *Block) Erase() error {
     var err error
+    if !block.openWOerror {
+        err = errors.New("block opened with error")
+        return dserr.Err(err)
+    }
+    // Remove underline file
     fullFilePath := filepath.Join(block.baseDir, block.filePath)
-    // Remove file
-    if block.blockSize < 1 {        // todo: more strong validation
-        err = os.Remove(fullFilePath)
+    if block.blockSize > 0 {        // todo: more strong validation
+        err = removeFile(fullFilePath)
         if err != nil {
                 return dserr.Err(err)
         }
@@ -307,8 +344,23 @@ func (block *Block) Erase() error {
     if err != nil {
             return dserr.Err(err)
     }
+    block.blockIsErased = true
     return dserr.Err(err)
 }
+
+func removeFile(filePath string) error {
+    var err error
+    _, err = os.Stat(filePath)
+    if err == nil {
+        err = os.Remove(filePath)
+        if err != nil {
+            return dserr.Err(err)
+        }
+    }
+    err = nil
+    return err
+}
+
 
 func (block *Block) addBlockDescr() error {
     descr := block.toDescr()

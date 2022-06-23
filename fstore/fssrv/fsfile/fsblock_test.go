@@ -8,10 +8,10 @@ import (
     "github.com/stretchr/testify/require"
 )
 
-func xxxTest_Block_WriteRead(t *testing.T) {
+func Test_Block_WriteRead(t *testing.T) {
     var err error
 
-    rootDir := t.TempDir()
+    rootDir := "./" //t.TempDir()
 
     dbPath := "postgres://test@localhost/test"
     reg := fsreg.NewReg()
@@ -28,50 +28,88 @@ func xxxTest_Block_WriteRead(t *testing.T) {
     var blockType   string  = "tmp"
     var blockSize   int64   = 1024 * 1024
 
-    block0, err := NewBlock(reg, rootDir, fileId, batchId, blockId, blockType, blockSize)
-    require.NoError(t, err)
-    require.NotEqual(t, block0, nil)
 
     var written int64
-    var dataSize int64 = 100 * 1000
+    var dataSize int64 = 100
     data := make([]byte, dataSize + 200)
     rand.Read(data)
 
-    reader0 := bytes.NewReader(data)
-    written, err = block0.Write(reader0, dataSize)
-    require.NoError(t, err)
-    require.Equal(t, dataSize, written)
+    // Create block in not extsts
+    block8, _ := NewBlock(reg, rootDir, fileId, batchId, blockId, blockType, blockSize)
+    require.NotEqual(t, block8, nil)
 
+    err = block8.Close()
+    require.NoError(t, err)
+
+    // Open block for erasing
+    block9, err := OpenBlock(reg, rootDir, fileId, batchId, blockId, blockType)
+    if err == nil && block9 != nil {
+        err = block9.Erase()
+        require.NoError(t, err)
+
+        err = block9.Close()
+        require.NoError(t, err)
+    }
+
+    var need int64 = 100
+    // Create new block
+    block0, err := NewBlock(reg, rootDir, fileId, batchId, blockId, blockType, blockSize)
+    require.NoError(t, err)
+    require.NotEqual(t, block0, nil)
+    // Write to new block
+    reader0 := bytes.NewReader(data)
+    written, err = block0.Write(reader0, need)
+    require.NoError(t, err)
+    require.Equal(t, need, written)
+    // Close block
     err = block0.Close()
     require.NoError(t, err)
 
+
+    // Reopen block
     block1, err := OpenBlock(reg, rootDir, fileId, batchId, blockId, blockType)
     require.NoError(t, err)
-
-    reader1 := bytes.NewReader(data)
-    written, err = block1.Write(reader1, dataSize)
+    // Read data to buffer
+    writer1 := bytes.NewBuffer(make([]byte, 0))
+    written, err = block1.Read(writer1)
     require.NoError(t, err)
-    require.Equal(t, dataSize, written)
-
-    reader2 := bytes.NewReader(data)
-    written, err = block1.Write(reader2, dataSize)
-    require.NoError(t, err)
-    require.Equal(t, dataSize, written)
-
+    require.Equal(t, need, written)
+    require.Equal(t, need, int64(len(writer1.Bytes())))
+    require.Equal(t, data[0:need], writer1.Bytes())
+    // Close block
     err = block1.Close()
     require.NoError(t, err)
 
+    // Reopen block
+    block2, err := OpenBlock(reg, rootDir, fileId, batchId, blockId, blockType)
+    require.NoError(t, err)
+    // Write to block
+    reader1 := bytes.NewReader(data)
+    written, err = block2.Write(reader1, need)
+    require.NoError(t, err)
+    require.Equal(t, dataSize, written)
+    // Write to block
+    reader2 := bytes.NewReader(data)
+    written, err = block2.Write(reader2, need)
+    require.NoError(t, err)
+    require.Equal(t, dataSize, written)
+    // Close block
+    err = block2.Close()
+    require.NoError(t, err)
+
+
+    // Re-new block
     _, err = NewBlock(reg, rootDir, fileId, batchId, blockId, blockType, blockSize)
     require.Error(t, err)
 
-    writer := bytes.NewBuffer(make([]byte, 0))
-
+    // Reopen block
     block3, err := OpenBlock(reg, rootDir, fileId, batchId, blockId, blockType)
     require.NoError(t, err)
 
-    written, err = block3.Read(writer)
+    writer3 := bytes.NewBuffer(make([]byte, 0))
+    written, err = block3.Read(writer3)
     require.NoError(t, err)
-    require.Equal(t, dataSize * 3, int64(len(writer.Bytes())))
+    require.Equal(t, need * 3, int64(len(writer3.Bytes())))
 
     err = block3.Erase()
     require.NoError(t, err)

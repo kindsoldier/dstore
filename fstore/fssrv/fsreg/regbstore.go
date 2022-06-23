@@ -9,7 +9,7 @@ import (
 )
 
 const bstoreSchema = `
-    DROP TABLE IF EXISTS fs_bstores;
+    --- DROP TABLE IF EXISTS fs_bstores;
     CREATE TABLE IF NOT EXISTS fs_bstores (
         bstore_id   INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE),
         address     TEXT,
@@ -18,7 +18,7 @@ const bstoreSchema = `
         pass        TEXT,
         state       TEXT
     );
-    DROP INDEX IF EXISTS fs_bstore_idx;
+    --- DROP INDEX IF EXISTS fs_bstore_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_bstore_idx
         ON fs_bstores(address, port);
     `

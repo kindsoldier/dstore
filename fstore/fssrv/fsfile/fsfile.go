@@ -3,23 +3,25 @@ package fsfile
 import (
     "errors"
     "io"
-    "ndstore/fstore/fssrv/fsreg"
     "ndstore/dscom"
     "ndstore/dserr"
-    "ndstore/dslog"
 )
 
 type File struct {
-    reg         *fsreg.Reg
+    reg         dscom.IFSReg
     baseDir     string
     fileId      int64
     batchSize   int64
     blockSize   int64
     fileSize    int64
     batchs      []*Batch
+
+    openedWOErrors  bool
+    fileIsClosed    bool
+    fileIsErased    bool
 }
 
-func NewFile(reg *fsreg.Reg, baseDir string, batchSize, blockSize int64) (int64, *File, error) {
+func NewFile(reg dscom.IFSReg, baseDir string, batchSize, blockSize int64) (int64, *File, error) {
     var fileId int64
     var file File
     var err error
@@ -33,11 +35,12 @@ func NewFile(reg *fsreg.Reg, baseDir string, batchSize, blockSize int64) (int64,
     if err != nil {
         return fileId, &file, dserr.Err(err)
     }
-    file.fileId     = fileId
+    file.fileId = fileId
+    file.openedWOErrors = true
     return fileId, &file, dserr.Err(err)
 }
 
-func OpenFile(reg *fsreg.Reg, baseDir string, fileId int64) (*File, error) {
+func OpenFile(reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
     var err error
     var file File
     exists, descr, err := reg.GetFileDescr(fileId)
@@ -71,9 +74,9 @@ func OpenFile(reg *fsreg.Reg, baseDir string, fileId int64) (*File, error) {
     if err != nil {
         return &file, dserr.Err(err)
     }
+    file.openedWOErrors = true
     return &file, dserr.Err(err)
 }
-
 
 func (file *File) Write(reader io.Reader, need int64) (int64, error) {
     var err error
@@ -81,14 +84,13 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
 
     updater := func() {
         file.fileSize += written
-        dslog.LogDebug("file size", file.fileSize)
         file.updateFileDescr()
     }
     defer updater()
 
     for i := range file.batchs {
         if need < 1 {
-            return written, io.EOF
+            return written, dserr.Err(err)
         }
         batchWritten, err := file.batchs[i].Write(reader, need)
         written += batchWritten
@@ -155,11 +157,62 @@ func (file *File) Erase() error {
     if err != nil {
         return dserr.Err(err)
     }
+    file.fileIsErased = true
     return dserr.Err(err)
 }
 
+
+func (file *File) BrutalErase() error {
+    var err error
+    fineClean := true
+    blockDescrs, _ := file.reg.ListBlockDescrsByFileId(file.fileId)
+    for _, descr := range blockDescrs {
+        block, err := OpenBlock(file.reg, file.baseDir, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType)
+        if err == nil && block != nil {
+            err = block.Erase()
+            if err != nil {
+                fineClean = false
+            }
+            block.Close()
+        }
+    }
+    batchDescrs, _ := file.reg.ListBatchDescrsByFileId(file.fileId)
+    for _, descr := range batchDescrs {
+        batch, err := OpenBatch(file.reg, file.baseDir, descr.FileId, descr.BatchId)
+        if err == nil && batch != nil {
+            err = batch.Erase()
+            if err != nil {
+                fineClean = false
+            }
+            batch.Close()
+        }
+        err = file.reg.EraseBatchDescr(descr.FileId, descr.BatchId)
+        if err != nil {
+            fineClean = false
+        }
+    }
+    if fineClean {
+        err = file.reg.EraseFileDescr(file.fileId)
+        if err != nil {
+            fineClean = false
+        }
+    }
+    file.fileIsErased = true
+    return dserr.Err(err)
+}
+
+
 func (file *File) Close() error {
     var err error
+    if file.fileIsErased {
+        return dserr.Err(err)
+    }
+    if file.fileIsClosed {
+        return dserr.Err(err)
+    }
+    if !file.openedWOErrors {
+        return dserr.Err(err)
+    }
     err = file.reg.DecFileDescrUC(file.fileId)
     if err != nil {
         return dserr.Err(err)
@@ -179,7 +232,7 @@ func (file *File)  batchCount() int64 {
 
 func (batch *File) addFileDescr() (int64, error) {
     descr := batch.toDescr()
-    descr.UCounter = 1
+    descr.UCounter = 2
     return batch.reg.AddFileDescr(descr)
 }
 
@@ -187,7 +240,6 @@ func (batch *File) updateFileDescr() error {
     descr := batch.toDescr()
     return batch.reg.UpdateFileDescr(descr)
 }
-
 
 func (file *File) toDescr() *dscom.FileDescr {
     descr := dscom.NewFileDescr()
