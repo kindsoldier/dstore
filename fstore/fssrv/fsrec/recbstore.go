@@ -6,6 +6,7 @@ package fsrec
 
 import (
     "errors"
+    "fmt"
     "ndstore/dscom"
     "ndstore/dserr"
 
@@ -37,9 +38,10 @@ func (store *Store) SeedBStores() error {
     return dserr.Err(err)
 }
 
+
 func (store *Store) AddBStore(userName, address, port, login, pass string) error {
     var err error
-    role, err := store.reg.GetUserRole(userName)
+    role, err := store.getUserRole(userName)
     if role != URoleAdmin {
         err = errors.New("insufficient rights for adding bStore")
         return dserr.Err(err)
@@ -59,14 +61,21 @@ func (store *Store) AddBStore(userName, address, port, login, pass string) error
 
 func (store *Store) GetBStore(address, port string) (*dscom.BStoreDescr, error) {
     var err error
-    bStore, err := store.reg.GetBStoreDescr(address, port)
+    exists, bStore, err := store.reg.GetBStoreDescr(address, port)
+    if err != nil {
+        return bStore, dserr.Err(err)
+    }
+    if !exists {
+        err = fmt.Errorf("store %s:%s not exist", address, port)
+        return bStore, dserr.Err(err)
+    }
     return bStore, dserr.Err(err)
 }
 
 func (store *Store) UpdateBStore(userName, address, port, login, pass string) error {
     var err error
 
-    role, err := store.reg.GetUserRole(userName)
+    role, err := store.getUserRole(userName)
     if role != URoleAdmin {
         err = errors.New("insufficient rights for updating bStore")
         return dserr.Err(err)
@@ -89,7 +98,7 @@ func (store *Store) ListBStores(userName string) ([]*dscom.BStoreDescr, error) {
     var err error
     bStores := make([]*dscom.BStoreDescr, 0)
 
-    role, err := store.reg.GetUserRole(userName)
+    role, err := store.getUserRole(userName)
     if role != URoleAdmin {
         err = errors.New("insufficient rights for listing bStores")
         return bStores, dserr.Err(err)
@@ -107,7 +116,7 @@ func (store *Store) ListBStores(userName string) ([]*dscom.BStoreDescr, error) {
 
 func (store *Store) DeleteBStore(userName, address, port string) error {
     var err error
-    role, err := store.reg.GetUserRole(userName)
+    role, err := store.getUserRole(userName)
     if role != URoleAdmin {
         err = errors.New("insufficient rights for delete bStore")
         return dserr.Err(err)

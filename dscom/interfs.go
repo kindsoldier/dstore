@@ -32,6 +32,10 @@ type IBlock interface {
 }
 
 type IFSReg interface {
+    IBStoreReg
+    IUserReg
+    IEntryReg
+
     IFileReg
     IBatchReg
     IBlockReg
@@ -40,8 +44,6 @@ type IFSReg interface {
 type IBlockReg interface {
     AddBlockDescr(descr *BlockDescr) error
     GetBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *BlockDescr, error)
-    GetUnusedBlockDescr() (bool, *BlockDescr, error)
-    //ListBlockDescrs() ([]*BlockDescr, error)
     ListBlockDescrsByFileId(fileId int64) ([]*BlockDescr, error)
     UpdateBlockDescr(descr *BlockDescr) error
     EraseBlockDescr(fileId, batchId, blockId int64, blockType string) error
@@ -63,4 +65,30 @@ type IFileReg interface {
     IncFileDescrUC(fileId int64) error
     DecFileDescrUC(fileId int64) error
     ListFileDescrs() ([]*FileDescr, error)
+    GetUnusedFileDescr() (bool, *FileDescr, error)
+    GetLostedFileDescr() (bool, *FileDescr, error)
+}
+
+type IBStoreReg interface {
+    AddBStoreDescr(descr *BStoreDescr) (int64, error)
+    EraseBStoreDescr(address, port string) error
+    GetBStoreDescr(address, port string) (bool, *BStoreDescr, error)
+    ListBStoreDescrs() ([]*BStoreDescr, error)
+    UpdateBStoreDescr(descr *BStoreDescr) error
+}
+
+type IUserReg interface {
+    AddUserDescr(descr *UserDescr) (int64, error)
+    EraseUserDescr(login string) error
+    GetUserDescr(login string) (bool, *UserDescr, error)
+    ListUserDescrs() ([]*UserDescr, error)
+    UpdateUserDescr(descr *UserDescr) error
+}
+
+type IEntryReg interface {
+    AddEntryDescr(userId int64, dirPath, fileName string, fileId int64) error
+    DeleteEntryDescr(userId int64, dirPath, fileName string) error
+    EntryDescrExists(userId int64, dirPath, fileName string) (bool, error)
+    GetEntryDescr(userId int64, dirPath, fileName string) (bool, *EntryDescr, error)
+    ListEntryDescr(userId int64, dirPath string) ([]*EntryDescr, error)
 }

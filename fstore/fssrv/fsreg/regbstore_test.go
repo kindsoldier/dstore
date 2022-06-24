@@ -40,24 +40,17 @@ func Test_BStoreDescr_InsertSelectErase(t *testing.T) {
     _, err = reg.AddBStoreDescr(descr0)
     require.Error(t, err)
 
-    descr7 := dscom.NewBStoreDescr()
-    *descr7 = *descr0
-    descr7.Port = "5007"
-    require.NotEqual(t, descr0, descr7)
-    _, err = reg.AddBStoreDescr(descr7)
-    require.NoError(t, err)
+    //descr7 := dscom.NewBStoreDescr()
+    //*descr7 = *descr0
+    //descr7.Port = "5007"
+    //require.NotEqual(t, descr0, descr7)
+    //_, err = reg.AddBStoreDescr(descr7)
+    //require.NoError(t, err)
 
-    exists, err := reg.BStoreDescrExists(address, port)
-    require.NoError(t, err)
-    require.Equal(t, true, exists)
-
-    exists, err = reg.BStoreDescrExists(address + "xxx", port)
-    require.NoError(t, err)
-    require.Equal(t, false, exists)
-
-    descr1, err := reg.GetBStoreDescr(address, port)
+    exists, descr1, err := reg.GetBStoreDescr(address, port)
     require.NoError(t, err)
     require.Equal(t, descr0, descr1)
+    require.Equal(t, true, exists)
 
     descr1.Login    = "foobar"
     descr1.Pass     = "56789"
@@ -65,15 +58,18 @@ func Test_BStoreDescr_InsertSelectErase(t *testing.T) {
     err = reg.UpdateBStoreDescr(descr1)
     require.NoError(t, err)
 
-    descr2, err := reg.GetBStoreDescr(address, port)
+    exists, descr2, err := reg.GetBStoreDescr(address, port)
     require.NoError(t, err)
     require.Equal(t, descr1, descr2)
+    require.Equal(t, true, exists)
+
 
     err = reg.EraseBStoreDescr(address, port)
     require.NoError(t, err)
 
-    _, err = reg.GetBStoreDescr(address, port)
-    require.Error(t, err)
+    exists, _, err = reg.GetBStoreDescr(address, port)
+    require.NoError(t, err)
+    require.Equal(t, false, exists)
 
     err = reg.CloseDB()
     require.NoError(t, err)

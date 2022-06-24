@@ -23,11 +23,11 @@ import (
 
     "ndstore/dslog"
     "ndstore/dsrpc"
+    "ndstore/dserr"
 )
 
 const successExit   int = 0
 const errorExit     int = 1
-
 
 func main() {
     var err error
@@ -381,6 +381,9 @@ func (server *Server) RunService() error {
         return err
     }
 
+    go model.WasteCollector()
+    go model.LostCollector()
+
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)
     dslog.LogDebug("logDir is", server.Params.LogDir)
@@ -409,6 +412,9 @@ func (server *Server) RunService() error {
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)
     serv.PostMiddleware(dsrpc.LogAccess)
+
+    dserr.SetDevelMode(false)
+    dserr.SetDebugMode(false)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

@@ -50,38 +50,27 @@ func (reg *Reg) UpdateBStoreDescr(descr *dscom.BStoreDescr) error {
     return dserr.Err(err)
 }
 
-func (reg *Reg) BStoreDescrExists(address, port string) (bool, error) {
-    var err error
-    var exists bool
-    request := `
-        SELECT count(bstore_id) AS count
-        FROM fs_bstores
-        WHERE address = $1 AND port = $2
-        LIMIT 1;`
-    var count int64
-    err = reg.db.Get(&count, request, address, port)
-    if err != nil {
-        return exists, dserr.Err(err)
-    }
-    if count > 0 {
-        exists = true
-    }
-    return exists, dserr.Err(err)
-}
-
-func (reg *Reg) GetBStoreDescr(address, port string) (*dscom.BStoreDescr, error) {
+func (reg *Reg) GetBStoreDescr(address, port string) (bool, *dscom.BStoreDescr, error) {
     var err error
     request := `
         SELECT bstore_id, address, port, login, pass, state
         FROM fs_bstores
         WHERE address = $1 AND port = $2
         LIMIT 1;`
-    bstore := dscom.NewBStoreDescr()
-    err = reg.db.Get(bstore, request, address, port)
+    var bstore *dscom.BStoreDescr
+    var exists bool
+    bstores := make([]*dscom.BStoreDescr, 0)
+    err = reg.db.Select(&bstores, request, address, port)
     if err != nil {
-        return bstore, dserr.Err(err)
+        return exists, bstore, dserr.Err(err)
     }
-    return bstore, dserr.Err(err)
+    if len(bstores) > 0 {
+        exists = true
+        bstore = bstores[0]
+        return exists, bstore, dserr.Err(err)
+    }
+
+    return exists, bstore, dserr.Err(err)
 }
 
 func (reg *Reg) EraseBStoreDescr(address, port string) error {

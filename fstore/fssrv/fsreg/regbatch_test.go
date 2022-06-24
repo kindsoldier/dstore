@@ -49,7 +49,7 @@ func Test_BatchDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, exists, true)
     require.Equal(t, descr1, descr0)
 
-    descrs, err := reg.ListBatchDescrs(fileId)
+    descrs, err := reg.ListBatchDescrsByFileId(fileId)
     require.NoError(t, err)
     require.Equal(t, len(descrs), 1)
 

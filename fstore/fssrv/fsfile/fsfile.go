@@ -223,6 +223,7 @@ func (file *File) Close() error {
             return dserr.Err(err)
         }
     }
+    file.fileIsClosed = true
     return dserr.Err(err)
 }
 

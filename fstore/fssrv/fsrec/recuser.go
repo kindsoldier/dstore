@@ -6,6 +6,7 @@ package fsrec
 
 import (
     "errors"
+    "fmt"
     "ndstore/dscom"
     "ndstore/dserr"
 )
@@ -58,7 +59,7 @@ func (store *Store) AddUser(userName, login, pass string) error {
     var err error
     var ok bool
 
-    role, err := store.reg.GetUserRole(userName)
+    role, err := store.getUserRole(userName)
     if role != URoleAdmin {
         err = errors.New("insufficient rights for adding users")
         return dserr.Err(err)
@@ -86,7 +87,7 @@ func (store *Store) AddUser(userName, login, pass string) error {
 
 func (store *Store) GetUser(login string) (*dscom.UserDescr, error) {
     var err error
-    user, err := store.reg.GetUserDescr(login)
+    _, user, err := store.reg.GetUserDescr(login)
     return user,err
 }
 
@@ -98,13 +99,13 @@ func (store *Store) CheckUser(userName, login, pass string) (bool, error) {
         login = userName
     }
 
-    userRole, err := store.reg.GetUserRole(userName)
+    userRole, err := store.getUserRole(userName)
     if userRole != URoleAdmin && userName != login {
         err = errors.New("insufficient rights for checking other users")
         return ok, dserr.Err(err)
     }
 
-    user, err := store.reg.GetUserDescr(login)
+    _, user, err := store.reg.GetUserDescr(login)
 
     if err != nil {
         return ok, dserr.Err(err)
@@ -119,16 +120,14 @@ func (store *Store) UpdateUser(userName, login, newPass, newRole, newState strin
     var err error
 
     // Get current role
-    userRole, err := store.reg.GetUserRole(userName)
+    userRole, err := store.getUserRole(userName)
     if err != nil {
         return dserr.Err(err)
     }
-
     // Set defaults
     if len(login) < 1 {
         login = userName
     }
-
     // Rigth control
     if  userName != login && userRole != URoleAdmin {
         err = errors.New("insufficient rights for updating other users")
@@ -136,7 +135,7 @@ func (store *Store) UpdateUser(userName, login, newPass, newRole, newState strin
     }
 
     // Get old profile and copy to new
-    oldUserDescr, err := store.reg.GetUserDescr(login)
+    _, oldUserDescr, err := store.reg.GetUserDescr(login)
     if err != nil {
         return dserr.Err(err)
     }
@@ -194,7 +193,7 @@ func (store *Store) UpdateUser(userName, login, newPass, newRole, newState strin
 func (store *Store) ListUsers(userName string) ([]*dscom.UserDescr, error) {
     var err error
     users := make([]*dscom.UserDescr, 0)
-    userRole, err := store.reg.GetUserRole(userName)
+    userRole, err := store.getUserRole(userName)
     if userRole != URoleAdmin {
         err = errors.New("insufficient rights for listing users")
         return users, dserr.Err(err)
@@ -212,7 +211,7 @@ func (store *Store) ListUsers(userName string) ([]*dscom.UserDescr, error) {
 func (store *Store) DeleteUser(userName string, login string) error {
     var err error
 
-    userRole, err := store.reg.GetUserRole(userName)
+    userRole, err := store.getUserRole(userName)
     if userRole != URoleAdmin {
         err = errors.New("insufficient rights for deleting users")
         return dserr.Err(err)
@@ -223,6 +222,36 @@ func (store *Store) DeleteUser(userName string, login string) error {
         return dserr.Err(err)
     }
     return dserr.Err(err)
+}
+
+func (store *Store) getUserRole(userName string) (string, error) {
+    var err error
+    var userRole string
+    exists, userDesc, err := store.reg.GetUserDescr(userName)
+    if !exists {
+        err = fmt.Errorf("user %s not exists", userName)
+        return userRole, dserr.Err(err)
+    }
+    userRole = userDesc.Role
+    if err != nil {
+        return userRole, dserr.Err(err)
+    }
+    return userRole, dserr.Err(err)
+}
+
+func (store *Store) getUserId(userName string) (int64, error) {
+    var err error
+    var userId int64
+    exists, userDesc, err := store.reg.GetUserDescr(userName)
+    if !exists {
+        err = fmt.Errorf("user %s not exists", userName)
+        return userId, dserr.Err(err)
+    }
+    userId = userDesc.UserId
+    if err != nil {
+        return userId, dserr.Err(err)
+    }
+    return userId, dserr.Err(err)
 }
 
 

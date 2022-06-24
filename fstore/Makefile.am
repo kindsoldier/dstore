@@ -7,8 +7,42 @@ OBJEXT= none
 sbin_PROGRAMS = fstored fstorecli
 fstored_SOURCES = fssrv/fsmain.go
 
-EXTRA_fstored_SOURCES = 
-
+EXTRA_fstored_SOURCES = \
+	    fsapi/fdeletefile.go \
+	    fsapi/fgethello.go \
+	    fsapi/flistfiles.go \
+	    fsapi/bupdatebstore.go \
+	    fsapi/ucheckuser.go \
+	    fsapi/blistbstores.go \
+	    fsapi/fsavefile.go \
+	    fsapi/uupdateuser.go \
+	    fsapi/udeleteuser.go \
+	    fsapi/bdeletebstore.go \
+	    fsapi/floadfile.go \
+	    fsapi/uadduser.go \
+	    fsapi/baddbstore.go \
+	    fsapi/ulistusers.go \
+	    fssrv/fscont/contruser.go \
+	    fssrv/fscont/contrbstore.go \
+	    fssrv/fscont/contrfile.go \
+	    fssrv/fscont/contrcomm.go \
+	    fssrv/fsmain.go \
+	    fssrv/fsrec/recfile.go \
+	    fssrv/fsrec/recuser.go \
+	    fssrv/fsrec/recbspool.go \
+	    fssrv/fsrec/reccomm.go \
+	    fssrv/fsrec/recbstore.go \
+	    fssrv/fsconf/fsconf.go \
+	    fssrv/fsfile/fsbatch.go \
+	    fssrv/fsfile/fsfile.go \
+	    fssrv/fsfile/fsblock.go \
+	    fssrv/fsreg/regbatch.go \
+	    fssrv/fsreg/regfile.go \
+	    fssrv/fsreg/reguser.go \
+	    fssrv/fsreg/regentry.go \
+	    fssrv/fsreg/regbstore.go \
+	    fssrv/fsreg/regblock.go \
+	    fssrv/fsreg/regcomm.go
 
 fstorecli_SOURCES = fscli/fscli.go
 
@@ -24,7 +58,7 @@ fstorecli$(EXEEXT): $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES)
 EXTRA_DIST = \
 	fstore.conf
 
-clean-local:
+dictclean-local:
 	rm -rf autom4te.cache
 	rm -rf log/ run/ data/
 	rm -f fssrv/fssrv

@@ -7,9 +7,14 @@ import (
 )
 
 var develMode bool = true
+var debugMode bool = true
+
 
 func SetDevelMode(mode bool) {
     develMode = mode
+}
+func SetDebugMode(mode bool) {
+    debugMode = mode
 }
 
 func Err(err error) error {
@@ -23,10 +28,11 @@ func Err(err error) error {
                 pc, filename, line, _ := runtime.Caller(1)
                 funcName := runtime.FuncForPC(pc).Name()
                 err = fmt.Errorf("\n%s:%d:%s:%s", filename, line, funcName, err.Error())
-            default:
+            case debugMode == true:
                 pc, _, line, _ := runtime.Caller(1)
                 funcName := runtime.FuncForPC(pc).Name()
                 err = fmt.Errorf(" %s:%d:%s ", funcName, line, err.Error())
+            default:
         }
     }
     return err

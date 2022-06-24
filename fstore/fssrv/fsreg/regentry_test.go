@@ -30,13 +30,10 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     err = reg.AddEntryDescr(userId, dirPath, fileName, fileId)
     require.NoError(t, err)
 
-    exists, err := reg.EntryDescrExists(userId, dirPath, fileName)
-    require.NoError(t, err)
-    require.Equal(t, true, exists)
-
-    entry, err := reg.GetEntryDescr(userId, dirPath, fileName)
+    exists, entry, err := reg.GetEntryDescr(userId, dirPath, fileName)
     require.NoError(t, err)
     require.Equal(t, fileId, entry.FileId)
+    require.Equal(t, true, exists)
 
     err = reg.DeleteEntryDescr(userId, dirPath, fileName)
     require.NoError(t, err)

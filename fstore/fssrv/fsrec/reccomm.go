@@ -6,15 +6,17 @@ package fsrec
 
 import (
     "io/fs"
+    "ndstore/dscom"
     "ndstore/fstore/fssrv/fsreg"
 )
 
 
 type Store struct {
-    dataRoot string
-    dirPerm   fs.FileMode
-    filePerm  fs.FileMode
-    reg    *fsreg.Reg
+    dataRoot    string
+    dirPerm     fs.FileMode
+    filePerm    fs.FileMode
+    reg         dscom.IFSReg
+    wasteChan   chan byte
 }
 
 func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
@@ -23,6 +25,7 @@ func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
     store.dirPerm   = 0755
     store.filePerm  = 0644
     store.reg       = reg
+    store.wasteChan = make(chan byte, 1024)
     return &store
 }
 

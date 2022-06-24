@@ -75,43 +75,6 @@ func ConnPut(conn net.Conn, method string, reader io.Reader, size int64, param, 
     return err
 }
 
-
-
-func (context *Context) UploadBinAsync(wg *sync.WaitGroup) {
-    exitFunc := func() {
-        wg.Done()
-    }
-    defer exitFunc()
-    _, _ = CopyBytes(context.binReader, context.binWriter, context.reqHeader.binSize)
-    return
-}
-
-func (context *Context) ReadResponseAsync(wg *sync.WaitGroup, errChan chan error) {
-    var err error
-    exitFunc := func() {
-        errChan <- err
-        wg.Done()
-    }
-    defer exitFunc()
-    context.resPacket.header, err = ReadBytes(context.sockReader, headerSize)
-    if err != nil {
-        return
-    }
-    context.resHeader, err = UnpackHeader(context.resPacket.header)
-    if err != nil {
-        return
-    }
-    rpcSize := context.resHeader.rpcSize
-    context.resPacket.rcpPayload, err = ReadBytes(context.sockReader, rpcSize)
-    if err != nil {
-        return
-    }
-    return
-}
-
-/***********************************************************************************************/
-
-
 func Get(address string, method string, writer io.Writer, param, result any, auth *Auth) error {
     var err error
 
@@ -267,7 +230,37 @@ func (context *Context) ReadResponse() error {
     return err
 }
 
+func (context *Context) UploadBinAsync(wg *sync.WaitGroup) {
+    exitFunc := func() {
+        wg.Done()
+    }
+    defer exitFunc()
+    _, _ = CopyBytes(context.binReader, context.binWriter, context.reqHeader.binSize)
+    return
+}
 
+func (context *Context) ReadResponseAsync(wg *sync.WaitGroup, errChan chan error) {
+    var err error
+    exitFunc := func() {
+        errChan <- err
+        wg.Done()
+    }
+    defer exitFunc()
+    context.resPacket.header, err = ReadBytes(context.sockReader, headerSize)
+    if err != nil {
+        return
+    }
+    context.resHeader, err = UnpackHeader(context.resPacket.header)
+    if err != nil {
+        return
+    }
+    rpcSize := context.resHeader.rpcSize
+    context.resPacket.rcpPayload, err = ReadBytes(context.sockReader, rpcSize)
+    if err != nil {
+        return
+    }
+    return
+}
 
 func (context *Context) DownloadBin() error {
     var err error

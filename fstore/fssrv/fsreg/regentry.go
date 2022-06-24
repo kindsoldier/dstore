@@ -54,19 +54,26 @@ func (reg *Reg) EntryDescrExists(userId int64, dirPath, fileName string) (bool, 
     return exists, dserr.Err(err)
 }
 
-func (reg *Reg) GetEntryDescr(userId int64, dirPath, fileName string) (*dscom.EntryDescr, error) {
+func (reg *Reg) GetEntryDescr(userId int64, dirPath, fileName string) (bool, *dscom.EntryDescr, error) {
     var err error
     request := `
         SELECT dir_path, file_name, file_id, user_id
         FROM fs_entries
         WHERE  user_id = $1 AND dir_path = $2 AND file_name = $3
         LIMIT 1;`
-    entry := dscom.NewEntryDescr()
-    err = reg.db.Get(entry, request, userId, dirPath, fileName)
+    var entry *dscom.EntryDescr
+    var exists bool
+    entries := make([]*dscom.EntryDescr, 0)
+    err = reg.db.Select(&entries, request, userId, dirPath, fileName)
     if err != nil {
-        return entry, dserr.Err(err)
+        return exists, entry, dserr.Err(err)
     }
-    return entry, dserr.Err(err)
+    if len(entries) > 0 {
+        exists = true
+        entry = entries[0]
+        return exists, entry, dserr.Err(err)
+    }
+    return exists, entry, dserr.Err(err)
 }
 
 func (reg *Reg) DeleteEntryDescr(userId int64, dirPath, fileName string) error {

@@ -36,68 +36,26 @@ func (reg *Reg) AddUserDescr(descr *dscom.UserDescr) (int64, error) {
     return userId, dserr.Err(err)
 }
 
-func (reg *Reg) UserDescrExists(login string) (bool, error) {
+func (reg *Reg) GetUserDescr(login string) (bool, *dscom.UserDescr, error) {
     var err error
     var exists bool
-    request := `
-        SELECT count(user_id) AS count
-        FROM fs_users
-        WHERE login = $1
-        LIMIT 1;`
-    var count int64
-    err = reg.db.Get(&count, request, login)
-    if err != nil {
-        return exists, dserr.Err(err)
-    }
-    if count > 0 {
-        exists = true
-    }
-    return exists, dserr.Err(err)
-}
-
-func (reg *Reg) GetUserDescr(login string) (*dscom.UserDescr, error) {
-    var err error
     request := `
         SELECT user_id, login, pass, state, role
         FROM fs_users
         WHERE login = $1
         LIMIT 1;`
-    user := dscom.NewUserDescr()
-    err = reg.db.Get(user, request, login)
+    var user *dscom.UserDescr
+    users := make([]*dscom.UserDescr, 0)
+    err = reg.db.Select(&users, request, login)
     if err != nil {
-        return user, dserr.Err(err)
+        return exists, user, dserr.Err(err)
     }
-    return user, dserr.Err(err)
-}
-
-func (reg *Reg) GetUserId(login string) (int64, error) {
-    var err error
-    request := `
-        SELECT user_id
-        FROM fs_users
-        WHERE login = $1
-        LIMIT 1;`
-    var userId int64
-    err = reg.db.Get(&userId, request, login)
-    if err != nil  {
-        return userId, dserr.Err(err)
+    if len(users) > 0 {
+        exists = true
+        user = users[0]
+        return exists, user, dserr.Err(err)
     }
-    return userId, dserr.Err(err)
-}
-
-func (reg *Reg) GetUserRole(login string) (string, error) {
-    var err error
-    request := `
-        SELECT role
-        FROM fs_users
-        WHERE login = $1
-        LIMIT 1;`
-    var role string
-    err = reg.db.Get(&role, request, login)
-    if err != nil  {
-        return role, dserr.Err(err)
-    }
-    return role, dserr.Err(err)
+    return exists, user, dserr.Err(err)
 }
 
 func (reg *Reg) UpdateUserDescr(descr *dscom.UserDescr) error {

@@ -5,12 +5,9 @@
 package dsrpc
 
 import (
-    "context"
     "errors"
     "io"
     "fmt"
-    "sync"
-    "ndstore/dslog"
 )
 
 func ReadBytes(reader io.Reader, size int64) ([]byte, error) {
