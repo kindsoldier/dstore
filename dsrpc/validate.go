@@ -8,6 +8,7 @@ package dsrpc
 import (
     "io"
     "net"
+    "sync"
 )
 
 func LocalExec(method string, param any, result any, auth *Auth, handler HandlerFunc) error {
@@ -81,20 +82,27 @@ func LocalPut(method string, reader io.Reader, size int64, param, result any, au
         return err
     }
 
-    err = context.UploadBin()
-    if err != nil {
-        return err
-    }
+    var wg sync.WaitGroup
+
+
+    wg.Add(1)
+    go context.UploadBinAsync(&wg)
 
     err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
 
-    err = context.ReadResponse()
+    wg.Add(1)
+    errChan := make(chan error, 1)
+    go context.ReadResponseAsync(&wg, errChan)
+    wg.Wait()
+
+    err = <-errChan
     if err != nil {
         return err
     }
+
     err = context.BindResponse()
     if err != nil {
         return err
