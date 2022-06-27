@@ -184,9 +184,10 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
 
 func (store *Store) WasteCollector() {
     for {
+        //dslog.LogDebug("waste collecr call")
         exists, fd, err := store.reg.GetUnusedFileDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete waste file :", fd.FileId)
+            dslog.LogDebug("delete waste file:", fd.FileId)
             err = store.eraseFile(fd.FileId)
             if err != nil {
                 dslog.LogDebug("delete file err:", dserr.Err(err))
@@ -201,11 +202,11 @@ func (store *Store) WasteCollector() {
 }
 
 func (store *Store) LostCollector() {
-    return
     for {
+        //dslog.LogDebug("lost collecr call")
         exists, fd, err := store.reg.GetLostedFileDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete lost file :", fd.FileId)
+            dslog.LogDebug("delete lost file:", fd.FileId)
             err = store.eraseFile(fd.FileId)
             if err != nil {
                 dslog.LogDebug("delete file err:", dserr.Err(err))
@@ -213,8 +214,8 @@ func (store *Store) LostCollector() {
             continue
         }
         select {
+            case <-store.lostChan:
             case <-time.After(time.Second * 1):
-                continue
         }
     }
 }
@@ -227,16 +228,20 @@ func (store *Store) pushWC() {
 
 func (store *Store) eraseFile(fileId int64) error {
     var err error
-    file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
-    if err == nil {
-        err := file.Erase()
-        if err != nil {
-            file.Close()
-            file, _ = fsfile.OpenFile(store.reg, store.dataRoot, fileId)
-            file.BrutalErase()
-            file.Close()
-        }
-    }
+    file, _ := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
+    file.BrutalErase()
+    file.Close()
+
+    //file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
+    //if err == nil {
+    //    err := file.Erase()
+    //    if err != nil {
+    //        file.Close()
+    //        file, _ = fsfile.OpenFile(store.reg, store.dataRoot, fileId)
+    //        file.BrutalErase()
+    //        file.Close()
+    //    }
+    //}
     return dserr.Err(err)
 }
 

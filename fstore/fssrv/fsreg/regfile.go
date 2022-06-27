@@ -149,7 +149,8 @@ func (reg *Reg) GetLostedFileDescr() (bool, *dscom.FileDescr, error) {
     var fileDescr *dscom.FileDescr
     files := make([]*dscom.FileDescr, 0)
     request := `
-        SELECT f.* FROM fs_files AS f
+        SELECT f.*
+        FROM fs_files AS f
         LEFT JOIN fs_entries AS e ON e.file_id = f.file_id
         WHERE e.entry_id IS NULL
         ORDER BY f.file_id

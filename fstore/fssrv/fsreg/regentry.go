@@ -93,6 +93,18 @@ func (reg *Reg) EraseEntryDescr(userId int64, dirPath, fileName string) error {
     return dserr.Err(err)
 }
 
+func (reg *Reg) EraseEntryDescrsByUserId(userId int64) error {
+    var err error
+    request := `
+        DELETE FROM fs_entries
+        WHERE user_id = $1;`
+    _, err = reg.db.Exec(request, userId)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
 func (reg *Reg) ListEntryDescr(userId int64, dirPath string) ([]*dscom.EntryDescr, error) {
     var err error
     request := `

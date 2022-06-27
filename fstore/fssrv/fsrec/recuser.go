@@ -217,10 +217,21 @@ func (store *Store) DeleteUser(userName string, login string) error {
         return dserr.Err(err)
     }
 
+    userId, err := store.getUserId(login)
+    if err != nil {
+        return dserr.Err(err)
+    }
+
     err = store.reg.EraseUserDescr(login)
     if err != nil {
         return dserr.Err(err)
     }
+
+    err = store.reg.EraseEntryDescrsByUserId(userId)
+    if err != nil {
+        return dserr.Err(err)
+    }
+
     return dserr.Err(err)
 }
 
