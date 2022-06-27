@@ -4,6 +4,7 @@
 package fsreg
 
 import (
+    "time"
     "ndstore/dscom"
     "ndstore/dserr"
 )
@@ -16,7 +17,9 @@ const bstoreSchema = `
         port        TEXT,
         login       TEXT,
         pass        TEXT,
-        state       TEXT
+        state       TEXT,
+        created_at  INTEGER,
+        updated_at  INTEGER
     );
     --- DROP INDEX IF EXISTS fs_bstore_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_bstore_idx
@@ -26,11 +29,14 @@ const bstoreSchema = `
 func (reg *Reg) AddBStoreDescr(descr *dscom.BStoreDescr) (int64, error) {
     var err error
     request := `
-        INSERT INTO fs_bstores(address, port, login, pass, state)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO fs_bstores(address, port, login, pass, state, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING bstore_id;`
+    createdAt := time.Now().Unix()
+    updatedAt := createdAt
     var storeId int64
-    err = reg.db.Get(&storeId, request, descr.Address, descr.Port, descr.Login, descr.Pass, descr.State)
+    err = reg.db.Get(&storeId, request, descr.Address, descr.Port, descr.Login, descr.Pass, descr.State,
+                          createdAt, updatedAt)
     if err != nil {
         return storeId, dserr.Err(err)
     }
@@ -41,9 +47,11 @@ func (reg *Reg) UpdateBStoreDescr(descr *dscom.BStoreDescr) error {
     var err error
     request := `
         UPDATE fs_bstores
-        SET address = $1, port = $2, login = $3, pass = $4, state = $5
+        SET address = $1, port = $2, login = $3, pass = $4, state = $5, updated_at = $6
         WHERE address = $1 AND port = $2;`
-    _, err = reg.db.Exec(request, descr.Address, descr.Port, descr.Login, descr.Pass, descr.State)
+    updatedAt := time.Now().Unix()
+    _, err = reg.db.Exec(request, descr.Address, descr.Port, descr.Login, descr.Pass, descr.State,
+                                                                                    updatedAt)
     if err != nil {
         return dserr.Err(err)
     }
@@ -53,7 +61,7 @@ func (reg *Reg) UpdateBStoreDescr(descr *dscom.BStoreDescr) error {
 func (reg *Reg) GetBStoreDescr(address, port string) (bool, *dscom.BStoreDescr, error) {
     var err error
     request := `
-        SELECT bstore_id, address, port, login, pass, state
+        SELECT bstore_id, address, port, login, pass, state, created_at, updated_at
         FROM fs_bstores
         WHERE address = $1 AND port = $2
         LIMIT 1;`
@@ -88,7 +96,7 @@ func (reg *Reg) EraseBStoreDescr(address, port string) error {
 func (reg *Reg) ListBStoreDescrs() ([]*dscom.BStoreDescr, error) {
     var err error
     request := `
-        SELECT bstore_id, address, port, login, pass, state
+        SELECT bstore_id, address, port, login, pass, state, created_at, updated_at
         FROM fs_bstores;`
     bstores := make([]*dscom.BStoreDescr, 0)
     err = reg.db.Select(&bstores, request)

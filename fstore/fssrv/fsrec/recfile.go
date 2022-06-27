@@ -170,7 +170,7 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
     }
     fileId := entry.FileId
 
-    err = store.reg.DeleteEntryDescr(userId, dirPath, fileName)
+    err = store.reg.EraseEntryDescr(userId, dirPath, fileName)
     if err != nil {
         return dserr.Err(err)
     }

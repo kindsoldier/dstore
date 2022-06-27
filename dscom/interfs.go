@@ -87,7 +87,7 @@ type IUserReg interface {
 
 type IEntryReg interface {
     AddEntryDescr(userId int64, dirPath, fileName string, fileId int64) error
-    DeleteEntryDescr(userId int64, dirPath, fileName string) error
+    EraseEntryDescr(userId int64, dirPath, fileName string) error
     EntryDescrExists(userId int64, dirPath, fileName string) (bool, error)
     GetEntryDescr(userId int64, dirPath, fileName string) (bool, *EntryDescr, error)
     ListEntryDescr(userId int64, dirPath string) ([]*EntryDescr, error)

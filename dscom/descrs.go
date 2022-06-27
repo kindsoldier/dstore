@@ -5,29 +5,32 @@
 package dscom
 
 type UserDescr struct {
-    UserId  int64       `json:"userId"      db:"user_id"`
-    Login   string      `json:"login"       db:"login"`
-    Pass    string      `json:"pass"        db:"pass"`
-    State   string      `json:"state"       db:"state"`
-    Role    string      `json:"role"        db:"role"`
+    UserId      int64       `json:"userId"      db:"user_id"`
+    Login       string      `json:"login"       db:"login"`
+    Pass        string      `json:"pass"        db:"pass"`
+    State       string      `json:"state"       db:"state"`
+    Role        string      `json:"role"        db:"role"`
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewUserDescr() *UserDescr{
     return &UserDescr{}
 }
 
-
 const BStateNormal      string = "normal"
 const BStateDisabled    string = "disabled"
 const BStateWrong       string = "wrong"
 
 type BStoreDescr struct {
-    BStoreId int64      `json:"bStoreId"    db:"bstore_id"`
-    Address string      `json:"address"     db:"address"`
-    Port    string      `json:"port"        db:"port"`
-    Login   string      `json:"login"       db:"login"`
-    Pass    string      `json:"pass"        db:"pass"`
-    State   string      `json:"state"       db:"state"`
+    BStoreId    int64       `json:"bStoreId"    db:"bstore_id"`
+    Address     string      `json:"address"     db:"address"`
+    Port        string      `json:"port"        db:"port"`
+    Login       string      `json:"login"       db:"login"`
+    Pass        string      `json:"pass"        db:"pass"`
+    State       string      `json:"state"       db:"state"`
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewBStoreDescr() *BStoreDescr{
@@ -36,11 +39,16 @@ func NewBStoreDescr() *BStoreDescr{
 
 type EntryDescr struct {
     EntryId     string      `json:"entryId"     db:"entry_id"`
-    UserId      int64       `json:"userId"      db:"user_id"`
+    UserId      int64       `json:"-"      db:"user_id"`
     DirPath     string      `json:"dirPath"     db:"dir_path"`
     FileName    string      `json:"fileName"    db:"file_name"`
-    FileId      int64       `json:"fileId"      db:"file_id"`
+    FileId      int64       `json:"-"      db:"file_id"`
+    // From userDescr
+    UserName    string      `json:"userName"    db:"user_name"`
+    // From fileDescr
     FileSize    int64       `json:"fileSize"    db:"file_size"`
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewEntryDescr() *EntryDescr {
@@ -56,6 +64,8 @@ type FileDescr struct {
     BatchCount  int64       `json:"batchCount"  db:"batch_count"`
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
     FileSize    int64       `json:"fileSize"    db:"file_size"`
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewFileDescr() *FileDescr {

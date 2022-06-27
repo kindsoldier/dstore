@@ -4,6 +4,7 @@
 package fsreg
 
 import (
+    "time"
     "ndstore/dscom"
     "ndstore/dserr"
 )
@@ -17,7 +18,9 @@ const fileSchema = `
         block_size      INTEGER,
         batch_count     INTEGER,
         u_counter       INTEGER,
-        file_size       INTEGER
+        file_size       INTEGER,
+        created_at      INTEGER,
+        updated_at      INTEGER
     );
     --- DROP INDEX IF EXISTS fs_file_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_file_idx
@@ -27,12 +30,15 @@ const fileSchema = `
 func (reg *Reg) AddFileDescr(descr *dscom.FileDescr) (int64, error) {
     var err error
     request := `
-        INSERT INTO fs_files(batch_size, block_size, u_counter, batch_count, file_size)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO fs_files(batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING file_id;`
     var fileId int64
+    createdAt := time.Now().Unix()
+    updatedAt := createdAt
     err = reg.db.Get(&fileId, request, descr.BatchSize, descr.BlockSize, descr.UCounter, descr.BatchCount,
-                                                                                descr.FileSize)
+                                                                                descr.FileSize,
+                                                                                createdAt, updatedAt)
     if err != nil {
         return fileId, dserr.Err(err)
     }
@@ -41,11 +47,12 @@ func (reg *Reg) AddFileDescr(descr *dscom.FileDescr) (int64, error) {
 
 func (reg *Reg) UpdateFileDescr(descr *dscom.FileDescr) error {
     var err error
+    updatedAt := time.Now().Unix()
     request := `
-        UPDATE fs_files SET batch_size = $1, block_size = $2, batch_count = $3, file_size = $4
-        WHERE file_id = $5;`
+        UPDATE fs_files SET batch_size = $1, block_size = $2, batch_count = $3, file_size = $4, updated_at = $5
+        WHERE file_id = $6;`
     _, err = reg.db.Exec(request, descr.BatchSize, descr.BlockSize, descr.BatchCount,
-                                                                                descr.FileSize,
+                                                                                descr.FileSize, updatedAt,
                                                                                 descr.FileId)
     if err != nil {
         return dserr.Err(err)
@@ -60,7 +67,7 @@ func (reg *Reg) GetFileDescr(fileId int64) (bool, *dscom.FileDescr, error) {
 
     fileDescrs := make([]*dscom.FileDescr, 0)
     request := `
-        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size
+        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at
         FROM fs_files
         WHERE file_id = $1
         LIMIT 1;`
@@ -80,7 +87,7 @@ func (reg *Reg) ListFileDescrs() ([]*dscom.FileDescr, error) {
     var err error
     files := make([]*dscom.FileDescr, 0)
     request := `
-        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size
+        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at
         FROM fs_files
         ORDER BY file_id;`
     err = reg.db.Select(&files, request)
@@ -142,10 +149,8 @@ func (reg *Reg) GetLostedFileDescr() (bool, *dscom.FileDescr, error) {
     var fileDescr *dscom.FileDescr
     files := make([]*dscom.FileDescr, 0)
     request := `
-        SELECT f.*
-        FROM fs_files AS f
-        LEFT JOIN fs_entries AS e
-        ON e.file_id = f.file_id
+        SELECT f.* FROM fs_files AS f
+        LEFT JOIN fs_entries AS e ON e.file_id = f.file_id
         WHERE e.entry_id IS NULL
         ORDER BY f.file_id
         LIMIT 1;`

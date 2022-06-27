@@ -24,7 +24,7 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     err = reg.MigrateDB()
     require.NoError(t, err)
 
-    err = reg.DeleteEntryDescr(userId, dirPath, fileName)
+    err = reg.EraseEntryDescr(userId, dirPath, fileName)
     require.NoError(t, err)
 
     err = reg.AddEntryDescr(userId, dirPath, fileName, fileId)
@@ -35,7 +35,7 @@ func Test_EntryDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, fileId, entry.FileId)
     require.Equal(t, true, exists)
 
-    err = reg.DeleteEntryDescr(userId, dirPath, fileName)
+    err = reg.EraseEntryDescr(userId, dirPath, fileName)
     require.NoError(t, err)
 
     err = reg.CloseDB()

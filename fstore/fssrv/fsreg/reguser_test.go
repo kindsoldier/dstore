@@ -64,6 +64,10 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     exists, descr8, err := reg.GetUserDescr(newLogin)
     require.NoError(t, err)
     descr7.UserId = id7
+    descr7.CreatedAt = 0
+    descr7.UpdatedAt = 0
+    descr8.CreatedAt = 0
+    descr8.UpdatedAt = 0
     require.Equal(t, descr7, descr8)
     require.Equal(t, exists, true)
 
@@ -78,6 +82,10 @@ func Test_UserDescr_InsertSelectDelete(t *testing.T) {
     exists, descr1, err := reg.GetUserDescr(login)
     require.NoError(t, err)
     require.Equal(t, exists, true)
+    descr0.CreatedAt = 0
+    descr0.UpdatedAt = 0
+    descr1.CreatedAt = 0
+    descr1.UpdatedAt = 0
     require.Equal(t, descr0, descr1)
 
     // Erase users and check
