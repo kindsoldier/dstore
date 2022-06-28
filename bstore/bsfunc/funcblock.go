@@ -29,21 +29,18 @@ func GetHello(uri string, auth *dsrpc.Auth) error {
     return dserr.Err(err)
 }
 
-func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize int64,
-                                            blockReader io.Reader, binSize int64, blockType,
-                                                    hashAlg, hashInit, hashSum string) error {
+func SaveBlock(uri string, auth *dsrpc.Auth, descr *dscom.BlockDescr, blockReader io.Reader, binSize int64) error {
     var err error
     params := bsapi.NewSaveBlockParams()
-    params.FileId   = fileId
-    params.BatchId  = batchId
-    params.BlockId  = blockId
-    params.BlockSize = blockSize
-    params.DataSize = binSize
-
-    params.BlockType = blockType
-    params.HashAlg  = hashAlg
-    params.HashInit = hashInit
-    params.HashSum  = hashSum
+    params.FileId       = descr.FileId
+    params.BatchId      = descr.BatchId
+    params.BlockId      = descr.BlockId
+    params.BlockSize    = descr.BlockSize
+    params.DataSize     = descr.DataSize
+    params.BlockType    = descr.BlockType
+    params.HashAlg      = descr.HashAlg
+    params.HashInit     = descr.HashInit
+    params.HashSum      = descr.HashSum
     result := bsapi.NewSaveBlockResult()
 
     err = dsrpc.Put(uri, bsapi.SaveBlockMethod, blockReader, binSize, params, result, auth)
@@ -53,14 +50,15 @@ func SaveBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId, blockSize
     return dserr.Err(err)
 }
 
+
 func LoadBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64,
                                                 blockWriter io.Writer, blockType string) error {
     var err error
     params := bsapi.NewLoadBlockParams()
-    params.FileId   = fileId
-    params.BatchId  = batchId
-    params.BlockId  = blockId
-    params.BlockType = blockType
+    params.FileId       = fileId
+    params.BatchId      = batchId
+    params.BlockId      = blockId
+    params.BlockType    = blockType
 
     result := bsapi.NewLoadBlockResult()
     err = dsrpc.Get(uri, bsapi.LoadBlockMethod, blockWriter, params, result, auth)
@@ -86,10 +84,10 @@ func ListBlocks(uri string, auth *dsrpc.Auth) ([]*dscom.BlockDescr, error) {
 func DeleteBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string) error {
     var err error
     params := bsapi.NewDeleteBlockParams()
-    params.FileId   = fileId
-    params.BatchId  = batchId
-    params.BlockId  = blockId
-    params.BlockType = blockType
+    params.FileId       = fileId
+    params.BatchId      = batchId
+    params.BlockId      = blockId
+    params.BlockType    = blockType
     result := bsapi.NewDeleteBlockResult()
     err = dsrpc.Exec(uri, bsapi.DeleteBlockMethod, params, result, auth)
     if err != nil {
@@ -102,10 +100,10 @@ func BlockExists(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, b
     var err error
     var exists bool
     params := bsapi.NewBlockExistsParams()
-    params.FileId   = fileId
-    params.BatchId  = batchId
-    params.BlockId  = blockId
-    params.BlockType = blockType
+    params.FileId       = fileId
+    params.BatchId      = batchId
+    params.BlockId      = blockId
+    params.BlockType    = blockType
     result := bsapi.NewBlockExistsResult()
     err = dsrpc.Exec(uri, bsapi.BlockExistsMethod, params, result, auth)
     exists = result.Exists
@@ -119,10 +117,10 @@ func CheckBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, bl
     var err error
     var correct bool
     params := bsapi.NewCheckBlockParams()
-    params.FileId   = fileId
-    params.BatchId  = batchId
-    params.BlockId  = blockId
-    params.BlockType = blockType
+    params.FileId       = fileId
+    params.BatchId      = batchId
+    params.BlockId      = blockId
+    params.BlockType    = blockType
     result := bsapi.NewCheckBlockResult()
     err = dsrpc.Exec(uri, bsapi.CheckBlockMethod, params, result, auth)
     correct = result.Correct

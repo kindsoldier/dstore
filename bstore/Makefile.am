@@ -10,20 +10,40 @@ sbin_PROGRAMS = bstored bstorecli
 bstored_SOURCES = bssrv/bsmain.go
 
 EXTRA_bstored_SOURCES = \
-	bssrv/bsbreg/block.go \
-	bssrv/bsbreg/comm.go \
-	bssrv/bsbreg/block_test.go \
-	bssrv/bsureg/common.go \
-	bssrv/bsureg/users.go \
-	bssrv/bsureg/users_test.go \
-	bssrv/bsbcont/comm.go \
-	bssrv/bsbcont/block.go \
-	bssrv/bsbcont/block_test.go \
+	bsapi/bdeleteblock.go \
+	bsapi/xcheckuser.go \
+	bsapi/bsaveblock.go \
+	bsapi/bblockexists.go \
+	bsapi/xadduser.go \
+	bsapi/bloadblock.go \
+	bsapi/xlistusers.go \
+	bsapi/blistblocks.go \
+	bsapi/bcheckblock.go \
+	bsapi/bgethello.go \
+	bsapi/xupdateuser.go \
+	bsapi/xdeleteuser.go \
+	bsapi/bpurgeall.go \
+	bscom/descr.go \
+	bsfunc/funcblock.go \
+	bssrv/bsbreg/bregblock.go \
+	bssrv/bsbreg/bregcomm.go \
+	bssrv/bsureg/uregcommon.go \
+	bssrv/bsureg/uregusers.go \
+	bssrv/bsbcont/bcontcomm.go \
+	bssrv/bsbcont/bcontblock.go \
+	bssrv/bsmain.go \
 	bssrv/bsuser/bsuser.go \
-	bssrv/bsucont/comm.go \
-	bssrv/bsucont/user_test.go \
-	bssrv/bsucont/user.go \
+	bssrv/bsucont/ucontuser.go \
+	bssrv/bsucont/ucontcomm.go \
+	bssrv/bsucont/ucontauth.go \
 	bssrv/bsblock/bsrec.go
+
+EXTRA_DIST = \
+	bscli/bscli_test.go \
+	bssrv/bsbreg/bregblock_test.go \
+	bssrv/bsureg/uregusers_test.go \
+	bssrv/bsbcont/bcontblock_test.go \
+	bssrv/bsucont/ucontuser_test.go
 
 
 bstorecli_SOURCES = bscli/bscli.go
@@ -37,7 +57,7 @@ bstored$(EXEEXT): $(bstored_SOURCES) $(EXTRA_bstored_SOURCES)
 bstorecli$(EXEEXT): $(bstorecli_SOURCES) $(EXTRA_bstorecli_SOURCES)
 	$(GO) build $(GOFLAGS) -o bstorecli$(EXEEXT) $(bstorecli_SOURCES)
 
-EXTRA_DIST = \
+EXTRA_DIST += \
 	bstore.conf
 
 clean-local:
@@ -71,5 +91,6 @@ graph:
 EXTRA_DIST += \
 	bstore.svg \
 	dsrpc.svg
+
 
 

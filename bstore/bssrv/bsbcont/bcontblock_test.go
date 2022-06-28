@@ -19,8 +19,6 @@ import (
 )
 
 
-
-
 func Test_Block_SaveLoadDelete(t *testing.T) {
     var err error
 
@@ -55,7 +53,6 @@ func Test_Block_SaveLoadDelete(t *testing.T) {
 
     err = dsrpc.LocalPut(bsapi.SaveBlockMethod, reader, size, params, result, nil, contr.SaveBlockHandler)
     require.NoError(t, err)
-
 
     writer := bytes.NewBuffer(make([]byte, 0))
 
