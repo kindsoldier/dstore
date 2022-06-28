@@ -42,7 +42,7 @@ func (reg *Reg) AddBlockDescr(descr *dscom.BlockDescr) error {
     return dserr.Err(err)
 }
 
-func (reg *Reg) GetBlockParams(fileId, batchId, blockId int64, blockType string) (bool, bool, string, int64, error) {
+func (reg *Reg) xxxGetBlockParams(fileId, batchId, blockId int64, blockType string) (bool, bool, string, int64, error) {
     var err error
     var exists bool
     var used bool
@@ -71,6 +71,31 @@ func (reg *Reg) GetBlockParams(fileId, batchId, blockId int64, blockType string)
     }
     return exists, used, filePath, dataSize, dserr.Err(err)
 }
+
+func (reg *Reg) GetBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *dscom.BlockDescr, error) {
+    var err error
+    var exists bool
+    var descr *dscom.BlockDescr
+    request := `
+        SELECT file_path, data_size, u_counter
+        FROM blocks
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+        LIMIT 1;`
+    descrs := make([]*dscom.BlockDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, batchId, blockId, blockType)
+    if err != nil {
+        return exists, descr, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
+}
+
 
 func (reg *Reg) GetUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
     var err     error
