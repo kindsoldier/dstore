@@ -8,7 +8,6 @@ package dsrpc
 import (
     "io"
     "net"
-    "sync"
 )
 
 func LocalExec(method string, param any, result any, auth *Auth, handler HandlerFunc) error {
@@ -25,7 +24,6 @@ func LocalExec(method string, param any, result any, auth *Auth, handler Handler
     if context.reqRPC.Params == nil {
         context.reqRPC.Params = NewEmpty()
     }
-
     err = context.CreateRequest()
     if err != nil {
         return err
@@ -34,12 +32,10 @@ func LocalExec(method string, param any, result any, auth *Auth, handler Handler
     if err != nil {
         return err
     }
-
     err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
-
     err = context.ReadResponse()
     if err != nil {
         return err
@@ -72,7 +68,6 @@ func LocalPut(method string, reader io.Reader, size int64, param, result any, au
     if context.reqRPC.Params == nil {
         context.reqRPC.Params = NewEmpty()
     }
-
     err = context.CreateRequest()
     if err != nil {
         return err
@@ -81,28 +76,18 @@ func LocalPut(method string, reader io.Reader, size int64, param, result any, au
     if err != nil {
         return err
     }
-
-    var wg sync.WaitGroup
-
-
-    wg.Add(1)
-    go context.UploadBinAsync(&wg)
-
+    err = context.UploadBin()
+    if err != nil {
+        return err
+    }
     err = LocalService(srvConn, handler)
     if err != nil {
         return err
     }
-
-    wg.Add(1)
-    errChan := make(chan error, 1)
-    go context.ReadResponseAsync(&wg, errChan)
-    wg.Wait()
-
-    err = <-errChan
+    err = context.ReadResponse()
     if err != nil {
         return err
     }
-
     err = context.BindResponse()
     if err != nil {
         return err
@@ -141,7 +126,6 @@ func LocalGet(method string, writer io.Writer, param, result any, auth *Auth, ha
     if err != nil {
         return err
     }
-
     err = context.ReadResponse()
     if err != nil {
         return err
@@ -172,11 +156,9 @@ func LocalService(conn net.Conn, handler HandlerFunc) error {
     if err != nil {
         return err
     }
-
     err = context.BindMethod()
     if err != nil {
         return err
     }
-
     return handler(context)
 }
