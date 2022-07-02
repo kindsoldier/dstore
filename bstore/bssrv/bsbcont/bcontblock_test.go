@@ -97,5 +97,32 @@ func Test_Block_Hello(t *testing.T) {
 
     err = reg.CloseDB()
     require.NoError(t, err)
+}
 
+
+func BenchmarkSave(b *testing.B) {
+
+    dataSize := int64(1024)
+    data := make([]byte, dataSize)
+    rand.Read(data)
+
+    const numRange int = 1024
+
+    pBench := func(pb *testing.PB) {
+        for pb.Next() {
+            reader := bytes.NewReader(data)
+            params := bsapi.NewSaveBlockParams()
+            params.FileId       = int64(rand.Intn(numRange))
+            params.BatchId      = int64(rand.Intn(numRange))
+            params.BlockId      = int64(rand.Intn(numRange))
+            params.DataSize     = dataSize
+            params.BlockSize    = dataSize
+            auth := dsrpc.CreateAuth([]byte("admin"), []byte("admin"))
+            result := bsapi.NewSaveBlockResult()
+            _ = dsrpc.Put("127.0.0.1:5101", bsapi.SaveBlockMethod, reader, dataSize, params, result, auth)
+
+        }
+    }
+    b.SetParallelism(5)
+    b.RunParallel(pBench)
 }

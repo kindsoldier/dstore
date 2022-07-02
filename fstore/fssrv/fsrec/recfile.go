@@ -182,6 +182,54 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
     return dserr.Err(err)
 }
 
+
+func (store *Store) Saver() {
+    for {
+        select {
+            case <-store.wasteChan:
+            case <-time.After(time.Second * 1):
+        }
+        dslog.LogDebug("saver call")
+        exists, blockDescr, err := store.reg.GetLocalOnlyBlockDescr()
+        if exists && err == nil {
+            dslog.LogDebug("save file:", blockDescr.FileId)
+
+            file, err := fsfile.OpenFile(store.reg, store.dataRoot, blockDescr.FileId)
+            if err != nil {
+                dslog.LogDebug("open file err:", dserr.Err(err))
+                file.Close()
+                continue
+            }
+            saver := NewBSSaver(store.reg)
+            err = saver.LoadPool()
+            if err != nil {
+                dslog.LogDebug("saver load pool err:", dserr.Err(err))
+                file.Close()
+                continue
+            }
+            err = file.Save(saver)
+            if err != nil {
+                dslog.LogDebug("saver save file err:", dserr.Err(err))
+                file.Close()
+                continue
+            }
+
+            file.Close()
+            //if err != nil {
+                //dslog.LogDebug("save file err:", dserr.Err(err))
+            //}
+            //file.Close()
+            //continue
+        }
+        select {
+            case <-store.wasteChan:
+            case <-time.After(time.Second * 1):
+        }
+    }
+}
+
+
+
 func (store *Store) WasteCollector() {
     for {
         //dslog.LogDebug("waste collecr call")

@@ -9,205 +9,222 @@ import (
     "ndstore/dserr"
 )
 
-
 const fileSchema = `
+    --- DROP TABLE IF EXISTS fs_fileids;
+    CREATE TABLE IF NOT EXISTS fs_fileids (
+        file_id         BIGINT GENERATED ALWAYS AS IDENTITY (START 1 CYCLE),
+        created_at      BIGINT
+    );
     --- DROP TABLE IF EXISTS fs_files;
     CREATE TABLE IF NOT EXISTS fs_files (
-        file_id         INTEGER GENERATED ALWAYS AS IDENTITY (START 1 CYCLE ),
-        batch_size      INTEGER,
-        block_size      INTEGER,
-        batch_count     INTEGER,
-        u_counter       INTEGER,
-        file_size       INTEGER,
-        created_at      INTEGER,
-        updated_at      INTEGER
+        file_id         BIGINT,
+
+        file_ver        BIGINT,
+        u_counter       BIGINT,
+
+        batch_size      BIGINT,
+        block_size      BIGINT,
+
+        batch_count     BIGINT,
+        file_size       BIGINT,
+        created_at      BIGINT,
+        updated_at      BIGINT
     );
     --- DROP INDEX IF EXISTS fs_file_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_file_idx
-        ON fs_files(file_id);`
+        ON fs_files(file_id, file_ver);`
 
 
-func (reg *Reg) AddFileDescr(descr *dscom.FileDescr) (int64, error) {
+
+func (reg *Reg) GetNewFileId() (int64, error) {
     var err error
-    request := `
-        INSERT INTO fs_files(batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING file_id;`
     var fileId int64
-    createdAt := time.Now().Unix()
-    updatedAt := createdAt
-    err = reg.db.Get(&fileId, request, descr.BatchSize, descr.BlockSize, descr.UCounter, descr.BatchCount,
-                                                                                descr.FileSize,
-                                                                                createdAt, updatedAt)
+    request := `
+        INSERT INTO fs_fileids(created_at) VALUES ($1) RETURNING file_id;`
+    ts := time.Now().Unix()
+    err = reg.db.Get(&fileId, request, ts)
     if err != nil {
         return fileId, dserr.Err(err)
     }
     return fileId, dserr.Err(err)
 }
 
-func (reg *Reg) UpdateFileDescr(descr *dscom.FileDescr) error {
+
+func (reg *Reg) AddNewFileDescr(descr *dscom.FileDescr) error {
     var err error
-    updatedAt := time.Now().Unix()
     request := `
-        UPDATE fs_files SET batch_size = $1, block_size = $2, batch_count = $3, file_size = $4, updated_at = $5
-        WHERE file_id = $6;`
-    _, err = reg.db.Exec(request, descr.BatchSize, descr.BlockSize, descr.BatchCount,
-                                                                                descr.FileSize, updatedAt,
-                                                                                descr.FileId)
+        INSERT INTO fs_files(file_id, batch_count, file_ver, u_counter,
+                                                        batch_size, block_size, file_size,
+                                                            created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`
+
+    _, err = reg.db.Exec(request, descr.FileId, descr.BatchCount, descr.FileVer, descr.UCounter,
+                                                        descr.BatchSize, descr.BlockSize, descr.FileSize,
+                                                            descr.CreatedAt, descr.UpdatedAt)
+
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) GetFileDescr(fileId int64) (bool, *dscom.FileDescr, error) {
+func (reg *Reg) GetNewestFileDescr(fileId int64) (bool, *dscom.FileDescr, error) {
     var err error
-    exists := false
-    var fileDescr *dscom.FileDescr
-
-    fileDescrs := make([]*dscom.FileDescr, 0)
+    var exists bool
+    var descr *dscom.FileDescr
     request := `
-        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                    created_at, updated_at
         FROM fs_files
         WHERE file_id = $1
+            AND u_counter > 0
+        ORDER BY file_ver DESC
         LIMIT 1;`
-    err = reg.db.Select(&fileDescrs, request, fileId)
+    descrs := make([]*dscom.FileDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId)
     if err != nil {
-        return exists, fileDescr, dserr.Err(err)
+        return exists, descr, dserr.Err(err)
     }
-    if len(fileDescrs) > 0 {
+    if len(descrs) > 0 {
         exists = true
-        fileDescr = fileDescrs[0]
+        descr = descrs[0]
     }
-    return exists, fileDescr, dserr.Err(err)
+    return exists, descr, dserr.Err(err)
 }
 
-
-func (reg *Reg) ListFileDescrs() ([]*dscom.FileDescr, error) {
+func (reg *Reg) GetSpecFileDescr(fileId, fileVer int64) (bool, *dscom.FileDescr, error) {
     var err error
-    files := make([]*dscom.FileDescr, 0)
+    var exists bool
+    var descr *dscom.FileDescr
     request := `
-        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size, created_at, updated_at
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                    created_at, updated_at
         FROM fs_files
-        ORDER BY file_id;`
-    err = reg.db.Select(&files, request)
+        WHERE file_id = $1
+            AND file_ver = $2
+            AND u_counter > 0
+        LIMIT 1;`
+    descrs := make([]*dscom.FileDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, fileVer)
     if err != nil {
-        return files, dserr.Err(err)
+        return exists, descr, dserr.Err(err)
     }
-    return files, dserr.Err(err)
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
 }
 
-//func (reg *Reg) GetUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
-//    var err     error
-//    var exists  bool
-//    var blockDescr *dscom.BlockDescr
-//    blocks := make([]*dscom.BlockDescr, 0)
-//    request := `
-//        SELECT b.file_id, b.batch_id, b.block_id, b.block_size, b.data_size,
-//                                b.file_path, b.block_type, b.hash_alg, b.hash_init, b.hash_sum,
-//                                fstore_id, b.bstore_id, b.saved_loc, b.saved_rem
-//        FROM fs_blocks AS b, fs_files as f
-//        WHERE f.u_counter < 1 AND b.file_id = b.file_id
-//        LIMIT 1;`
-//    err = reg.db.Select(&blocks, request)
-//    if err != nil {
-//        return exists, blockDescr, dserr.Err(err)
-//    }
-//    if len(blocks) > 0 {
-//        exists = true
-//        blockDescr = blocks[0]
-//    }
-//    return exists, blockDescr, dserr.Err(err)
-//}
 
-func (reg *Reg) GetUnusedFileDescr() (bool, *dscom.FileDescr, error) {
+func (reg *Reg) GetSpecUnusedFileDescr(fileId, fileVer int64) (bool, *dscom.FileDescr, error) {
+    var err error
+    var exists bool
+    var descr *dscom.FileDescr
+    request := `
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                    created_at, updated_at
+        FROM fs_files
+        WHERE file_id = $1
+            AND file_ver = $2
+            AND u_counter < 1
+        LIMIT 1;`
+    descrs := make([]*dscom.FileDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, fileVer)
+    if err != nil {
+        return exists, descr, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
+}
+
+
+func (reg *Reg) GetAnyUnusedFileDescr() (bool, *dscom.FileDescr, error) {
     var err     error
     var exists  bool
-    var fileDescr *dscom.FileDescr
-    files := make([]*dscom.FileDescr, 0)
+    var blockDescr *dscom.FileDescr
+    blocks := make([]*dscom.FileDescr, 0)
     request := `
-        SELECT file_id, batch_size, block_size, u_counter, batch_count, file_size
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                    created_at, updated_at
         FROM fs_files
         WHERE u_counter < 1
-        ORDER BY file_id
         LIMIT 1;`
-    err = reg.db.Select(&files, request)
+    err = reg.db.Select(&blocks, request)
     if err != nil {
-        return exists, fileDescr, dserr.Err(err)
+        return exists, blockDescr, dserr.Err(err)
     }
-    if len(files) > 0 {
+    if len(blocks) > 0 {
         exists = true
-        fileDescr = files[0]
+        blockDescr = blocks[0]
     }
-    return exists, fileDescr, dserr.Err(err)
+    return exists, blockDescr, dserr.Err(err)
 }
 
-
-func (reg *Reg) GetLostedFileDescr() (bool, *dscom.FileDescr, error) {
-    var err     error
-    var exists  bool
-    var fileDescr *dscom.FileDescr
-    files := make([]*dscom.FileDescr, 0)
-    request := `
-        SELECT f.*
-        FROM fs_files AS f
-        LEFT JOIN fs_entries AS e ON e.file_id = f.file_id
-        WHERE e.entry_id IS NULL
-        ORDER BY f.file_id
-        LIMIT 1;`
-    err = reg.db.Select(&files, request)
-    if err != nil {
-        return exists, fileDescr, dserr.Err(err)
-    }
-    if len(files) > 0 {
-        exists = true
-        fileDescr = files[0]
-    }
-    return exists, fileDescr, dserr.Err(err)
-}
-
-
-func (reg *Reg) IncFileDescrUC(fileId int64) error {
+func (reg *Reg) IncSpecFileDescrUC(fileId, fileVer int64) error {
     var err error
     request := `
         UPDATE fs_files SET
             u_counter = u_counter + 1
-        WHERE file_id = $1;`
-    _, err = reg.db.Exec(request, fileId)
+        WHERE file_id = $1
+            AND file_ver = $2;`
+    _, err = reg.db.Exec(request, fileId, fileVer)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) DecFileDescrUC(fileId int64) error {
+func (reg *Reg) DecSpecFileDescrUC(fileId, fileVer int64) error {
     var err error
     request := `
         UPDATE fs_files SET
             u_counter = u_counter - 1
-        WHERE file_id = $1 AND u_counter > 0;`
-    _, err = reg.db.Exec(request, fileId)
+        WHERE file_id = $1
+            AND file_ver = $2
+            AND u_counter > 0;`
+    _, err = reg.db.Exec(request, fileId, fileVer)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) EraseFileDescr(fileId int64) error {
+func (reg *Reg) ListAllFileDescrs() ([]*dscom.FileDescr, error) {
     var err error
-    var request string
-    tx, err := reg.db.Begin()
+    blocks := make([]*dscom.FileDescr, 0)
+    request := `
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                    created_at, updated_at
+        FROM fs_files;`
+    err = reg.db.Select(&blocks, request)
     if err != nil {
-        return dserr.Err(err)
+        return blocks, dserr.Err(err)
     }
-    request = `
+    return blocks, dserr.Err(err)
+}
+
+func (reg *Reg) EraseSpecFileDescr(fileId, fileVer int64) error {
+    var err error
+    request := `
         DELETE FROM fs_files
-        WHERE file_id = $1;`
-    _, err = tx.Exec(request, fileId)
+        WHERE file_id = $1
+            AND file_ver = $2;`
+    _, err = reg.db.Exec(request, fileId, fileVer)
     if err != nil {
         return dserr.Err(err)
     }
-    err = tx.Commit()
+    return dserr.Err(err)
+}
+
+func (reg *Reg) EraseAllFileDescrs() error {
+    var err error
+    request := `
+        DELETE FROM fs_files;`
+    _, err = reg.db.Exec(request)
     if err != nil {
         return dserr.Err(err)
     }

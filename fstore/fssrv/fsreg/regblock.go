@@ -11,102 +11,205 @@ import (
 const blockSchema = `
     --- DROP TABLE IF EXISTS fs_blocks;
     CREATE TABLE IF NOT EXISTS fs_blocks (
-        file_id         INTEGER,
-        batch_id        INTEGER,
-        block_id        INTEGER,
+        file_id         BIGINT,
+        batch_id        BIGINT,
+        block_id        BIGINT,
         block_type      TEXT DEFAULT '',
-        block_size      INTEGER,
-        data_size       INTEGER,
+
+        block_ver       BIGINT,
+        u_counter       BIGINT,
+
+        block_size      BIGINT,
+        data_size       BIGINT,
         file_path       TEXT DEFAULT '',
+
         hash_alg        TEXT DEFAULT '',
-        hash_sum        TEXT DEFAULT '',
         hash_init       TEXT DEFAULT '',
-        bstore_id       INTEGER,
-        saved_rem       BOOL,
-        fstore_id       INTEGER,
+        hash_sum        TEXT DEFAULT '',
+
         saved_loc       BOOL,
+        saved_rem       BOOL,
+        fstore_id       BIGINT,
+        bstore_id       BIGINT,
         loc_updated     BOOL
     );
     --- DROP INDEX IF EXISTS fs_block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_block_idx
-        ON fs_blocks(file_id, batch_id, block_id, block_type);`
+        ON fs_blocks (file_id, batch_id, block_id, block_type, block_ver);`
 
 
-func (reg *Reg) AddBlockDescr(descr *dscom.BlockDescr) error {
+
+func (reg *Reg) AddNewBlockDescr(descr *dscom.BlockDescr) error {
     var err error
     request := `
-        INSERT INTO fs_blocks(file_id, batch_id, block_id, block_size, data_size,
-                                    file_path, block_type, hash_alg, hash_init, hash_sum,
-                                    fstore_id, bstore_id, saved_loc, saved_rem, loc_updated)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);`
-    _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockSize, descr.DataSize,
-                                    descr.FilePath, descr.BlockType, descr.HashAlg, descr.HashInit, descr.HashSum,
-                                    descr.FStoreId, descr.BStoreId, descr.SavedLoc, descr.SavedRem, descr.LocUpdated)
+        INSERT INTO fs_blocks(file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);`
+    _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType,
+                                                                    descr.BlockVer, descr.UCounter,
+                                descr.BlockSize, descr.DataSize, descr.FilePath, descr.HashAlg,
+                                                                    descr.HashInit, descr.HashSum,
+                                descr.SavedLoc, descr.SavedRem, descr.FStoreId, descr.BStoreId,
+                                                                                descr.LocUpdated)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-
-func (reg *Reg) UpdateBlockDescr(descr *dscom.BlockDescr) error {
+func (reg *Reg) GetNewestBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *dscom.BlockDescr, error) {
     var err error
+    var exists bool
+    var descr *dscom.BlockDescr
     request := `
-        UPDATE fs_blocks SET block_size = $1, data_size = $2,
-                                    file_path = $3, hash_alg = $4, hash_init = $5, hash_sum = $6,
-                                    fstore_id = $7, bstore_id = $8, saved_loc = $9, saved_rem = $10,
-                                    loc_updated = $11
-        WHERE file_id = $12
-            AND batch_id = $13
-            AND block_id = $14
-            AND block_type = $15;`
-    _, err = reg.db.Exec(request, descr.BlockSize, descr.DataSize,
-                                    descr.FilePath, descr.HashAlg, descr.HashInit, descr.HashSum,
-                                    descr.FStoreId, descr.BStoreId, descr.SavedLoc, descr.SavedRem,
-                                    descr.LocUpdated,
-                                    descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType)
-    if err != nil {
-        return dserr.Err(err)
-    }
-    return dserr.Err(err)
-}
-
-
-func (reg *Reg) GetBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *dscom.BlockDescr, error) {
-    var err error
-    exists := false
-    var blockDescr *dscom.BlockDescr
-
-    blockDescrs := make([]*dscom.BlockDescr, 0)
-    request := `
-        SELECT file_id, batch_id, block_id, block_size, data_size,
-                                    file_path, block_type, hash_alg, hash_init, hash_sum,
-                                    fstore_id, bstore_id, saved_loc, saved_rem, loc_updated
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
         FROM fs_blocks
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
             AND block_type = $4
+            AND u_counter > 0
+        ORDER BY block_ver DESC
         LIMIT 1;`
-    err = reg.db.Select(&blockDescrs, request, fileId, batchId, blockId, blockType )
+    descrs := make([]*dscom.BlockDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, batchId, blockId, blockType)
+    if err != nil {
+        return exists, descr, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
+}
+
+func (reg *Reg) GetSpecBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, *dscom.BlockDescr, error) {
+    var err error
+    var exists bool
+    var descr *dscom.BlockDescr
+    request := `
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+        FROM fs_blocks
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+            AND block_ver = $5
+            AND u_counter > 0
+        LIMIT 1;`
+    descrs := make([]*dscom.BlockDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, batchId, blockId, blockType, blockVer)
+    if err != nil {
+        return exists, descr, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
+}
+
+
+func (reg *Reg) GetSpecUnusedBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, *dscom.BlockDescr, error) {
+    var err error
+    var exists bool
+    var descr *dscom.BlockDescr
+    request := `
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+        FROM fs_blocks
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+            AND block_ver = $5
+            AND u_counter < 1
+        LIMIT 1;`
+    descrs := make([]*dscom.BlockDescr, 0)
+    err = reg.db.Select(&descrs, request, fileId, batchId, blockId, blockType, blockVer)
+    if err != nil {
+        return exists, descr, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+        descr = descrs[0]
+    }
+    return exists, descr, dserr.Err(err)
+}
+
+
+func (reg *Reg) GetAnyUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
+    var err     error
+    var exists  bool
+    var blockDescr *dscom.BlockDescr
+    blocks := make([]*dscom.BlockDescr, 0)
+    request := `
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+        FROM fs_blocks
+        WHERE u_counter < 1
+        LIMIT 1;`
+    err = reg.db.Select(&blocks, request)
     if err != nil {
         return exists, blockDescr, dserr.Err(err)
     }
-    if len(blockDescrs) > 0 {
+    if len(blocks) > 0 {
         exists = true
-        blockDescr = blockDescrs[0]
+        blockDescr = blocks[0]
     }
     return exists, blockDescr, dserr.Err(err)
 }
 
+func (reg *Reg) IncSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
+    var err error
+    request := `
+        UPDATE fs_blocks SET
+            u_counter = u_counter + 1
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+            AND block_ver = $5
+            ;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
 
-func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
+func (reg *Reg) DecSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
+    var err error
+    request := `
+        UPDATE fs_blocks SET
+            u_counter = u_counter - 1
+        WHERE file_id = $1
+            AND batch_id = $2
+            AND block_id = $3
+            AND block_type = $4
+            AND block_ver = $5
+            AND u_counter > 0;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+func (reg *Reg) ListAllBlockDescrs() ([]*dscom.BlockDescr, error) {
     var err error
     blocks := make([]*dscom.BlockDescr, 0)
     request := `
-        SELECT file_id, batch_id, block_id, block_size, data_size,
-                                    file_path, block_type, hash_alg, hash_init, hash_sum,
-                                    fstore_id, bstore_id, saved_loc, saved_rem, loc_updated
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
         FROM fs_blocks;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
@@ -115,33 +218,28 @@ func (reg *Reg) ListBlockDescrs() ([]*dscom.BlockDescr, error) {
     return blocks, dserr.Err(err)
 }
 
-func (reg *Reg) ListBlockDescrsByFileId(fileId int64) ([]*dscom.BlockDescr, error) {
-    var err error
-    blocks := make([]*dscom.BlockDescr, 0)
-    request := `
-        SELECT file_id, batch_id, block_id, block_size, data_size,
-                                    file_path, block_type, hash_alg, hash_init, hash_sum,
-                                    fstore_id, bstore_id, saved_loc, saved_rem, loc_updated
-        FROM fs_blocks
-        WHERE file_id = $1;`
-    err = reg.db.Select(&blocks, request, fileId)
-    if err != nil {
-        return blocks, dserr.Err(err)
-    }
-    return blocks, dserr.Err(err)
-}
-
-
-
-func (reg *Reg) EraseBlockDescr(fileId, batchId, blockId int64, blockType string) error {
+func (reg *Reg) EraseSpecBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
     request := `
         DELETE FROM fs_blocks
         WHERE file_id = $1
             AND batch_id = $2
             AND block_id = $3
-            AND block_type = $4;`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType)
+            AND block_type = $4
+            AND block_ver = $5
+            ;`
+    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+func (reg *Reg) EraseAllBlockDescrs() error {
+    var err error
+    request := `
+        DELETE FROM fs_blocks;`
+    _, err = reg.db.Exec(request)
     if err != nil {
         return dserr.Err(err)
     }

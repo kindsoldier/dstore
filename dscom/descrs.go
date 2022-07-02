@@ -62,7 +62,10 @@ type FileDescr struct {
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     BatchCount  int64       `json:"batchCount"  db:"batch_count"`
+
+    FileVer     int64       `json:"fileVer"     db:"file_ver"`
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
+
     FileSize    int64       `json:"fileSize"    db:"file_size"`
     UpdatedAt   UnixTime    `json:"updatedAt"   db:"updated_at"`
     CreatedAt   UnixTime    `json:"createdAt"   db:"created_at"`
@@ -78,6 +81,9 @@ type BatchDescr struct {
     BatchId     int64       `json:"batchId"     db:"batch_id"`
     BatchSize   int64       `json:"batchSize"   db:"batch_size"`
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
+
+    BatchVer    int64       `json:"batchVer"    db:"batch_ver"`
+    UCounter    int64       `json:"uCounter"    db:"u_counter"`
 }
 
 func NewBatchDescr() *BatchDescr {
@@ -96,7 +102,9 @@ type BlockDescr struct {
     BlockId     int64       `json:"blockId"     db:"block_id"`
     BlockType   string      `json:"blockType"   db:"block_type"`
 
+    BlockVer    int64       `json:"blockVer"    db:"block_ver"`
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
+
     BlockSize   int64       `json:"blockSize"   db:"block_size"`
     DataSize    int64       `json:"dataSize"    db:"data_size"`
     FilePath    string      `json:"filePath"    db:"file_path"`
@@ -110,6 +118,7 @@ type BlockDescr struct {
 
     FStoreId    int64       `json:"fstoreId"    db:"fstore_id"`
     BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
+
 }
 
 func NewBlockDescr() *BlockDescr {

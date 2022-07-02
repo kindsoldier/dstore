@@ -90,6 +90,7 @@ func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, bi
         os.Remove(fullFilePath)
         return dserr.Err(err)
     }
+    dslog.LogDebug("save binSize", binSize)
 
     switch {
         case len(descr.HashSum) == 0:
@@ -107,6 +108,7 @@ func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, bi
             descr.HashInit = hex.EncodeToString(hashIBytes)
             descr.HashAlg = dscom.HashTypeHW
         default:
+
            _, err = dsrpc.CopyBytes(blockReader, blockFile, binSize)
             if err != nil {
                 return dserr.Err(err)

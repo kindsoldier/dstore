@@ -5,6 +5,7 @@ package fsreg
 
 import (
     "testing"
+    "time"
     "github.com/stretchr/testify/require"
     "ndstore/dscom"
 )
@@ -22,90 +23,105 @@ func Test_FileDescr_InsertSelectDelete(t *testing.T) {
     require.NoError(t, err)
 
     // Create origins
-    var exists bool
+    ver0 := time.Now().UnixNano()
+    ver1 := time.Now().UnixNano()
+    ver2 := time.Now().UnixNano()
+    require.NotEqual(t, ver0, ver1)
+    require.NotEqual(t, ver1, ver2)
+
     descr0 := dscom.NewFileDescr()
 
+    var fileId      int64   = 1
+    descr0.FileId      = fileId
     descr0.BatchSize   = 5
     descr0.BlockSize   = 1024
-    descr0.UCounter    = 1
-    descr0.BatchCount  = 7
 
-    // Add file descr
-    fileId, err := reg.AddFileDescr(descr0)
+    descr0.FileSize     = 5
+    descr0.BlockSize    = 1024
+    descr0.BatchCount   = 7
+
+    descr0.FileVer  = ver0
+    descr0.UCounter = 1
+
+    var exists bool
+
+    _ = reg.EraseAllFileDescrs()
+    _ = reg.EraseSpecFileDescr(descr0.FileId, ver0)
+    _ = reg.EraseSpecFileDescr(descr0.FileId, ver1)
+    _ = reg.EraseSpecFileDescr(descr0.FileId, ver2)
+
+    err = reg.AddNewFileDescr(descr0)
     require.NoError(t, err)
 
-    descr0.FileId = fileId
-    // Again add the same file descr
-    _, err = reg.AddFileDescr(descr0)
+    err = reg.AddNewFileDescr(descr0)
+    require.Error(t, err)
+
+    descr0.FileVer     = ver1
+    err = reg.AddNewFileDescr(descr0)
     require.NoError(t, err)
 
-    // Add secondary file descr
-    descr7 := dscom.NewFileDescr()
-    *descr7 = *descr0
-    descr7.FileId += 1
-    require.NotEqual(t, descr0, descr7)
-    _, err = reg.AddFileDescr(descr7)
+    descr0.FileVer     = ver2
+    err = reg.AddNewFileDescr(descr0)
     require.NoError(t, err)
 
-    // Lists file descrs
-    descrs, err := reg.ListFileDescrs()
+    descrs, err := reg.ListAllFileDescrs()
     require.NoError(t, err)
-    require.GreaterOrEqual(t, len(descrs), 2)
+    require.Equal(t, 3, len(descrs))
 
-    // Get file descrs
-    exists, descr1, err := reg.GetFileDescr(fileId)
+    exists, descr1, err := reg.GetNewestFileDescr(fileId)
     require.NoError(t, err)
     require.Equal(t, exists, true)
-    // Compare dates
-    require.NotEqual(t, descr0.CreatedAt, descr1.CreatedAt)
-    require.NotEqual(t, descr0.UpdatedAt, descr1.UpdatedAt)
-    // Zeroind dates for compare descrs
-    descr0.CreatedAt = 0
-    descr1.CreatedAt = 0
-    descr0.UpdatedAt = 0
-    descr1.UpdatedAt = 0
     require.Equal(t, descr0, descr1)
 
-    // Erase notexists desc
-    err = reg.EraseFileDescr(fileId + 1)
+
+    err = reg.IncSpecFileDescrUC(fileId, ver0)
     require.NoError(t, err)
 
-    // Get file descr
-    exists, descr2, err := reg.GetFileDescr(fileId)
-    require.NoError(t, err)
-    require.Equal(t, exists, true)
-    require.NotEqual(t, descr0.CreatedAt, descr2.CreatedAt)
-    require.NotEqual(t, descr0.UpdatedAt, descr2.UpdatedAt)
-    descr0.CreatedAt = 0
-    descr2.CreatedAt = 0
-    descr0.UpdatedAt = 0
-    descr2.UpdatedAt = 0
-    require.Equal(t, descr0, descr2)
-
-    // Update file descrs
-    descr2.BatchCount += 8
-    err = reg.UpdateFileDescr(descr2)
+    err = reg.DecSpecFileDescrUC(fileId, ver0)
     require.NoError(t, err)
 
-    // Again get file descr
-    exists, descr3, err := reg.GetFileDescr(fileId)
+    err = reg.DecSpecFileDescrUC(fileId, ver0)
+    require.NoError(t, err)
+
+    exists, descr2, err := reg.GetNewestFileDescr(fileId)
     require.NoError(t, err)
     require.Equal(t, exists, true)
-    require.NotEqual(t, descr2.CreatedAt, descr3.CreatedAt)
-    require.NotEqual(t, descr2.UpdatedAt, descr3.UpdatedAt)
-    descr3.CreatedAt = 0
-    descr2.CreatedAt = 0
-    descr3.UpdatedAt = 0
-    descr2.UpdatedAt = 0
+    require.Equal(t, descr2.UCounter, int64(1))
 
-    require.Equal(t, descr2, descr3)
+    exists, descr3, err := reg.GetNewestFileDescr(fileId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+    require.Equal(t, descr3.UCounter, int64(1))
+    descr3.UCounter = descr0.UCounter
+    descr3.FileVer = descr0.FileVer
+    require.Equal(t, descr0, descr3)
 
-    // Erase file descr
-    err = reg.EraseFileDescr(fileId)
+    err = reg.EraseSpecFileDescr(descr0.FileId, ver0)
     require.NoError(t, err)
 
-    // Get erased file descrs
-    exists, _, err = reg.GetFileDescr(fileId)
+    exists, _, err = reg.GetNewestFileDescr(fileId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+
+    err = reg.EraseSpecFileDescr(descr0.FileId, ver1)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestFileDescr(fileId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+
+    err = reg.IncSpecFileDescrUC(fileId, ver2)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestFileDescr(fileId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+
+    err = reg.EraseSpecFileDescr(descr0.FileId, ver2)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestFileDescr(fileId)
     require.NoError(t, err)
     require.Equal(t, exists, false)
+
 }

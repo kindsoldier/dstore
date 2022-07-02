@@ -314,7 +314,7 @@ EXTRA_fstored_SOURCES = \
 	    fssrv/fsmain.go \
 	    fssrv/fsrec/recfile.go \
 	    fssrv/fsrec/recuser.go \
-	    fssrv/fsrec/recbspool.go \
+	    fssrv/fsrec/recbssaver.go \
 	    fssrv/fsrec/reccomm.go \
 	    fssrv/fsrec/recbstore.go \
 	    fssrv/fsconf/fsconf.go \

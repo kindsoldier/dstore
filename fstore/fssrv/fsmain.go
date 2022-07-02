@@ -383,6 +383,7 @@ func (server *Server) RunService() error {
 
     go model.WasteCollector()
     go model.LostCollector()
+    go model.Saver()
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)

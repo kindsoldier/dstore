@@ -38,7 +38,7 @@ func Test_File_SaveLoadDelete(t *testing.T) {
     err = store.SeedBStores()
     require.NoError(t, err)
 
-    fileName := "qwerty.txt"
+    fileName := "qwerty18181.txt"
 
     data := make([]byte, 10)
     rand.Read(data)
@@ -48,8 +48,8 @@ func Test_File_SaveLoadDelete(t *testing.T) {
 
     userName := "admin"
 
-    //err = store.DeleteFile(userName, fileName)
-    //require.NoError(t, err)
+    err = store.DeleteFile(userName, fileName)
+    require.NoError(t, err)
 
     err = store.SaveFile(userName, fileName, reader, dataSize)
     require.NoError(t, err)

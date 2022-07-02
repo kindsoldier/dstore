@@ -7,7 +7,8 @@ package dscom
 import (
     "io"
 )
-type IFileSender interface {
+type IBlockDistr interface {
+    SaveBlock(descr *BlockDescr) (int64, error)
 }
 
 type IFile interface {
@@ -42,31 +43,43 @@ type IFSReg interface {
 }
 
 type IBlockReg interface {
-    AddBlockDescr(descr *BlockDescr) error
-    GetBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *BlockDescr, error)
-    ListBlockDescrsByFileId(fileId int64) ([]*BlockDescr, error)
-    UpdateBlockDescr(descr *BlockDescr) error
-    EraseBlockDescr(fileId, batchId, blockId int64, blockType string) error
+    AddNewBlockDescr(descr *BlockDescr) error
+    DecSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error
+    EraseSpecBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) error
+    GetAnyUnusedBlockDescr() (bool, *BlockDescr, error)
+    GetNewestBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *BlockDescr, error)
+    GetSpecBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, *BlockDescr, error)
+    GetSpecUnusedBlockDescr(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, *BlockDescr, error)
+    IncSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error
+    ListAllBlockDescrs() ([]*BlockDescr, error)
 }
 
 type IBatchReg interface {
-    AddBatchDescr(descr *BatchDescr) error
-    EraseBatchDescr(fileId, batchId int64) error
-    GetBatchDescr(fileId, batchId int64) (bool, *BatchDescr, error)
-    ListBatchDescrsByFileId(fileId int64) ([]*BatchDescr, error)
-    UpdateBatchDescr(descr *BatchDescr) error
+    AddNewBatchDescr(descr *BatchDescr) error
+    DecSpecBatchDescrUC(fileId, batchId, batchVer int64) error
+    EraseAllBatchDescrs() error
+    EraseSpecBatchDescr(fileId, batchId, batchVer int64) error
+    GetAnyUnusedBatchDescr() (bool, *BatchDescr, error)
+    GetNewestBatchDescr(fileId, batchId int64) (bool, *BatchDescr, error)
+    GetSpecBatchDescr(fileId, batchId, batchVer int64) (bool, *BatchDescr, error)
+    GetSpecUnusedBatchDescr(fileId, batchId, batchVer int64) (bool, *BatchDescr, error)
+    IncSpecBatchDescrUC(fileId, batchId, batchVer int64) error
+    ListAllBatchDescrs() ([]*BatchDescr, error)
 }
 
 type IFileReg interface {
-    AddFileDescr(descr *FileDescr) (int64, error)
-    UpdateFileDescr(descr *FileDescr) error
-    EraseFileDescr(fileId int64) error
-    GetFileDescr(fileId int64) (bool, *FileDescr, error)
-    IncFileDescrUC(fileId int64) error
-    DecFileDescrUC(fileId int64) error
-    ListFileDescrs() ([]*FileDescr, error)
-    GetUnusedFileDescr() (bool, *FileDescr, error)
-    GetLostedFileDescr() (bool, *FileDescr, error)
+    GetNewFileId() (int64, error)
+    AddNewFileDescr(descr *FileDescr) error
+    GetNewestFileDescr(fileId int64) (bool, *FileDescr, error)
+    DecSpecFileDescrUC(fileId, fileVer int64) error
+    IncSpecFileDescrUC(fileId, fileVer int64) error
+    GetSpecFileDescr(fileId, fileVer int64) (bool, *FileDescr, error)
+    GetSpecUnusedFileDescr(fileId, fileVer int64) (bool, *FileDescr, error)
+    EraseSpecFileDescr(fileId, fileVer int64) error
+    GetAnyUnusedFileDescr() (bool, *FileDescr, error)
+    ListAllFileDescrs() ([]*FileDescr, error)
+    EraseAllFileDescrs() error
+
 }
 
 type IBStoreReg interface {

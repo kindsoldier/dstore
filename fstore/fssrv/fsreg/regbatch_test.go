@@ -5,6 +5,7 @@ package fsreg
 
 import (
     "testing"
+    "time"
     "github.com/stretchr/testify/require"
     "ndstore/dscom"
 )
@@ -21,6 +22,12 @@ func Test_BatchDescr_InsertSelectDelete(t *testing.T) {
     err = reg.MigrateDB()
     require.NoError(t, err)
 
+    ver0 := time.Now().UnixNano()
+    ver1 := time.Now().UnixNano()
+    ver2 := time.Now().UnixNano()
+    require.NotEqual(t, ver0, ver1)
+    require.NotEqual(t, ver1, ver2)
+
     var fileId      int64   = 1
     var batchId     int64   = 2
     descr0 := dscom.NewBatchDescr()
@@ -29,42 +36,87 @@ func Test_BatchDescr_InsertSelectDelete(t *testing.T) {
     descr0.BatchSize = 5
     descr0.BlockSize = 1024
 
+    descr0.BatchVer = ver0
+    descr0.UCounter = 1
+
     var exists bool
 
-    err = reg.AddBatchDescr(descr0)
+    _ = reg.EraseAllBatchDescrs()
+    _ = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver0)
+    _ = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver1)
+    _ = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver2)
+
+    err = reg.AddNewBatchDescr(descr0)
     require.NoError(t, err)
 
-    err = reg.AddBatchDescr(descr0)
+    err = reg.AddNewBatchDescr(descr0)
     require.Error(t, err)
 
-    descr7 := dscom.NewBatchDescr()
-    *descr7 = *descr0
-    descr7.FileId += 1
-    require.NotEqual(t, descr7, descr0)
-    err = reg.AddBatchDescr(descr7)
+    descr0.BatchVer     = ver1
+    err = reg.AddNewBatchDescr(descr0)
     require.NoError(t, err)
 
-    exists, descr1, err := reg.GetBatchDescr(fileId, batchId)
-    require.NoError(t, err)
-    require.Equal(t, exists, true)
-    require.Equal(t, descr1, descr0)
-
-    descrs, err := reg.ListBatchDescrsByFileId(fileId)
-    require.NoError(t, err)
-    require.Equal(t, len(descrs), 1)
-
-    err = reg.EraseBatchDescr(fileId + 1, batchId)
+    descr0.BatchVer     = ver2
+    err = reg.AddNewBatchDescr(descr0)
     require.NoError(t, err)
 
-    exists, descr2, err := reg.GetBatchDescr(fileId, batchId)
+    descrs, err := reg.ListAllBatchDescrs()
+    require.NoError(t, err)
+    require.Equal(t, 3, len(descrs))
+
+    exists, descr1, err := reg.GetNewestBatchDescr(fileId, batchId)
     require.NoError(t, err)
     require.Equal(t, exists, true)
-    require.Equal(t, descr2, descr0)
+    require.Equal(t, descr0, descr1)
 
-    err = reg.EraseBatchDescr(fileId, batchId)
+
+    err = reg.IncSpecBatchDescrUC(fileId, batchId, ver2)
     require.NoError(t, err)
 
-    exists, _, err = reg.GetBatchDescr(fileId, batchId)
+    err = reg.DecSpecBatchDescrUC(fileId, batchId, ver2)
+    require.NoError(t, err)
+
+    err = reg.DecSpecBatchDescrUC(fileId, batchId, ver2)
+    require.NoError(t, err)
+
+    exists, descr2, err := reg.GetNewestBatchDescr(fileId, batchId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+    require.Equal(t, descr2.UCounter, int64(1))
+
+    exists, descr3, err := reg.GetNewestBatchDescr(fileId, batchId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+    require.Equal(t, descr3.UCounter, int64(1))
+    descr3.UCounter = descr0.UCounter
+    descr3.BatchVer = descr0.BatchVer
+    require.Equal(t, descr0, descr3)
+
+    err = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver0)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestBatchDescr(fileId, batchId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+
+    err = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver1)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestBatchDescr(fileId, batchId)
+    require.NoError(t, err)
+    require.Equal(t, exists, false)
+
+    err = reg.IncSpecBatchDescrUC(fileId, batchId, ver2)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestBatchDescr(fileId, batchId)
+    require.NoError(t, err)
+    require.Equal(t, exists, true)
+
+    err = reg.EraseSpecBatchDescr(descr0.FileId, descr0.BatchId, ver2)
+    require.NoError(t, err)
+
+    exists, _, err = reg.GetNewestBatchDescr(fileId, batchId)
     require.NoError(t, err)
     require.Equal(t, exists, false)
 }

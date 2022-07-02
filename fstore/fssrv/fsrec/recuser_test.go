@@ -34,8 +34,7 @@ func Test_User_AddCheckDelete(t *testing.T) {
     pass    := "1234567"
     userName := "admin"
 
-    err = model.DeleteUser(userName, login)
-    require.NoError(t, err)
+    _ = model.DeleteUser(userName, login)
 
     err = model.AddUser(userName, login, pass)
     require.NoError(t, err)
