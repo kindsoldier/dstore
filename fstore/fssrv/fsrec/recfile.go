@@ -89,7 +89,7 @@ func (store *Store) FileExists(userName string, filePath string) (bool, int64, e
         return exists, fileSize, dserr.Err(err)
     }
 
-    exists, fileDescr, err := store.reg.GetFileDescr(entry.FileId)
+    exists, fileDescr, err := store.reg.GetNewestFileDescr(entry.FileId)
     if err != nil {
         return exists, fileSize, dserr.Err(err)
     }
@@ -174,123 +174,87 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
     if err != nil {
         return dserr.Err(err)
     }
-    err = store.reg.DecFileDescrUC(fileId)
+    file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
     if err != nil {
         return dserr.Err(err)
     }
-    store.pushWC()
+    file.Delete()
+    if err != nil {
+        return dserr.Err(err)
+    }
+    store.pushFileWC()
     return dserr.Err(err)
 }
 
-
-func (store *Store) Saver() {
+func (store *Store) FileWasteCollector() {
     for {
-        select {
-            case <-store.wasteChan:
-            case <-time.After(time.Second * 1):
-        }
-        dslog.LogDebug("saver call")
-        exists, blockDescr, err := store.reg.GetLocalOnlyBlockDescr()
+        //dslog.LogDebug("file waste collecr call")
+        exists, descr, err := store.reg.GetAnyUnusedFileDescr()
         if exists && err == nil {
-            dslog.LogDebug("save file:", blockDescr.FileId)
-
-            file, err := fsfile.OpenFile(store.reg, store.dataRoot, blockDescr.FileId)
+            dslog.LogDebug("delete waste file:", descr.FileId)
+            file, err := fsfile.OpenSpecUnusedFile(store.reg, store.dataRoot, descr.FileId, descr.FileVer)
+            err = file.Erase()
             if err != nil {
-                dslog.LogDebug("open file err:", dserr.Err(err))
-                file.Close()
-                continue
+                dslog.LogDebug("delete file err:", dserr.Err(err))
             }
-            saver := NewBSSaver(store.reg)
-            err = saver.LoadPool()
-            if err != nil {
-                dslog.LogDebug("saver load pool err:", dserr.Err(err))
-                file.Close()
-                continue
-            }
-            err = file.Save(saver)
-            if err != nil {
-                dslog.LogDebug("saver save file err:", dserr.Err(err))
-                file.Close()
-                continue
-            }
-
             file.Close()
-            //if err != nil {
-                //dslog.LogDebug("save file err:", dserr.Err(err))
-            //}
-            //file.Close()
-            //continue
-        }
-        select {
-            case <-store.wasteChan:
-            case <-time.After(time.Second * 1):
-        }
-    }
-}
-
-
-
-func (store *Store) WasteCollector() {
-    for {
-        //dslog.LogDebug("waste collecr call")
-        exists, fd, err := store.reg.GetUnusedFileDescr()
-        if exists && err == nil {
-            dslog.LogDebug("delete waste file:", fd.FileId)
-            err = store.eraseFile(fd.FileId)
-            if err != nil {
-                dslog.LogDebug("delete file err:", dserr.Err(err))
-            }
             continue
         }
         select {
-            case <-store.wasteChan:
-            case <-time.After(time.Second * 1):
+            case <-store.fileWCChan:
+            case <-time.After(time.Second * 3):
         }
     }
 }
 
-func (store *Store) LostCollector() {
+func (store *Store) BatchWasteCollector() {
     for {
-        //dslog.LogDebug("lost collecr call")
-        exists, fd, err := store.reg.GetLostedFileDescr()
+        //dslog.LogDebug("batch waste collecr call")
+        exists, descr, err := store.reg.GetAnyUnusedBatchDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete lost file:", fd.FileId)
-            err = store.eraseFile(fd.FileId)
+            dslog.LogDebug("delete waste batch:", descr.FileId, descr.BatchId)
+            batch, err := fsfile.OpenSpecUnusedBatch(store.reg, store.dataRoot, descr.FileId,
+                                                                descr.BatchId, descr.BatchVer)
+            err = batch.Erase()
             if err != nil {
-                dslog.LogDebug("delete file err:", dserr.Err(err))
+                dslog.LogDebug("delete batch err:", dserr.Err(err))
             }
+            batch.Close()
             continue
         }
         select {
-            case <-store.lostChan:
-            case <-time.After(time.Second * 1):
+            case <-store.batchWCChan:
+            case <-time.After(time.Second * 3):
         }
     }
 }
 
-func (store *Store) pushWC() {
-    if cap(store.wasteChan) - len(store.wasteChan) > 1 {
-        store.wasteChan <- 0xff
+func (store *Store) BlockWasteCollector() {
+    for {
+        //dslog.LogDebug("block waste collecr call")
+        exists, descr, err := store.reg.GetAnyUnusedBlockDescr()
+        if exists && err == nil {
+            dslog.LogDebug("delete waste block:", descr.FileId, descr.BatchId)
+            block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, descr.FileId, descr.BatchId, descr.BlockId,
+                                                        descr.BlockType, descr.BlockVer)
+            err = block.Erase()
+            if err != nil {
+                dslog.LogDebug("delete batch err:", dserr.Err(err))
+            }
+            block.Close()
+            continue
+        }
+        select {
+            case <-store.blockWCChan:
+            case <-time.After(time.Second * 3):
+        }
     }
 }
 
-func (store *Store) eraseFile(fileId int64) error {
-    var err error
-    file, _ := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
-    file.BrutalErase()
-    file.Close()
-
-    //file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
-    //if err == nil {
-    //    err := file.Erase()
-    //    if err != nil {
-    //        file.Close()
-    //        file, _ = fsfile.OpenFile(store.reg, store.dataRoot, fileId)
-    //        file.BrutalErase()
-    //        file.Close()
-    //    }
-    //}
-    return dserr.Err(err)
+func (store *Store) pushFileWC() {
+    if cap(store.fileWCChan) - len(store.fileWCChan) > 1 {
+        store.fileWCChan <- 0xff
+    }
 }
 
 func (store *Store) ListFiles(userName string, dirPath string) ([]*dscom.EntryDescr, error) {

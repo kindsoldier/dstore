@@ -381,9 +381,12 @@ func (server *Server) RunService() error {
         return err
     }
 
-    go model.WasteCollector()
-    go model.LostCollector()
-    go model.Saver()
+    go model.FileWasteCollector()
+    go model.BatchWasteCollector()
+    go model.BlockWasteCollector()
+
+    //go model.LostFinder()
+    //go model.BlockDistributor()
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)

@@ -16,8 +16,10 @@ type Store struct {
     dirPerm     fs.FileMode
     filePerm    fs.FileMode
     reg         dscom.IFSReg
-    wasteChan   chan byte
-    lostChan    chan byte
+
+    fileWCChan  chan byte
+    blockWCChan chan byte
+    batchWCChan chan byte
 }
 
 func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
@@ -26,8 +28,9 @@ func NewStore(dataRoot string, reg *fsreg.Reg) *Store {
     store.dirPerm   = 0755
     store.filePerm  = 0644
     store.reg       = reg
-    store.wasteChan = make(chan byte, 1024)
-    store.lostChan = make(chan byte, 1024)
+    store.fileWCChan    = make(chan byte, 1024)
+    store.batchWCChan   = make(chan byte, 1024)
+    store.blockWCChan   = make(chan byte, 1024)
     return &store
 }
 
