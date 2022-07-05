@@ -53,6 +53,11 @@ func (store *Store) SetFilePerm(filePerm fs.FileMode) {
     store.filePerm = filePerm
 }
 
+func getBlockIdsString(descr *dscom.BlockDescr) string {
+    return fmt.Sprintf("%d,%d,%d,%s,%d", descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType,
+                                                                                    descr.BlockVer)
+}
+
 func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, binSize int64) error {
 
     var err error
@@ -71,7 +76,8 @@ func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, bi
         return dserr.Err(err)
     }
 
-    oldExists, oldDescr, err := store.reg.GetNewestBlockDescr(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType)
+    oldExists, oldDescr, err := store.reg.GetSpecBlockDescr(descr.FileId, descr.BatchId, descr.BlockId,
+                                                                        descr.BlockType, descr.BlockVer)
     if err != nil {
         return dserr.Err(err)
     }
@@ -90,6 +96,7 @@ func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, bi
         os.Remove(fullFilePath)
         return dserr.Err(err)
     }
+
     dslog.LogDebug("save binSize", binSize)
 
     switch {
@@ -132,12 +139,11 @@ func (store *Store) SaveBlock(descr *dscom.BlockDescr, blockReader io.Reader, bi
     return dserr.Err(err)
 }
 
-func (store *Store) GetBlockParams(fileId, batchId, blockId int64, blockType string) (bool, int64, int64, error) {
+func (store *Store) GetBlockParams(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, int64, int64, error) {
     var err error
     var exists bool
-    var blockVer int64
     var dataSize int64
-    exists, descr, err := store.reg.GetNewestBlockDescr(fileId, batchId, blockId, blockType)
+    exists, descr, err := store.reg.GetSpecBlockDescr(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return exists, blockVer, dataSize, dserr.Err(err)
     }
@@ -157,11 +163,11 @@ func (store *Store) GetBlockParams(fileId, batchId, blockId int64, blockType str
     return exists, blockVer, dataSize, dserr.Err(err)
 }
 
-func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string) (bool, error) {
+func (store *Store) CheckBlock(fileId, batchId, blockId int64, blockType string, blockVer int64) (bool, error) {
     var err error
     var filePath string
     correct := false
-    exists, descr, err := store.reg.GetNewestBlockDescr(fileId, batchId, blockId, blockType)
+    exists, descr, err := store.reg.GetSpecBlockDescr(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return correct, dserr.Err(err)
     }
@@ -222,9 +228,9 @@ func (store *Store) LoadBlock(fileId, batchId, blockId int64, blockType string, 
 }
 
 
-func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string) error {
+func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
-    exists, descr, err := store.reg.GetNewestBlockDescr(fileId, batchId, blockId, blockType)
+    exists, descr, err := store.reg.GetSpecBlockDescr(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return dserr.Err(err)
     }
@@ -239,7 +245,7 @@ func (store *Store) DeleteBlock(fileId, batchId, blockId int64, blockType string
 }
 
 
-func (store *Store) PurgeAll() error {
+func (store *Store) EraseAll() error {
     var err error
     var filePath string
     descrs, err := store.reg.ListAllBlockDescrs()

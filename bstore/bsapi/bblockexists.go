@@ -12,6 +12,8 @@ type BlockExistsParams struct {
     BatchId     int64           `json:"batchId"`
     BlockId     int64           `json:"blockId"`
     BlockType   string          `json:"blockType"`
+    BlockVer    int64           `json:"blockVer"`
+
 }
 
 type BlockExistsResult struct {

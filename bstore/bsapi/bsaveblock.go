@@ -12,6 +12,7 @@ type SaveBlockParams struct {
     BatchId     int64           `json:"batchId"`
     BlockId     int64           `json:"blockId"`
     BlockType   string          `json:"blockType"`
+    BlockVer    int64           `json:"blockVer"`
 
     BlockSize   int64           `json:"blockSize"`
     DataSize    int64           `json:"dataSize"`

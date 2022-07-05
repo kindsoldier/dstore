@@ -47,6 +47,7 @@ type Util struct {
     BatchId     int64
     BlockId     int64
     BlockType   string
+    BlockVer    int64
 
     FilePath    string
 }
@@ -137,6 +138,7 @@ func (util *Util) GetOpt() error {
             flagSet.Int64Var(&util.BatchId, "batchId", util.BatchId, "batch id")
             flagSet.Int64Var(&util.BlockId, "blockId", util.BlockId, "block id")
             flagSet.StringVar(&util.BlockType, "blockType", util.BlockType, "block type")
+            flagSet.Int64Var(&util.BlockVer, "blockVer", util.BlockVer, "block version")
 
             flagSet.StringVar(&util.FilePath, "file", util.FilePath, "block file name")
             flagSet.Usage = func() {
@@ -346,6 +348,7 @@ func (util *Util) LoadBlockCmd(auth *dsrpc.Auth) (*bsapi.LoadBlockResult, error)
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
     params.BlockType = util.BlockType
+    params.BlockVer = util.BlockVer
 
     result := bsapi.NewLoadBlockResult()
     blockFile, err := os.OpenFile(util.FilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
@@ -378,6 +381,8 @@ func (util *Util) DeleteBlockCmd(auth *dsrpc.Auth) (*bsapi.DeleteBlockResult, er
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
     params.BlockType = util.BlockType
+    params.BlockVer = util.BlockVer
+
     result := bsapi.NewDeleteBlockResult()
     err = dsrpc.Exec(util.URI, bsapi.DeleteBlockMethod, params, result, auth)
     if err != nil {
@@ -393,6 +398,8 @@ func (util *Util) BlockExistsCmd(auth *dsrpc.Auth) (*bsapi.BlockExistsResult, er
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
     params.BlockType = util.BlockType
+    params.BlockVer = util.BlockVer
+
     result := bsapi.NewBlockExistsResult()
     err = dsrpc.Exec(util.URI, bsapi.BlockExistsMethod, params, result, auth)
     if err != nil {
@@ -408,6 +415,8 @@ func (util *Util) CheckBlockCmd(auth *dsrpc.Auth) (*bsapi.CheckBlockResult, erro
     params.BatchId  = util.BatchId
     params.BlockId  = util.BlockId
     params.BlockType = util.BlockType
+    params.BlockVer = util.BlockVer
+
     result := bsapi.NewCheckBlockResult()
     err = dsrpc.Exec(util.URI, bsapi.CheckBlockMethod, params, result, auth)
     if err != nil {

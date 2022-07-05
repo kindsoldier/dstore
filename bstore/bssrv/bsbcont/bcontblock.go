@@ -28,6 +28,7 @@ func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {
     descr.BatchId     = params.BatchId
     descr.BlockId     = params.BlockId
     descr.BlockType   = params.BlockType
+    descr.BlockVer    = params.BlockVer
 
     descr.BlockSize   = params.BlockSize
     descr.DataSize    = params.DataSize
@@ -61,6 +62,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
     batchId     := params.BatchId
     blockId     := params.BlockId
     blockType   := params.BlockType
+    blockVer    := params.BlockVer
 
     blockWriter := context.BinWriter()
 
@@ -70,7 +72,7 @@ func (contr *Contr) LoadBlockHandler(context *dsrpc.Context) error {
         return dserr.Err(err)
     }
 
-    _, blockVer, dataSize, err := contr.store.GetBlockParams(fileId, batchId, blockId, blockType)
+    _, blockVer, dataSize, err := contr.store.GetBlockParams(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -100,8 +102,9 @@ func (contr *Contr) BlockExistsHandler(context *dsrpc.Context) error {
     batchId     := params.BatchId
     blockId     := params.BlockId
     blockType   := params.BlockType
+    blockVer    := params.BlockVer
 
-    exists, _, _, err := contr.store.GetBlockParams(fileId, batchId, blockId, blockType)
+    exists, _, _, err := contr.store.GetBlockParams(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -127,8 +130,9 @@ func (contr *Contr) CheckBlockHandler(context *dsrpc.Context) error {
     batchId     := params.BatchId
     blockId     := params.BlockId
     blockType   := params.BlockType
+    blockVer    := params.BlockVer
 
-    correct, err := contr.store.CheckBlock(fileId, batchId, blockId, blockType)
+    correct, err := contr.store.CheckBlock(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -155,8 +159,9 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     batchId     := params.BatchId
     blockId     := params.BlockId
     blockType   := params.BlockType
+    blockVer    := params.BlockVer
 
-    err = contr.store.DeleteBlock(fileId, batchId, blockId, blockType)
+    err = contr.store.DeleteBlock(fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -169,21 +174,21 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     return dserr.Err(err)
 }
 
-func (contr *Contr) PurgeAllHandler(context *dsrpc.Context) error {
+func (contr *Contr) EraseAllHandler(context *dsrpc.Context) error {
     var err error
-    params := bsapi.NewPurgeAllParams()
+    params := bsapi.NewEraseAllParams()
 
     err = context.BindParams(params)
     if err != nil {
         return dserr.Err(err)
     }
 
-    err = contr.store.PurgeAll()
+    err = contr.store.EraseAll()
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
     }
-    result := bsapi.NewPurgeAllResult()
+    result := bsapi.NewEraseAllResult()
     err = context.SendResult(result, 0)
     if err != nil {
         return dserr.Err(err)
