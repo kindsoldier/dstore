@@ -44,24 +44,29 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
 
     fileId, file, err := fsfile.NewFile(store.reg, store.dataRoot, batchSize, blockSize)
     defer file.Close()
-    // todo: dec file usage if exit with error
     if err != nil {
         file.Delete()
-        file.Erase()
         return dserr.Err(err)
     }
-    _, err = file.Write(fileReader, fileSize)
-    dslog.LogDebugf("file %d write error is %v", fileId, err)
-    if err != nil && err != io.EOF {
+    written, err := file.Write(fileReader, fileSize)
+    if err == io.EOF {
+        dslog.LogDebugf("file %d write error is %v", fileId, err)
         file.Delete()
-        file.Erase()
         return dserr.Err(err)
+    }
+    if err != nil  {
+        file.Delete()
+        return dserr.Err(err)
+    }
+    if written != fileSize {
+    //    file.Delete()
+    //    err = fmt.Errorf("file %d size mismatch, file size %d, written %d ", fileId, fileSize, written)
+    //    return dserr.Err(err)
     }
 
     err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
     if err != nil {
         file.Delete()
-        file.Erase()
         return dserr.Err(err)
     }
     return dserr.Err(err)
@@ -254,7 +259,7 @@ func (store *Store) WasteBatchCollecting() {
         //dslog.LogDebug("batch waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedBatchDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete waste batch:", descr.FileId, descr.BatchId)
+            //dslog.LogDebug("delete waste batch:", descr.FileId, descr.BatchId)
             batch, err := fsfile.OpenSpecUnusedBatch(store.reg, store.dataRoot, descr.FileId,
                                                                 descr.BatchId, descr.BatchVer)
             err = batch.Erase()
@@ -276,7 +281,7 @@ func (store *Store) WasteBlockCollecting() {
         //dslog.LogDebug("block waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedBlockDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete waste block:", descr.FileId, descr.BatchId, descr.BlockId)
+            //dslog.LogDebug("delete waste block:", descr.FileId, descr.BatchId, descr.BlockId)
             block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, descr.FileId, descr.BatchId, descr.BlockId,
                                                         descr.BlockType, descr.BlockVer)
             err = block.Erase()

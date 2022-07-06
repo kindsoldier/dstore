@@ -287,10 +287,11 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
     }
     written, err = copyBytes(reader, multiWriter, remains)
     if err == io.EOF {
-        err = nil
+        err = fmt.Errorf("block %s reading error %v", block.getIdString(), err)
+        return written, dserr.Err(err)
     }
     if err != nil {
-            return written, dserr.Err(err)
+        return written, dserr.Err(err)
     }
     // Add new version of block descr
     descr := block.toDescr()
@@ -729,7 +730,6 @@ func makeTmpFilePath() string {
     dirName := filepath.Join("tmp", l1, l2)
     return filepath.Join(dirName, fileName)
 }
-
 
 func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     var err error
