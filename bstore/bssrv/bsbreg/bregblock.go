@@ -16,6 +16,7 @@ const blockSchema = `
         block_id        INTEGER,
         block_type      TEXT DEFAULT '',
         block_ver       INTEGER,
+
         u_counter       INTEGER,
         block_size      INTEGER,
         data_size       INTEGER,

@@ -13,7 +13,6 @@ type LoadBlockParams struct {
     BlockId     int64           `json:"blockId"`
     BlockType   string          `json:"blockType"`
     BlockVer    int64           `json:"blockVer"`
-
 }
 
 type LoadBlockResult struct {

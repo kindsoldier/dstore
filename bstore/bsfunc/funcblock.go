@@ -84,6 +84,25 @@ func ListBlocks(uri string, auth *dsrpc.Auth) ([]*dscom.BlockDescr, error) {
     return blockDescrs, dserr.Err(err)
 }
 
+func LinkBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string, oldBlockVer, newBlockVer int64) error {
+    var err error
+    params := bsapi.NewLinkBlockParams()
+    params.FileId       = fileId
+    params.BatchId      = batchId
+    params.BlockId      = blockId
+    params.BlockType    = blockType
+    params.OldBlockVer     = oldBlockVer
+    params.NewBlockVer     = newBlockVer
+
+    result := bsapi.NewLinkBlockResult()
+    err = dsrpc.Exec(uri, bsapi.LinkBlockMethod, params, result, auth)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+
 func DeleteBlock(uri string, auth *dsrpc.Auth, fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
     params := bsapi.NewDeleteBlockParams()

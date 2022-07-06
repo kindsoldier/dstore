@@ -366,6 +366,9 @@ func (server *Server) RunService() error {
     dserr.SetDevelMode(develMode)
     dslog.SetDebugMode(debugMode)
 
+    dserr.SetDevelMode(false)
+    dserr.SetDebugMode(false)
+
     blockReg := bsbreg.NewReg()
     blockDBPath := filepath.Join(dataRoot, "blocks.db")
     err = blockReg.OpenDB(blockDBPath)
@@ -425,6 +428,8 @@ func (server *Server) RunService() error {
     serv.Handler(bsapi.ListBlocksMethod, blockContr.ListBlocksHandler)
     serv.Handler(bsapi.BlockExistsMethod, blockContr.BlockExistsHandler)
     serv.Handler(bsapi.CheckBlockMethod, blockContr.CheckBlockHandler)
+    serv.Handler(bsapi.LinkBlockMethod, blockContr.LinkBlockHandler)
+
 
     serv.Handler(bsapi.AddUserMethod, userContr.AddUserHandler)
     serv.Handler(bsapi.CheckUserMethod, userContr.CheckUserHandler)

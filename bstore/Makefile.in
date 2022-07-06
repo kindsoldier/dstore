@@ -338,33 +338,33 @@ SUFFIXES = .go
 OBJEXT = none
 bstored_SOURCES = bssrv/bsmain.go
 EXTRA_bstored_SOURCES = \
-	bsapi/bdeleteblock.go \
-	bsapi/xcheckuser.go \
-	bsapi/bsaveblock.go \
 	bsapi/bblockexists.go \
-	bsapi/xadduser.go \
-	bsapi/bloadblock.go \
-	bsapi/xlistusers.go \
-	bsapi/blistblocks.go \
 	bsapi/bcheckblock.go \
+	bsapi/bdeleteblock.go \
 	bsapi/bgethello.go \
-	bsapi/xupdateuser.go \
+	bsapi/blistblocks.go \
+	bsapi/bloadblock.go \
+	bsapi/beraseall.go \
+	bsapi/bsaveblock.go \
+	bsapi/xadduser.go \
+	bsapi/xcheckuser.go \
 	bsapi/xdeleteuser.go \
-	bsapi/bpurgeall.go \
+	bsapi/xlistusers.go \
+	bsapi/xupdateuser.go \
 	bscom/descr.go \
 	bsfunc/funcblock.go \
+	bssrv/bsbcont/bcontblock.go \
+	bssrv/bsbcont/bcontcomm.go \
+	bssrv/bsblock/bsrec.go \
 	bssrv/bsbreg/bregblock.go \
 	bssrv/bsbreg/bregcomm.go \
+	bssrv/bsmain.go \
+	bssrv/bsucont/ucontauth.go \
+	bssrv/bsucont/ucontcomm.go \
+	bssrv/bsucont/ucontuser.go \
 	bssrv/bsureg/uregcommon.go \
 	bssrv/bsureg/uregusers.go \
-	bssrv/bsbcont/bcontcomm.go \
-	bssrv/bsbcont/bcontblock.go \
-	bssrv/bsmain.go \
-	bssrv/bsuser/bsuser.go \
-	bssrv/bsucont/ucontuser.go \
-	bssrv/bsucont/ucontcomm.go \
-	bssrv/bsucont/ucontauth.go \
-	bssrv/bsblock/bsrec.go
+	bssrv/bsuser/bsuser.go 
 
 EXTRA_DIST = bscli/bscli_test.go bssrv/bsbreg/bregblock_test.go \
 	bssrv/bsureg/uregusers_test.go \

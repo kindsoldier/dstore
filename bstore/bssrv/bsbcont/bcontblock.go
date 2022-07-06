@@ -174,6 +174,35 @@ func (contr *Contr) DeleteBlockHandler(context *dsrpc.Context) error {
     return dserr.Err(err)
 }
 
+func (contr *Contr) LinkBlockHandler(context *dsrpc.Context) error {
+    var err error
+    params := bsapi.NewLinkBlockParams()
+
+    err = context.BindParams(params)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    fileId      := params.FileId
+    batchId     := params.BatchId
+    blockId     := params.BlockId
+    blockType   := params.BlockType
+    oldBlockVer    := params.OldBlockVer
+    newBlockVer    := params.NewBlockVer
+
+    err = contr.store.LinkBlock(fileId, batchId, blockId, blockType, oldBlockVer, newBlockVer)
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    result := bsapi.NewLinkBlockResult()
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+
 func (contr *Contr) EraseAllHandler(context *dsrpc.Context) error {
     var err error
     params := bsapi.NewEraseAllParams()
