@@ -89,13 +89,13 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, descr0, descr1)
 
 
-    err = reg.IncSpecBlockDescrUC(fileId, batchId, blockId, blockType, ver2)
+    err = reg.IncSpecBlockDescrUC(1, fileId, batchId, blockId, blockType, ver2)
     require.NoError(t, err)
 
-    err = reg.DecSpecBlockDescrUC(fileId, batchId, blockId, blockType, ver2)
+    err = reg.DecSpecBlockDescrUC(1, fileId, batchId, blockId, blockType, ver2)
     require.NoError(t, err)
 
-    err = reg.DecSpecBlockDescrUC(fileId, batchId, blockId, blockType, ver2)
+    err = reg.DecSpecBlockDescrUC(1, fileId, batchId, blockId, blockType, ver2)
     require.NoError(t, err)
 
     exists, descr2, err := reg.GetNewestBlockDescr(fileId, batchId, blockId, blockType)
@@ -125,7 +125,7 @@ func Test_BlockDescr_InsertSelectDelete(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, exists, false)
 
-    err = reg.IncSpecBlockDescrUC(fileId, batchId, blockId, blockType, ver2)
+    err = reg.IncSpecBlockDescrUC(1, fileId, batchId, blockId, blockType, ver2)
     require.NoError(t, err)
 
     exists, _, err = reg.GetNewestBlockDescr(fileId, batchId, blockId, blockType)

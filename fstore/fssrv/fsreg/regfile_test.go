@@ -74,13 +74,13 @@ func Test_FileDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, descr0, descr1)
 
 
-    err = reg.IncSpecFileDescrUC(fileId, ver0)
+    err = reg.IncSpecFileDescrUC(1, fileId, ver0)
     require.NoError(t, err)
 
-    err = reg.DecSpecFileDescrUC(fileId, ver0)
+    err = reg.DecSpecFileDescrUC(1, fileId, ver0)
     require.NoError(t, err)
 
-    err = reg.DecSpecFileDescrUC(fileId, ver0)
+    err = reg.DecSpecFileDescrUC(1, fileId, ver0)
     require.NoError(t, err)
 
     exists, descr2, err := reg.GetNewestFileDescr(fileId)
@@ -110,7 +110,7 @@ func Test_FileDescr_InsertSelectDelete(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, exists, true)
 
-    err = reg.IncSpecFileDescrUC(fileId, ver2)
+    err = reg.IncSpecFileDescrUC(1, fileId, ver2)
     require.NoError(t, err)
 
     exists, _, err = reg.GetNewestFileDescr(fileId)

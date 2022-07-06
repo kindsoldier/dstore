@@ -6,10 +6,11 @@ package fdcont
 
 import (
     "errors"
-    "io"
+    //"io"
     "ndstore/fstore/fsapi"
     "ndstore/dsrpc"
     "ndstore/dserr"
+    //"ndstore/dslog"
 )
 
 
@@ -43,6 +44,7 @@ func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
 
 func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     var err error
+
     params := fsapi.NewLoadFileParams()
     err = context.BindParams(params)
     if err != nil {
@@ -53,29 +55,31 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     fileWriter  := context.BinWriter()
     userName    := string(context.AuthIdent())
 
-    err = context.ReadBin(io.Discard)
-    if err != nil {
-        context.SendError(err)
-        return dserr.Err(err)
-    }
+    //err = context.ReadBin(io.Discard)
+    //if err != nil {
+    //    err = dserr.Err(err)
+    //    context.SendError(err)
+    //    return err
+    //}
 
     exists, fileSize, err := contr.store.FileExists(userName, filePath)
     if err != nil {
+        err = dserr.Err(err)
         context.SendError(err)
-        return dserr.Err(err)
-    }
-    if !exists {
-        err = errors.New("file not exists")
-        context.SendError(err)
-        return dserr.Err(err)
+        return err
     }
 
+    if !exists {
+        err = errors.New("file not exists")
+        err = dserr.Err(err)
+        context.SendError(err)
+        return err
+    }
     result := fsapi.NewLoadFileResult()
     err = context.SendResult(result, fileSize)
     if err != nil {
         return dserr.Err(err)
     }
-
     err = contr.store.LoadFile(userName, filePath, fileWriter)
     if err != nil {
         return dserr.Err(err)

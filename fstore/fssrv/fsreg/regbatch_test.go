@@ -70,13 +70,13 @@ func Test_BatchDescr_InsertSelectDelete(t *testing.T) {
     require.Equal(t, descr0, descr1)
 
 
-    err = reg.IncSpecBatchDescrUC(fileId, batchId, ver2)
+    err = reg.IncSpecBatchDescrUC(1, fileId, batchId, ver2)
     require.NoError(t, err)
 
-    err = reg.DecSpecBatchDescrUC(fileId, batchId, ver2)
+    err = reg.DecSpecBatchDescrUC(1, fileId, batchId, ver2)
     require.NoError(t, err)
 
-    err = reg.DecSpecBatchDescrUC(fileId, batchId, ver2)
+    err = reg.DecSpecBatchDescrUC(1, fileId, batchId, ver2)
     require.NoError(t, err)
 
     exists, descr2, err := reg.GetNewestBatchDescr(fileId, batchId)
@@ -106,7 +106,7 @@ func Test_BatchDescr_InsertSelectDelete(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, exists, false)
 
-    err = reg.IncSpecBatchDescrUC(fileId, batchId, ver2)
+    err = reg.IncSpecBatchDescrUC(1, fileId, batchId, ver2)
     require.NoError(t, err)
 
     exists, _, err = reg.GetNewestBatchDescr(fileId, batchId)

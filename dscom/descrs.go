@@ -67,8 +67,9 @@ type FileDescr struct {
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
 
     FileSize    int64       `json:"fileSize"    db:"file_size"`
-    UpdatedAt   UnixTime    `json:"updatedAt"   db:"updated_at"`
-    CreatedAt   UnixTime    `json:"createdAt"   db:"created_at"`
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
+    IsDistr     bool        `json:"isDistr"     db:"is_distr"`
 }
 
 func NewFileDescr() *FileDescr {
@@ -84,6 +85,9 @@ type BatchDescr struct {
 
     BatchVer    int64       `json:"batchVer"    db:"batch_ver"`
     UCounter    int64       `json:"uCounter"    db:"u_counter"`
+
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewBatchDescr() *BatchDescr {
@@ -119,6 +123,8 @@ type BlockDescr struct {
     FStoreId    int64       `json:"fstoreId"    db:"fstore_id"`
     BStoreId    int64       `json:"bstoreId"    db:"bstore_id"`
 
+    UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
+    CreatedAt   int64       `json:"createdAt"   db:"created_at"`
 }
 
 func NewBlockDescr() *BlockDescr {

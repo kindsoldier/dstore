@@ -33,6 +33,9 @@ func main() {
     var err error
     server := NewServer()
 
+    dserr.SetDevelMode(false)
+    dserr.SetDebugMode(false)
+
     err = server.Execute()
     if err != nil {
         dslog.LogError("config error:", err)
@@ -381,18 +384,17 @@ func (server *Server) RunService() error {
         return err
     }
 
-    go model.FileWasteCollector()
-    go model.BatchWasteCollector()
-    go model.BlockWasteCollector()
+    go model.WasteFileCollecting()
+    go model.WasteBatchCollecting()
+    go model.WasteBlockCollecting()
 
-    //go model.LostFinder()
-    //go model.BlockDistributor()
+    //go model.LostObjectFinding()
+    //go model.StoredFileDistributing()
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)
     dslog.LogDebug("logDir is", server.Params.LogDir)
     dslog.LogDebug("runDir is", server.Params.RunDir)
-
 
     serv := dsrpc.NewService()
 
@@ -417,8 +419,7 @@ func (server *Server) RunService() error {
     serv.PostMiddleware(dsrpc.LogResponse)
     serv.PostMiddleware(dsrpc.LogAccess)
 
-    dserr.SetDevelMode(false)
-    dserr.SetDebugMode(false)
+
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

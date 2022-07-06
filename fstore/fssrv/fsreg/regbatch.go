@@ -18,7 +18,11 @@ const batchSchema = `
         u_counter       BIGINT,
 
         batch_size      BIGINT,
-        block_size      BIGINT
+        block_size      BIGINT,
+
+        created_at      BIGINT,
+        updated_at      BIGINT
+
     );
     --- DROP INDEX IF EXISTS fs_batch_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_batch_idx
@@ -28,10 +32,12 @@ const batchSchema = `
 func (reg *Reg) AddNewBatchDescr(descr *dscom.BatchDescr) error {
     var err error
     request := `
-        INSERT INTO fs_batchs(file_id, batch_id, batch_ver, u_counter, batch_size, block_size)
-        VALUES ($1, $2, $3, $4, $5, $6);`
+        INSERT INTO fs_batchs(file_id, batch_id, batch_ver, u_counter, batch_size, block_size,
+                                                                        created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
     _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BatchVer, descr.UCounter,
-                                                                descr.BatchSize, descr.BlockSize)
+                                                                descr.BatchSize, descr.BlockSize,
+                                                                descr.CreatedAt, descr.UpdatedAt)
     if err != nil {
         return dserr.Err(err)
     }
@@ -43,7 +49,7 @@ func (reg *Reg) GetNewestBatchDescr(fileId, batchId int64) (bool, *dscom.BatchDe
     var exists bool
     var descr *dscom.BatchDescr
     request := `
-        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size
+        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size, created_at, updated_at
         FROM fs_batchs
         WHERE file_id = $1
             AND batch_id = $2
@@ -67,7 +73,7 @@ func (reg *Reg) GetSpecBatchDescr(fileId, batchId, batchVer int64) (bool, *dscom
     var exists bool
     var descr *dscom.BatchDescr
     request := `
-        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size
+        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size, created_at, updated_at
         FROM fs_batchs
         WHERE file_id = $1
             AND batch_id = $2
@@ -92,7 +98,7 @@ func (reg *Reg) GetSpecUnusedBatchDescr(fileId, batchId, batchVer int64) (bool, 
     var exists bool
     var descr *dscom.BatchDescr
     request := `
-        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size
+        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size, created_at, updated_at
         FROM fs_batchs
         WHERE file_id = $1
             AND batch_id = $2
@@ -118,7 +124,7 @@ func (reg *Reg) GetAnyUnusedBatchDescr() (bool, *dscom.BatchDescr, error) {
     var blockDescr *dscom.BatchDescr
     blocks := make([]*dscom.BatchDescr, 0)
     request := `
-        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size
+        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size, created_at, updated_at
         FROM fs_batchs
         WHERE u_counter < 1
         LIMIT 1;`
@@ -133,31 +139,31 @@ func (reg *Reg) GetAnyUnusedBatchDescr() (bool, *dscom.BatchDescr, error) {
     return exists, blockDescr, dserr.Err(err)
 }
 
-func (reg *Reg) IncSpecBatchDescrUC(fileId, batchId, batchVer int64) error {
+func (reg *Reg) IncSpecBatchDescrUC(count, fileId, batchId, batchVer int64) error {
     var err error
     request := `
         UPDATE fs_batchs SET
-            u_counter = u_counter + 1
-        WHERE file_id = $1
-            AND batch_id = $2
-            AND batch_ver = $3;`
-    _, err = reg.db.Exec(request, fileId, batchId, batchVer)
+            u_counter = u_counter + $1
+        WHERE file_id = $2
+            AND batch_id = $3
+            AND batch_ver = $4;`
+    _, err = reg.db.Exec(request, count, fileId, batchId, batchVer)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) DecSpecBatchDescrUC(fileId, batchId, batchVer int64) error {
+func (reg *Reg) DecSpecBatchDescrUC(count, fileId, batchId, batchVer int64) error {
     var err error
     request := `
         UPDATE fs_batchs SET
-            u_counter = u_counter - 1
-        WHERE file_id = $1
-            AND batch_id = $2
-            AND batch_ver = $3
+            u_counter = u_counter - $1
+        WHERE file_id = $2
+            AND batch_id = $3
+            AND batch_ver = $4
             AND u_counter > 0;`
-    _, err = reg.db.Exec(request, fileId, batchId, batchVer)
+    _, err = reg.db.Exec(request, count, fileId, batchId, batchVer)
     if err != nil {
         return dserr.Err(err)
     }
@@ -168,7 +174,7 @@ func (reg *Reg) ListAllBatchDescrs() ([]*dscom.BatchDescr, error) {
     var err error
     blocks := make([]*dscom.BatchDescr, 0)
     request := `
-        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size
+        SELECT file_id, batch_id, batch_ver, u_counter, batch_size, block_size, created_at, updated_at
         FROM fs_batchs;`
     err = reg.db.Select(&blocks, request)
     if err != nil {

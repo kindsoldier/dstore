@@ -15,7 +15,7 @@ type logFormatter struct {
 
 func (f *logFormatter) Format(entry *logrus.Entry) ([]byte, error) {
     var err error
-    timeStamp := time.Now().Format(time.RFC3339Nano)
+    timeStamp := time.Now().Format(time.RFC3339)
     levelString := entry.Level.String()
     message := fmt.Sprintf("%s %s %s\n", timeStamp, levelString, entry.Message)
     return []byte(message), err
@@ -58,17 +58,38 @@ func SetOutput(writer io.Writer) error {
 }
 
 func LogDebug(message ...interface{}) {
-        logrus.Debug(message)
+    logrus.Debug(message)
 }
 
 func LogError(message ...interface{}) {
-        logrus.Error(message)
+    logrus.Error(message)
 }
 
 func LogWarning(message ...interface{}) {
-        logrus.Warning(message)
+    logrus.Warning(message)
 }
 
 func LogInfo(message ...interface{}) {
         logrus.Info(message)
+}
+
+
+func LogDebugf(format string, args ...interface{}) {
+    message := fmt.Sprintf(format, args...)
+    logrus.Debug(message)
+}
+
+func LogErrorf(format string, args ...interface{}) {
+    message := fmt.Sprintf(format, args...)
+    logrus.Error(message)
+}
+
+func LogWarningf(format string, args ...interface{}) {
+    message := fmt.Sprintf(format, args...)
+    logrus.Warning(message)
+}
+
+func LogInfof(format string, args ...interface{}) {
+    message := fmt.Sprintf(format, args...)
+    logrus.Info(message)
 }

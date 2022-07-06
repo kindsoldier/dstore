@@ -44,24 +44,24 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
 
     fileId, file, err := fsfile.NewFile(store.reg, store.dataRoot, batchSize, blockSize)
     defer file.Close()
-
     // todo: dec file usage if exit with error
     if err != nil {
+        file.Delete()
+        file.Erase()
         return dserr.Err(err)
     }
     _, err = file.Write(fileReader, fileSize)
+    dslog.LogDebugf("file %d write error is %v", fileId, err)
     if err != nil && err != io.EOF {
+        file.Delete()
+        file.Erase()
         return dserr.Err(err)
     }
-
 
     err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
     if err != nil {
-        return dserr.Err(err)
-    }
-
-    err = file.Close()
-    if err != nil {
+        file.Delete()
+        file.Erase()
         return dserr.Err(err)
     }
     return dserr.Err(err)
@@ -174,7 +174,7 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
     if err != nil {
         return dserr.Err(err)
     }
-    file, err := fsfile.OpenFile(store.reg, store.dataRoot, fileId)
+    file, err := fsfile.ForceOpenFile(store.reg, store.dataRoot, fileId)
     if err != nil {
         return dserr.Err(err)
     }
@@ -182,11 +182,53 @@ func (store *Store) DeleteFile(userName string, filePath string) error {
     if err != nil {
         return dserr.Err(err)
     }
-    store.pushFileWC()
+    go store.pushFileWC()
     return dserr.Err(err)
 }
 
-func (store *Store) FileWasteCollector() {
+func (store *Store) pushFileWC() {
+    time.Sleep(1 * time.Second) // todo: how much size of timeout?
+    if cap(store.fileWCChan) - len(store.fileWCChan) > 1 {
+        store.fileWCChan <- 0xff
+    }
+}
+
+
+func (store *Store) StoredFileDistributing() {
+    for {
+        select {
+            case <-store.fileWCChan:
+            case <-time.After(time.Second * 3):
+        }
+
+        exists, descr, err := store.reg.GetAnyNotDistrFileDescr()
+        //dslog.LogDebug("file disributor call", exists, err)
+        if exists && err == nil {
+            dslog.LogDebug("distrubute file:", descr.FileId, descr.FileVer, descr.IsDistr)
+            file, err := fsfile.OpenFile(store.reg, store.dataRoot, descr.FileId)
+            if err != nil {
+                dslog.LogDebug("distribute file open err:", dserr.Err(err))
+                file.Close()
+                continue
+            }
+
+            distr := NewFileDistr(store.dataRoot, store.reg)
+            distr.LoadPool()
+            err = file.Distribute(distr)
+            if err != nil {
+                dslog.LogDebug("distribute file err:", dserr.Err(err))
+            }
+            file.Close()
+            //continue
+        }
+        select {
+            case <-store.fileWCChan:
+            case <-time.After(time.Second * 3):
+        }
+    }
+}
+
+func (store *Store) WasteFileCollecting() {
     for {
         //dslog.LogDebug("file waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedFileDescr()
@@ -207,7 +249,7 @@ func (store *Store) FileWasteCollector() {
     }
 }
 
-func (store *Store) BatchWasteCollector() {
+func (store *Store) WasteBatchCollecting() {
     for {
         //dslog.LogDebug("batch waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedBatchDescr()
@@ -229,12 +271,12 @@ func (store *Store) BatchWasteCollector() {
     }
 }
 
-func (store *Store) BlockWasteCollector() {
+func (store *Store) WasteBlockCollecting() {
     for {
         //dslog.LogDebug("block waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedBlockDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete waste block:", descr.FileId, descr.BatchId)
+            dslog.LogDebug("delete waste block:", descr.FileId, descr.BatchId, descr.BlockId)
             block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, descr.FileId, descr.BatchId, descr.BlockId,
                                                         descr.BlockType, descr.BlockVer)
             err = block.Erase()
@@ -251,11 +293,6 @@ func (store *Store) BlockWasteCollector() {
     }
 }
 
-func (store *Store) pushFileWC() {
-    if cap(store.fileWCChan) - len(store.fileWCChan) > 1 {
-        store.fileWCChan <- 0xff
-    }
-}
 
 func (store *Store) ListFiles(userName string, dirPath string) ([]*dscom.EntryDescr, error) {
     var err error

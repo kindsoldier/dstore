@@ -81,6 +81,30 @@ func (reg *Reg) GetBStoreDescr(address, port string) (bool, *dscom.BStoreDescr, 
     return exists, bstore, dserr.Err(err)
 }
 
+func (reg *Reg) GetBStoreDescrById(bstoreId int64) (bool, *dscom.BStoreDescr, error) {
+    var err error
+    request := `
+        SELECT bstore_id, address, port, login, pass, state, created_at, updated_at
+        FROM fs_bstores
+        WHERE bstore_id = $1
+        LIMIT 1;`
+    var bstore *dscom.BStoreDescr
+    var exists bool
+    bstores := make([]*dscom.BStoreDescr, 0)
+    err = reg.db.Select(&bstores, request, bstoreId)
+    if err != nil {
+        return exists, bstore, dserr.Err(err)
+    }
+    if len(bstores) > 0 {
+        exists = true
+        bstore = bstores[0]
+        return exists, bstore, dserr.Err(err)
+    }
+
+    return exists, bstore, dserr.Err(err)
+}
+
+
 func (reg *Reg) EraseBStoreDescr(address, port string) error {
     var err error
     request := `

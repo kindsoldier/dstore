@@ -31,7 +31,11 @@ const blockSchema = `
         saved_rem       BOOL,
         fstore_id       BIGINT,
         bstore_id       BIGINT,
-        loc_updated     BOOL
+        loc_updated     BOOL,
+
+        created_at      BIGINT,
+        updated_at      BIGINT
+
     );
     --- DROP INDEX IF EXISTS fs_block_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_block_idx
@@ -44,14 +48,17 @@ func (reg *Reg) AddNewBlockDescr(descr *dscom.BlockDescr) error {
     request := `
         INSERT INTO fs_blocks(file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17);`
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated,
+                                                        created_at, updated_at)
+
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19);`
     _, err = reg.db.Exec(request, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType,
                                                                     descr.BlockVer, descr.UCounter,
                                 descr.BlockSize, descr.DataSize, descr.FilePath, descr.HashAlg,
                                                                     descr.HashInit, descr.HashSum,
                                 descr.SavedLoc, descr.SavedRem, descr.FStoreId, descr.BStoreId,
-                                                                                descr.LocUpdated)
+                                                                                descr.LocUpdated,
+                                                                descr.CreatedAt, descr.UpdatedAt)
     if err != nil {
         return dserr.Err(err)
     }
@@ -65,7 +72,7 @@ func (reg *Reg) GetNewestBlockDescr(fileId, batchId, blockId int64, blockType st
     request := `
         SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
         FROM fs_blocks
         WHERE file_id = $1
             AND batch_id = $2
@@ -93,7 +100,7 @@ func (reg *Reg) GetSpecBlockDescr(fileId, batchId, blockId int64, blockType stri
     request := `
         SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
         FROM fs_blocks
         WHERE file_id = $1
             AND batch_id = $2
@@ -122,7 +129,7 @@ func (reg *Reg) GetSpecUnusedBlockDescr(fileId, batchId, blockId int64, blockTyp
     request := `
         SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
         FROM fs_blocks
         WHERE file_id = $1
             AND batch_id = $2
@@ -152,7 +159,7 @@ func (reg *Reg) GetAnyUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
     request := `
         SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
         FROM fs_blocks
         WHERE u_counter < 1
         LIMIT 1;`
@@ -167,36 +174,35 @@ func (reg *Reg) GetAnyUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
     return exists, blockDescr, dserr.Err(err)
 }
 
-func (reg *Reg) IncSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
+func (reg *Reg) IncSpecBlockDescrUC(count, fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
     request := `
         UPDATE fs_blocks SET
-            u_counter = u_counter + 1
-        WHERE file_id = $1
-            AND batch_id = $2
-            AND block_id = $3
-            AND block_type = $4
-            AND block_ver = $5
-            ;`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
+            u_counter = u_counter + $1
+        WHERE file_id = $2
+            AND batch_id = $3
+            AND block_id = $4
+            AND block_type = $5
+            AND block_ver = $6;`
+    _, err = reg.db.Exec(request, count, fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
-func (reg *Reg) DecSpecBlockDescrUC(fileId, batchId, blockId int64, blockType string, blockVer int64) error {
+func (reg *Reg) DecSpecBlockDescrUC(count, fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
     request := `
         UPDATE fs_blocks SET
-            u_counter = u_counter - 1
-        WHERE file_id = $1
-            AND batch_id = $2
-            AND block_id = $3
-            AND block_type = $4
-            AND block_ver = $5
+            u_counter = u_counter - $1
+        WHERE file_id = $2
+            AND batch_id = $3
+            AND block_id = $4
+            AND block_type = $5
+            AND block_ver = $6
             AND u_counter > 0;`
-    _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
+    _, err = reg.db.Exec(request, count, fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return dserr.Err(err)
     }
@@ -209,7 +215,7 @@ func (reg *Reg) ListAllBlockDescrs() ([]*dscom.BlockDescr, error) {
     request := `
         SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
                         block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
-                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
         FROM fs_blocks;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
@@ -226,8 +232,7 @@ func (reg *Reg) EraseSpecBlockDescr(fileId, batchId, blockId int64, blockType st
             AND batch_id = $2
             AND block_id = $3
             AND block_type = $4
-            AND block_ver = $5
-            ;`
+            AND block_ver = $5;`
     _, err = reg.db.Exec(request, fileId, batchId, blockId, blockType, blockVer)
     if err != nil {
         return dserr.Err(err)

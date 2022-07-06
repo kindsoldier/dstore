@@ -23,6 +23,9 @@ import (
     "ndstore/dscom"
     "ndstore/dserr"
     "ndstore/dslog"
+    "ndstore/dsrpc"
+
+    "ndstore/bstore/bsfunc"
 )
 
 type Block struct {
@@ -42,6 +45,9 @@ type Block struct {
     hashAlg     string
     hashSum     []byte
     hashInit    []byte
+
+    createdAt   int64
+    updatedAt   int64
 
     savedLoc    bool
     savedRem    bool
@@ -69,7 +75,7 @@ func NewBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, blockId int6
         return &block, dserr.Err(err)
     }
     if exists {
-        err = errors.New("block yet exists")
+        err = fmt.Errorf("block %s yet exists", block.getIdString())
         return &block, dserr.Err(err)
     }
     newBlock, err := ForceNewBlock(reg, baseDir, fileId, batchId, blockId, blockType, blockSize)
@@ -92,12 +98,15 @@ func ForceNewBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, blockId
 
     block.blockSize = blockSize
     block.dataSize  = 0
-    block.filePath  = makeFilePath(block.fileId, block.batchId, block.blockId, block.blockType)
+    block.filePath  = makeFilePath()
 
     block.hashAlg   = dscom.HashTypeHW
     block.hashInit  = make([]byte, 32)
     rand.Read(block.hashInit)
     block.hashSum   = make([]byte, 0)
+
+    block.createdAt = time.Now().Unix()
+    block.updatedAt = block.createdAt
 
     block.savedLoc  = false
     block.savedRem  = false
@@ -129,11 +138,11 @@ func OpenBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, blockId int
         return &block, dserr.Err(err)
     }
     if !exists {
-        err = errors.New("block not exists")
+        err = fmt.Errorf("block not exists", block.getIdString())
         return &block, dserr.Err(err)
     }
 
-    err = block.reg.IncSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    err = block.reg.IncSpecBlockDescrUC(1, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
     if err != nil {
             return &block, dserr.Err(err)
     }
@@ -178,7 +187,7 @@ func OpenSpecUnusedBlock(reg dscom.IBlockReg, baseDir string, fileId, batchId, b
         return &block, dserr.Err(err)
     }
     if !exists {
-        err = errors.New("block not exists")
+        err = fmt.Errorf("block not exists", block.getIdString())
         return &block, dserr.Err(err)
     }
 
@@ -221,12 +230,12 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
     var written int64
     // Return if wrong block
     if !block.blockIsOpen {
-        err = errors.New("block not open or open with error")
+        err = fmt.Errorf("block %s not open or open with error", block.getIdString())
         return written, dserr.Err(err)
     }
     // Return if block just erased
     if block.blockIsDeleted {
-        err = errors.New("block is deleted")
+        err = fmt.Errorf("block %s is deleted", block.getIdString())
         return written, dserr.Err(err)
     }
     // Nothing if writing zero
@@ -238,7 +247,7 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
         return written, dserr.Err(err)
     }
     // Prepare env
-    newFilePath := makeFilePath(block.fileId, block.batchId, block.blockId, block.blockType)
+    newFilePath := makeFilePath()
     newFullFilePath := filepath.Join(block.baseDir, newFilePath)
     newDirPath := filepath.Dir(newFullFilePath)
     err = os.MkdirAll(newDirPath, dirMode)
@@ -267,7 +276,7 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
                 return written, dserr.Err(err)
         }
         if reWritten != block.dataSize {
-            err = errors.New("incorrect prev block file size")
+            err = fmt.Errorf("incorrect prev block %s file size", block.getIdString())
             return written, dserr.Err(err)
         }
     }
@@ -291,6 +300,7 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
     block.locUpdated = true
     block.filePath   = newFilePath
     block.blockVer   = time.Now().UnixNano()
+    block.updatedAt  = time.Now().Unix()
     newDescr := block.toDescr()
     newDescr.UCounter = 2
     err = block.reg.AddNewBlockDescr(newDescr)
@@ -298,75 +308,118 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
             return written, dserr.Err(err)
     }
     // Descreate usage old block descr
-    err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
-    if err != nil {
-            return written, dserr.Err(err)
-    }
-    err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
     if err != nil {
             return written, dserr.Err(err)
     }
     return written, dserr.Err(err)
 }
 
+
+
 func (block *Block) Read(writer io.Writer) (int64, error) {
     var err error
     var written int64
     // Return with error if wrong block
     if !block.blockIsOpen {
-        err = errors.New("block not open or open with error")
+        err = fmt.Errorf("block %s not open or open with error", block.getIdString())
         return written, dserr.Err(err)
     }
     // Return with error if block just erased
     if block.blockIsDeleted {
-        err = errors.New("block is deleted")
+        err = fmt.Errorf("block %s is deleted", block.getIdString())
         return written, dserr.Err(err)
     }
     // Return if block is empty
     if block.dataSize < 1 {
         return written, dserr.Err(err)
     }
-    // Make exit func
-    var file *os.File
-    closer := func() {
-        if file != nil {
-            file.Close()
-        }
-    }
-    defer closer()
-    // Prepare env
-    fullFilePath := filepath.Join(block.baseDir, block.filePath)
-    fullDirPath := filepath.Dir(fullFilePath)
-    err = os.MkdirAll(fullDirPath, dirMode)
-    if err != nil {
-            return written, dserr.Err(err)
-    }
-    // Open local file
-    file, err = os.OpenFile(fullFilePath, os.O_RDONLY, 0)
-    if err != nil {
-            return written, dserr.Err(err)
-    }
-    // Create check hashsum of data
-    hasher, _ := highwayhash.New(block.hashInit)
-    written, err = copyBytes(file, hasher, block.dataSize)
-    if err != nil {
+    if !block.savedLoc && !block.savedRem {
+        err = fmt.Errorf("block %s not stored remote or local", block.getIdString())
         return written, dserr.Err(err)
     }
-    if written != block.dataSize {
-        err = errors.New("incorrect block file size")
-        return written, dserr.Err(err)
+
+    // Get block from remote store
+    var fullFilePath string
+
+    switch {
+        case block.savedLoc:
+            fullFilePath = filepath.Join(block.baseDir, block.filePath)
+            file, err := os.OpenFile(fullFilePath, os.O_RDONLY, 0)
+            defer file.Close()
+            if err != nil {
+                    return written, dserr.Err(err)
+            }
+            // Check hashsum and size of local file
+            hasher, _ := highwayhash.New(block.hashInit)
+            written, err = copyBytes(file, hasher, block.dataSize)
+            if err != nil {
+                return written, dserr.Err(err)
+            }
+            if written != block.dataSize {
+                err = fmt.Errorf("incorrect block %s local file size", block.getIdString())
+                return written, dserr.Err(err)
+            }
+            hashSum := hasher.Sum(nil)
+            if bytes.Compare(hashSum, block.hashSum) != 0 {
+                err = fmt.Errorf("incorrect block %s hash sum", block.getIdString())
+                return written, dserr.Err(err)
+            }
+        default: // Load from remote block store
+            bstoreExists, bstoreDescr, err := block.reg.GetBStoreDescrById(block.bstoreId)
+            if err != nil {
+                return written, dserr.Err(err)
+            }
+            if !bstoreExists {
+                err = fmt.Errorf("bstore %d not exists", block.bstoreId)
+                return written, dserr.Err(err)
+            }
+
+            filePath := makeTmpFilePath()
+            fullFilePath = filepath.Join(block.baseDir, filePath)
+            dirPath := filepath.Dir(fullFilePath)
+            err = os.MkdirAll(dirPath, dirMode)
+            if err != nil {
+                    return written, dserr.Err(err)
+            }
+            file, err := os.OpenFile(fullFilePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0)
+            exitFunc := func() {
+                file.Close()
+                os.Remove(fullFilePath)
+            }
+            defer exitFunc()
+            if err != nil {
+                    return written, dserr.Err(err)
+            }
+            uri     := fmt.Sprintf("%s:%s", bstoreDescr.Address, bstoreDescr.Port)
+            login   := bstoreDescr.Login
+            pass    := bstoreDescr.Pass
+            auth    := dsrpc.CreateAuth([]byte(login), []byte(pass))
+             //Write remote date to multiwriter and check hashsum
+            hasher, _ := highwayhash.New(block.hashInit)
+            mWriter := io.MultiWriter(file, hasher)
+            err = bsfunc.LoadBlock(uri, auth, block.fileId, block.batchId, block.blockId, mWriter,
+                                                                    block.blockType, block.blockVer)
+            if err != nil {
+                    return written, dserr.Err(err)
+            }
+            fileStat, err := file.Stat()
+            if err != nil {
+                    return written, dserr.Err(err)
+            }
+            if fileStat.Size() != block.dataSize {
+                err = fmt.Errorf("incorrect block %s local file size %s: %d and block size %d",
+                                    block.getIdString(), fullFilePath, fileStat.Size(), block.dataSize)
+                return written, dserr.Err(err)
+            }
+            hashSum := hasher.Sum(nil)
+            if bytes.Compare(hashSum, block.hashSum) != 0 {
+                err = fmt.Errorf("incorrect block %s hash sum", block.getIdString())
+                return written, dserr.Err(err)
+            }
     }
-    hashSum := hasher.Sum(nil)
-    if bytes.Compare(hashSum, block.hashSum) != 0 {
-        err = errors.New("incorrect block hash sum")
-        return written, dserr.Err(err)
-    }
-    // Seek to begin of file
-    _, err = file.Seek(0, 0)
-    if err != nil {
-            return written, dserr.Err(err)
-    }
-    // Read and write date
+    file, err := os.OpenFile(fullFilePath, os.O_RDONLY, fileMode)
+    defer file.Close()
     written, err = copyBytes(file, writer, block.dataSize)
     if err != nil {
             return written, dserr.Err(err)
@@ -377,17 +430,17 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
 func (block *Block) Clean() error {
     var err error
     if !block.blockIsOpen {
-        err = errors.New("block not open or open with error")
+        err = fmt.Errorf("block %s not open or open with error")
         return dserr.Err(err)
     }
     if block.blockIsDeleted {
-        err = errors.New("block is deleted")
+        err = fmt.Errorf("block %s is deleted")
         return dserr.Err(err)
     }
     // Close block if open
     if block.blockIsOpen {
         descr := block.toDescr()
-        err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+        err = block.reg.DecSpecBlockDescrUC(1, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
         if err != nil {
                 return dserr.Err(err)
         }
@@ -406,13 +459,13 @@ func (block *Block) Clean() error {
     block.hashSum   = make([]byte, 0)
     block.blockVer  = time.Now().UnixNano()
     newDescr := block.toDescr()
-    newDescr.UCounter = 1
+    newDescr.UCounter = 2
     err = block.reg.AddNewBlockDescr(newDescr)
     if err != nil {
             return dserr.Err(err)
     }
     // Descreate usage old block descr
-    err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
     if err != nil {
             return dserr.Err(err)
     }
@@ -420,24 +473,111 @@ func (block *Block) Clean() error {
 }
 
 
+func (block *Block) Distribute(distr dscom.IFileDistr) (bool, error) {
+    var err error
+
+    blockIsDistibuted := false
+    var bstoreId int64 = 0
+
+    // Return id not opened
+    if !block.blockIsOpen {
+        err = fmt.Errorf("block %s not open or open with error", block.getIdString())
+        return blockIsDistibuted, dserr.Err(err)
+    }
+    // Return if reased
+    if block.blockIsDeleted {
+        err = fmt.Errorf("block %s is deleted", block.getIdString())
+        return blockIsDistibuted, dserr.Err(err)
+    }
+
+    if block.savedRem && !block.locUpdated {
+        blockIsDistibuted = true
+        return blockIsDistibuted, dserr.Err(err)
+    }
+    // Upload block
+    // Store current state to descr
+    remDescr := block.toDescr()
+    newBlockVer := time.Now().UnixNano()
+    remDescr.BlockVer = newBlockVer
+    switch  {
+        case block.dataSize > 0:
+            blockIsDistibuted, bstoreId, err = distr.SaveBlock(remDescr);
+            if err != nil {
+                return blockIsDistibuted, dserr.Err(err)
+            }
+        default:
+            blockIsDistibuted = true
+            bstoreId = 0
+    }
+    if !blockIsDistibuted {
+        err = fmt.Errorf("block %s is not distributed", block.getIdString())
+        return blockIsDistibuted, dserr.Err(err)
+    }
+
+    // Make new filename patch
+    newFilePath := makeFilePath()
+    descr := block.toDescr()
+
+    savedLoc := true
+    // Link data to new file name
+    if block.dataSize > 0 {
+        newFullFilePath := filepath.Join(block.baseDir, newFilePath)
+        newDirPath := filepath.Dir(newFullFilePath)
+
+        oldFullFilePath := filepath.Join(block.baseDir, block.filePath)
+        err = os.MkdirAll(newDirPath, dirMode)
+        if err != nil {
+                return blockIsDistibuted, dserr.Err(err)
+        }
+        err = os.Link(oldFullFilePath, newFullFilePath)
+        if err != nil {
+                return blockIsDistibuted, dserr.Err(err)
+        }
+        removeErr := os.Remove(oldFullFilePath)
+        if removeErr == nil {
+            savedLoc = false
+        }
+    }
+    // Add new version of block descr
+    block.filePath  = newFilePath
+    block.savedRem  = blockIsDistibuted
+    block.savedLoc  = savedLoc
+    block.bstoreId  = bstoreId
+    block.blockVer  = newBlockVer
+    newDescr := block.toDescr()
+    newDescr.UCounter = 2
+    err = block.reg.AddNewBlockDescr(newDescr)
+    if err != nil {
+        return blockIsDistibuted, dserr.Err(err)
+    }
+    // Decrease usage old block descr
+    err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    if err != nil {
+        return blockIsDistibuted, dserr.Err(err)
+
+    }
+    dslog.LogDebugf("block %s save to store %d ", block.getIdString(), bstoreId)
+    return blockIsDistibuted, dserr.Err(err)
+}
+
 func (block *Block) Delete() error {
     var err error
     // Return if wrong block
     if !block.blockIsOpen {
-        err = errors.New("block not open or open with error")
+        err = fmt.Errorf("block %s not open or open with error", block.getIdString())
         return dserr.Err(err)
     }
     // Close block if open
     if block.blockIsOpen {
         descr := block.toDescr()
-        err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+        err = block.reg.DecSpecBlockDescrUC(1, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
         if err != nil {
                 return dserr.Err(err)
         }
         block.blockIsOpen = false
     }
     // Descrease usage counter of the block descr
-    err = block.reg.DecSpecBlockDescrUC(block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
+    err = block.reg.DecSpecBlockDescrUC(1, block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
     if err != nil {
             return dserr.Err(err)
     }
@@ -449,19 +589,46 @@ func (block *Block) Erase() error {
     var err error
     // Close block
     if block.blockIsOpen {
-        err = block.reg.DecSpecBlockDescrUC(block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
+        err = block.reg.DecSpecBlockDescrUC(1, block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
         if err != nil {
                 return dserr.Err(err)
         }
         block.blockIsOpen = false
     }
-    // Remove underline file
-    if len(block.filePath) > 0 {
-        fullFilePath := filepath.Join(block.baseDir, block.filePath)
-        err = removeFile(fullFilePath)
-        if err != nil {
-                return dserr.Err(err)
+    if block.savedLoc && block.dataSize > 0 {
+        // Remove underline file
+        if len(block.filePath) > 0 {
+            fullFilePath := filepath.Join(block.baseDir, block.filePath)
+            err = removeFile(fullFilePath)
+            if err != nil {
+                    return dserr.Err(err)
+            }
         }
+    }
+    if block.savedRem && block.dataSize > 0 {
+            bstoreExists, bstoreDescr, err := block.reg.GetBStoreDescrById(block.bstoreId)
+            if err != nil {
+                return dserr.Err(err)
+            }
+            if !bstoreExists {
+                err = fmt.Errorf("bstore %d not exists", block.bstoreId)
+                return dserr.Err(err)
+            }
+            uri     := fmt.Sprintf("%s:%s", bstoreDescr.Address, bstoreDescr.Port)
+            login   := bstoreDescr.Login
+            pass    := bstoreDescr.Pass
+            auth    := dsrpc.CreateAuth([]byte(login), []byte(pass))
+            count := 3
+            for i := 0; i < count; i++ {
+                // Delete remote block
+                err = bsfunc.DeleteBlock(uri, auth, block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
+                if err == nil {
+                    break
+                }
+            }
+            if err != nil {
+                    return dserr.Err(err)
+            }
     }
     // Erase block descr
     err = block.reg.EraseSpecBlockDescr(block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
@@ -473,52 +640,6 @@ func (block *Block) Erase() error {
 }
 
 
-func (block *Block) Distribute(distr dscom.IBlockDistr) error {
-    var err error
-    // Return id not opened
-    if !block.blockIsOpen {
-        err = errors.New("block not open or open with error")
-        return dserr.Err(err)
-    }
-    // Return if reased
-    if block.blockIsDeleted {
-        err = errors.New("block is deleted")
-        return dserr.Err(err)
-    }
-    // Return if block is empty
-    if block.dataSize < 1 {
-        return dserr.Err(err)
-    }
-    if block.savedRem && !block.locUpdated {
-        return dserr.Err(err)
-    }
-    // Upload block
-    var bstoreId int64 = 0
-    //bstoreId, err := distr.SaveBlock(descr);
-    //if err != nil {
-    //        return dserr.Err(err)
-    //}
-    // Add new version of block descr
-
-
-    descr := block.toDescr()
-    block.savedRem  = true
-    block.bstoreId  = bstoreId
-    block.blockVer  = time.Now().UnixNano()
-    newDescr := block.toDescr()
-    err = block.reg.AddNewBlockDescr(newDescr)
-    if err != nil {
-            return dserr.Err(err)
-    }
-    // Descreate usage old block descr
-    err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
-    if err != nil {
-            return dserr.Err(err)
-    }
-    dslog.LogDebug("block save remote", bstoreId)
-    return dserr.Err(err)
-}
-
 
 func (block *Block) Close() error {
     var err error
@@ -527,7 +648,7 @@ func (block *Block) Close() error {
     }
     if block.blockIsOpen {
         descr := block.toDescr()
-        err = block.reg.DecSpecBlockDescrUC(descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+        err = block.reg.DecSpecBlockDescrUC(1, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
         if err != nil {
                 return dserr.Err(err)
         }
@@ -536,7 +657,6 @@ func (block *Block) Close() error {
     }
     return dserr.Err(err)
 }
-
 
 func removeFile(filePath string) error {
     var err error
@@ -549,6 +669,11 @@ func removeFile(filePath string) error {
     }
     err = nil
     return err
+}
+
+
+func (block *Block) getIdString() string {
+    return fmt.Sprintf("%d,%d,%d,%s,%d", block.fileId, block.batchId, block.blockId, block.blockType, block.blockVer)
 }
 
 func (block *Block) toDescr() *dscom.BlockDescr {
@@ -575,12 +700,12 @@ func (block *Block) toDescr() *dscom.BlockDescr {
     return descr
 }
 
-func makeFilePath(fileId, batchId, blockId int64, blockType string) string {
-    const blockFileExt string = ".blk"
-    ts := time.Now().UnixNano()
-    origin := fmt.Sprintf("%020d-%020d-%020d-%s-%020d", fileId, batchId, blockId, blockType, ts)
+func makeFilePath() string {
+    const blockFileExt string = ".block"
+    origin := make([]byte, 128)
+    rand.Read(origin)
     hasher := sha1.New()
-    hasher.Write([]byte(origin))
+    hasher.Write(origin)
     hashSum := hasher.Sum(nil)
     hashHex := hex.EncodeToString(hashSum)
     fileName := hashHex + blockFileExt
@@ -589,6 +714,22 @@ func makeFilePath(fileId, batchId, blockId int64, blockType string) string {
     dirName := filepath.Join(l1, l2)
     return filepath.Join(dirName, fileName)
 }
+
+func makeTmpFilePath() string {
+    const blockFileExt string = ".tmpbl"
+    origin := make([]byte, 128)
+    rand.Read(origin)
+    hasher := sha1.New()
+    hasher.Write(origin)
+    hashSum := hasher.Sum(nil)
+    hashHex := hex.EncodeToString(hashSum)
+    fileName := hashHex + blockFileExt
+    l1 := string(hashHex[0:1])
+    l2 := string(hashHex[1:3])
+    dirName := filepath.Join("tmp", l1, l2)
+    return filepath.Join(dirName, fileName)
+}
+
 
 func copyBytes(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     var err error

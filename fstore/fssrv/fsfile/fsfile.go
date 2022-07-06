@@ -1,7 +1,7 @@
 package fsfile
 
 import (
-    "errors"
+    "fmt"
     "io"
     "time"
     "ndstore/dscom"
@@ -18,12 +18,13 @@ type File struct {
     blockSize       int64
 
     fileSize        int64
-    createdAt       dscom.UnixTime
-    updatedAt       dscom.UnixTime
+    createdAt       int64
+    updatedAt       int64
+    isDistr         bool
+
 
     batchs          []*Batch
 
-    fileIsDistr     bool
     fileIsOpen      bool
     fileIsDeleted   bool
 }
@@ -47,8 +48,9 @@ func NewFile(reg dscom.IFSReg, baseDir string, batchSize, blockSize int64) (int6
 
     file.batchs     = make([]*Batch, 0)
     file.fileSize   = 0
-    file.createdAt  = dscom.UnixTime(time.Now().Unix())
-    file.updatedAt  = dscom.UnixTime(time.Now().Unix())
+    file.createdAt  = time.Now().Unix()
+    file.updatedAt  = file.createdAt
+    file.isDistr    = false
 
     descr := file.toDescr()
     descr.UCounter = 2
@@ -58,12 +60,9 @@ func NewFile(reg dscom.IFSReg, baseDir string, batchSize, blockSize int64) (int6
     }
     file.fileIsOpen     = true
     file.fileIsDeleted  = false
-    file.fileIsDistr    = false
 
     return fileId, &file, dserr.Err(err)
 }
-
-
 
 func OpenSpecUnusedFile(reg dscom.IFSReg, baseDir string, fileId, fileVer int64) (*File, error) {
     var err error
@@ -77,7 +76,7 @@ func OpenSpecUnusedFile(reg dscom.IFSReg, baseDir string, fileId, fileVer int64)
         return &file, dserr.Err(err)
     }
     if !exists {
-        err = errors.New("file not exists")
+        err = fmt.Errorf("file %s not exists", file.getIdString())
         return &file, dserr.Err(err)
     }
     file.fileId     = descr.FileId
@@ -90,33 +89,33 @@ func OpenSpecUnusedFile(reg dscom.IFSReg, baseDir string, fileId, fileVer int64)
     file.createdAt  = descr.CreatedAt
     file.updatedAt  = descr.UpdatedAt
 
-    file.fileIsDistr  = false
+    file.isDistr    = descr.IsDistr
 
     batchCount := descr.BatchCount
 
     file.batchs = make([]*Batch, batchCount)
-    //for i := int64(0); i < batchCount; i++ {
-    //    batchId := i
-    //    batch, err := OpenBatch(reg, baseDir, fileId, batchId)
-    //    if err != nil {
-    //        return &file, dserr.Err(err)
-    //    }
-    //    file.batchs[i] = batch
-    //}
-    //err = file.reg.IncSpecFileDescrUC(file.fileId, file.fileVer)
-    //if err != nil {
-    //    return &file, dserr.Err(err)
-    //}
+
     file.fileIsOpen     = true
     file.fileIsDeleted  = false
-    file.fileIsDistr    = false
 
     return &file, dserr.Err(err)
 }
 
 func OpenFile(reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
+    force := false
+    return openFile(force, reg, baseDir, fileId)
+}
+
+
+func ForceOpenFile(reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
+    force := true
+    return openFile(force, reg, baseDir, fileId)
+}
+
+func openFile(force bool, reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
     var err error
     var file File
+
 
     file.reg        = reg
     file.baseDir    = baseDir
@@ -126,7 +125,7 @@ func OpenFile(reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
         return &file, dserr.Err(err)
     }
     if !exists {
-        err = errors.New("file not exists")
+        err = fmt.Errorf("file %s not exists", file.getIdString())
         return &file, dserr.Err(err)
     }
     file.fileId     = descr.FileId
@@ -139,26 +138,30 @@ func OpenFile(reg dscom.IFSReg, baseDir string, fileId int64) (*File, error) {
     file.createdAt  = descr.CreatedAt
     file.updatedAt  = descr.UpdatedAt
 
-    file.fileIsDistr  = false
+    file.isDistr    = descr.IsDistr
 
     batchCount := descr.BatchCount
 
     file.batchs = make([]*Batch, batchCount)
     for i := int64(0); i < batchCount; i++ {
         batchId := i
-        batch, err := OpenBatch(reg, baseDir, fileId, batchId)
-        if err != nil {
-            return &file, dserr.Err(err)
+        batch, err := ForceOpenBatch(reg, baseDir, fileId, batchId)
+        if !force {
+            if err != nil {
+                batch.Close()
+                return &file, dserr.Err(err)
+            }
         }
-        file.batchs[i] = batch
+        if batch != nil {
+            file.batchs[i] = batch
+        }
     }
-    err = file.reg.IncSpecFileDescrUC(file.fileId, file.fileVer)
+    err = file.reg.IncSpecFileDescrUC(1, file.fileId, file.fileVer)
     if err != nil {
         return &file, dserr.Err(err)
     }
     file.fileIsOpen     = true
     file.fileIsDeleted  = false
-    file.fileIsDistr    = false
 
     return &file, dserr.Err(err)
 }
@@ -169,11 +172,10 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
 
     exitFunc := func() {
         if written > 0 {
-            file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
-            file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
+            file.reg.DecSpecFileDescrUC(2, file.fileId, file.fileVer)
             file.fileSize += written
             file.fileVer    = time.Now().UnixNano()
-            file.updatedAt  = dscom.UnixTime(time.Now().Unix())
+            file.updatedAt  = time.Now().Unix()
             descr := file.toDescr()
             descr.UCounter = 2
             file.reg.AddNewFileDescr(descr)
@@ -212,16 +214,23 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
         }
         need -= batchWritten
     }
-
     if written > 0 {
-        file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
-
-        file.fileSize += written
-        file.fileVer    = time.Now().UnixNano()
-        file.updatedAt  = dscom.UnixTime(time.Now().Unix())
+        // Save prev state to descr
         descr := file.toDescr()
+        // Update state
+        file.fileSize += written // TODO: change to file.size()
+        file.fileVer    = time.Now().UnixNano()
+        file.updatedAt  = time.Now().Unix()
+        // Save new state to descr
+        newDescr := file.toDescr()
         descr.UCounter = 2
-        err = file.reg.AddNewFileDescr(descr)
+        // Add new version of descr
+        err = file.reg.AddNewFileDescr(newDescr)
+        if err != nil {
+            return written, dserr.Err(err)
+        }
+        // Descrease usage counter of old state
+        file.reg.DecSpecFileDescrUC(2, descr.FileId, descr.FileVer)
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -248,7 +257,7 @@ func (file *File) Delete() error {
         return dserr.Err(err)
     }
     if file.fileIsOpen {
-        err = file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
+        err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
         if err != nil {
                 return dserr.Err(err)
         }
@@ -261,7 +270,7 @@ func (file *File) Delete() error {
             return dserr.Err(err)
         }
     }
-    err = file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
+    err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
     if err != nil {
         return dserr.Err(err)
     }
@@ -271,24 +280,18 @@ func (file *File) Delete() error {
 
 func (file *File) Erase() error {
     var err error
-    // Close file
+    // The same as close file
     if file.fileIsOpen {
-        err = file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
+        err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
         if err != nil {
                 return dserr.Err(err)
         }
         file.fileIsOpen = false
     }
+    // Do nothing if yet erased
     if file.fileIsDeleted {
         return dserr.Err(err)
     }
-    // Delete batchs
-    //for i := int64(0); i < file.batchCount(); i++ {
-    //    err := file.batchs[i].Erase()
-    //    if err != nil {
-    //        return dserr.Err(err)
-    //    }
-    //}
     file.batchs = make([]*Batch, 0)
     // Erase file descrs
     err = file.reg.EraseSpecFileDescr(file.fileId, file.fileVer)
@@ -305,42 +308,77 @@ func (file *File) Close() error {
     if file.fileIsDeleted {
         return dserr.Err(err)
     }
+    // Always close batchs
+    for i := int64(0); i < file.batchCount(); i++ {
+        batch := file.batchs[i]
+        if batch != nil {
+            err := batch.Close()
+            if err != nil {
+                return dserr.Err(err)
+            }
+        }
+    }
     if !file.fileIsOpen {
         return dserr.Err(err)
     }
-    err = file.reg.DecSpecFileDescrUC(file.fileId, file.fileVer)
+    err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
     if err != nil {
         return dserr.Err(err)
-    }
-    for i := int64(0); i < file.batchCount(); i++ {
-        err := file.batchs[i].Close()
-        if err != nil {
-            return dserr.Err(err)
-        }
     }
     file.fileIsOpen = false
     return dserr.Err(err)
 }
 
 
-func (file *File) Distribute(distr dscom.IBlockDistr) error {
+func (file *File) Distribute(distr dscom.IFileDistr) error {
     var err error
+    // For dummy call: do nothing if deleted
     if file.fileIsDeleted {
         return dserr.Err(err)
     }
+    // Return with err if not open
     if !file.fileIsOpen {
+        err = fmt.Errorf("file %s is not open or open with errors", file.getIdString())
         return dserr.Err(err)
     }
-    if !file.fileIsOpen {
-        return dserr.Err(err)
-    }
+    // Distibute all underline objects
+    allBatchIsDisr := true
     for i := int64(0); i < file.batchCount(); i++ {
-        err := file.batchs[i].Distribute(distr)
+        batchIsDisr, err := file.batchs[i].Distribute(distr)
+        if err != nil {
+            return dserr.Err(err)
+        }
+        if !batchIsDisr {
+            allBatchIsDisr = false
+        }
+    }
+    // Add new ver of file descr if distr state was changed
+    if allBatchIsDisr != file.isDistr {
+        // Save prev state to descr
+        descr := file.toDescr()
+        // Update state
+        file.isDistr    = allBatchIsDisr
+        file.fileVer    = time.Now().UnixNano()
+        file.updatedAt  = time.Now().Unix()
+        // Save new state to descr
+        newDescr := file.toDescr()
+        newDescr.UCounter = 2
+        // Add new version of descr
+        err = file.reg.AddNewFileDescr(newDescr)
+        if err != nil {
+            return dserr.Err(err)
+        }
+        // Descrease usage counter of old state
+        file.reg.DecSpecFileDescrUC(2, descr.FileId, descr.FileVer)
         if err != nil {
             return dserr.Err(err)
         }
     }
     return dserr.Err(err)
+}
+
+func (file *File) getIdString() string {
+    return fmt.Sprintf("%d,%d", file.fileId, file.fileVer)
 }
 
 func (file *File)  batchCount() int64 {
@@ -356,6 +394,7 @@ func (file *File) toDescr() *dscom.FileDescr {
     descr.FileSize      = file.fileSize
     descr.BatchCount    = file.batchCount()
     descr.CreatedAt     = file.createdAt
-    descr.UpdatedAt     = dscom.UnixTime(time.Now().Unix())
+    descr.UpdatedAt     = time.Now().Unix()
+    descr.IsDistr       = file.isDistr
     return descr
 }

@@ -8,7 +8,7 @@ import (
     "github.com/stretchr/testify/require"
 )
 
-func xxxTest_Block_WriteRead(t *testing.T) {
+func Test_Block_WriteRead(t *testing.T) {
     var err error
 
     rootDir := t.TempDir()
