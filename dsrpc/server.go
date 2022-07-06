@@ -56,6 +56,7 @@ func (this *Service) Handler(method string, handler HandlerFunc) {
 func (this *Service) Listen(address string) error {
     var err error
     logInfo("server listen:", address)
+
     listener, err := net.Listen("tcp", address)
     if err != nil {
         return err
