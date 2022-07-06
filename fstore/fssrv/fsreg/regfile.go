@@ -239,8 +239,8 @@ func (reg *Reg) EraseSpecFileDescr(fileId, fileVer int64) error {
 func (reg *Reg) GetAnyNotDistrFileDescr() (bool, *dscom.FileDescr, error) {
     var err     error
     var exists  bool
-    var blockDescr *dscom.FileDescr
-    blocks := make([]*dscom.FileDescr, 0)
+    var descr *dscom.FileDescr
+    descrs := make([]*dscom.FileDescr, 0)
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
                                                                 created_at, updated_at, is_distr
@@ -252,17 +252,43 @@ func (reg *Reg) GetAnyNotDistrFileDescr() (bool, *dscom.FileDescr, error) {
         LIMIT 1;`
     now := time.Now().Unix()
     gap := int64(30)
-    err = reg.db.Select(&blocks, request, now, gap)
+    err = reg.db.Select(&descrs, request, now, gap)
     if err != nil {
-        return exists, blockDescr, dserr.Err(err)
+        return exists, descr, dserr.Err(err)
     }
-    if len(blocks) > 0 {
+    if len(descrs) > 0 {
         exists = true
-        blockDescr = blocks[0]
+        descr = descrs[0]
     }
-    return exists, blockDescr, dserr.Err(err)
+    return exists, descr, dserr.Err(err)
 }
 
+func (reg *Reg) GetSetNotDistrFileDescr(count int) (bool, []*dscom.FileDescr, error) {
+    var err     error
+    var exists  bool
+    descrs := make([]*dscom.FileDescr, 0)
+    request := `
+        SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
+                                                                created_at, updated_at, is_distr
+        FROM fs_files
+        WHERE u_counter > 0
+            AND batch_count > 0
+            AND file_size > 0
+            AND is_distr = FALSE
+            AND ($1 - updated_at) > $2
+        ORDER BY file_ver DESC
+        LIMIT $1;`
+    now := time.Now().Unix()
+    gap := int64(30)
+    err = reg.db.Select(&descrs, request, now, gap)
+    if err != nil {
+        return exists, descrs, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+    }
+    return exists, descrs, dserr.Err(err)
+}
 
 
 func (reg *Reg) EraseAllFileDescrs() error {

@@ -174,6 +174,28 @@ func (reg *Reg) GetAnyUnusedBlockDescr() (bool, *dscom.BlockDescr, error) {
     return exists, blockDescr, dserr.Err(err)
 }
 
+
+func (reg *Reg) GetSetUnusedBlockDescrs(count int) (bool, []*dscom.BlockDescr, error) {
+    var err     error
+    var exists  bool
+    blocks := make([]*dscom.BlockDescr, 0)
+    request := `
+        SELECT file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated, created_at, updated_at
+        FROM fs_blocks
+        WHERE u_counter < 1
+        LIMIT $1;`
+    err = reg.db.Select(&blocks, request, count)
+    if err != nil {
+        return exists, blocks, dserr.Err(err)
+    }
+    if len(blocks) > 0 {
+        exists = true
+    }
+    return exists, blocks, dserr.Err(err)
+}
+
 func (reg *Reg) IncSpecBlockDescrUC(count, fileId, batchId, blockId int64, blockType string, blockVer int64) error {
     var err error
     request := `

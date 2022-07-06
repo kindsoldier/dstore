@@ -22,7 +22,7 @@ import (
 
     "ndstore/dscom"
     "ndstore/dserr"
-    "ndstore/dslog"
+    //"ndstore/dslog"
     "ndstore/dsrpc"
 
     "ndstore/bstore/bsfunc"
@@ -520,9 +520,11 @@ func (block *Block) Distribute(distr dscom.IFileDistr) (bool, error) {
     descr := block.toDescr()
 
     savedLoc := true
+    var newFullFilePath string
+    //var oldFullFilePath string
     // Link data to new file name
     if block.dataSize > 0 {
-        newFullFilePath := filepath.Join(block.baseDir, newFilePath)
+        newFullFilePath = filepath.Join(block.baseDir, newFilePath)
         newDirPath := filepath.Dir(newFullFilePath)
 
         oldFullFilePath := filepath.Join(block.baseDir, block.filePath)
@@ -557,7 +559,10 @@ func (block *Block) Distribute(distr dscom.IFileDistr) (bool, error) {
         return blockIsDistibuted, dserr.Err(err)
 
     }
-    dslog.LogDebugf("block %s save to store %d ", block.getIdString(), bstoreId)
+    //dslog.LogDebugf("block %s,%s save to store %d ", block.getIdString(), block.filePath, bstoreId)
+    if len(newFullFilePath) > 0 {
+        os.Remove(newFullFilePath)
+    }
     return blockIsDistibuted, dserr.Err(err)
 }
 
@@ -712,7 +717,8 @@ func makeFilePath() string {
     fileName := hashHex + blockFileExt
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[1:3])
-    dirName := filepath.Join(l1, l2)
+    l3 := string(hashHex[3:5])
+    dirName := filepath.Join(l1, l2, l3)
     return filepath.Join(dirName, fileName)
 }
 
@@ -727,7 +733,8 @@ func makeTmpFilePath() string {
     fileName := hashHex + blockFileExt
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[1:3])
-    dirName := filepath.Join("tmp", l1, l2)
+    l3 := string(hashHex[3:5])
+    dirName := filepath.Join("tmp", l1, l2, l3)
     return filepath.Join(dirName, fileName)
 }
 

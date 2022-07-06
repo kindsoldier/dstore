@@ -41,6 +41,7 @@ type IFileReg interface {
     ListAllFileDescrs() ([]*FileDescr, error)
     EraseAllFileDescrs() error
 
+    GetSetNotDistrFileDescr(count int) (bool, []*FileDescr, error)
 }
 
 type IBatchReg interface {
@@ -68,6 +69,7 @@ type IBlockReg interface {
     ListAllBlockDescrs() ([]*BlockDescr, error)
 
     GetBStoreDescrById(bstoreId int64) (bool, *BStoreDescr, error)
+    GetSetUnusedBlockDescrs(count int) (bool, []*BlockDescr, error)
 }
 
 

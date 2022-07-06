@@ -389,7 +389,7 @@ func (server *Server) RunService() error {
     go model.WasteBlockCollecting()
 
     //go model.LostObjectFinding()
-    //go model.StoredFileDistributing()
+    go model.StoredFileDistributing()
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)
@@ -418,8 +418,6 @@ func (server *Server) RunService() error {
     serv.PreMiddleware(dsrpc.LogRequest)
     serv.PostMiddleware(dsrpc.LogResponse)
     serv.PostMiddleware(dsrpc.LogAccess)
-
-
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

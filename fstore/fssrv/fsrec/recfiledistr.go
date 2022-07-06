@@ -8,6 +8,7 @@ import (
     "errors"
     "fmt"
     "bytes"
+    "math/rand"
     "ndstore/bstore/bsfunc"
     "ndstore/dscom"
     "ndstore/dsrpc"
@@ -47,6 +48,8 @@ func (distr *FileDistr) LoadPool() error {
     }
     distr.bstores = bstores
 
+    distr.counter = rand.Intn(len(distr.bstores))
+
     if len(distr.bstores) < 1 {
         err = errors.New("empty work store list")
         return dserr.Err(err)
@@ -72,8 +75,6 @@ func (distr *FileDistr) SaveBlock(descr *dscom.BlockDescr) (bool, int64, error) 
         pass    := bstore.Pass
         auth    := dsrpc.CreateAuth([]byte(login), []byte(pass))
         bstoreId = bstore.BStoreId
-
-        dslog.LogDebug("use bstoreId", bstoreId)
 
         block, err := fsfile.OpenBlock(distr.reg, distr.dataDir,  descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType)
         defer block.Close()
