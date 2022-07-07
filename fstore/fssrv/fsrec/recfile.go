@@ -208,7 +208,7 @@ func (store *Store) StoredFileDistributing() {
     for {
         count := 10
         exists, descrs, err := store.reg.GetSetNotDistrFileDescr(count)
-        dslog.LogDebug("file disributor call", exists, len(descrs))
+        //dslog.LogDebug("file disributor call", exists, len(descrs))
         if exists && err == nil {
             var wg sync.WaitGroup
             for _, descr := range descrs {
@@ -248,7 +248,7 @@ func (store *Store) WasteFileCollecting() {
         //dslog.LogDebug("file waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedFileDescr()
         if exists && err == nil {
-            dslog.LogDebug("delete waste file descr:", descr.FileId)
+            dslog.LogDebugf("delete waste file descr %d,%d", descr.FileId, descr.FileVer)
             file, err := fsfile.OpenSpecUnusedFile(store.reg, store.dataRoot, descr.FileId, descr.FileVer)
             err = file.Erase()
             if err != nil {

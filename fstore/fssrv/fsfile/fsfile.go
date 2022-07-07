@@ -21,7 +21,8 @@ type File struct {
     createdAt       int64
     updatedAt       int64
     isDistr         bool
-
+    isCompl         bool
+    isDeleted       bool
 
     batchs          []*Batch
 
@@ -51,6 +52,8 @@ func NewFile(reg dscom.IFSReg, baseDir string, batchSize, blockSize int64) (int6
     file.createdAt  = time.Now().Unix()
     file.updatedAt  = file.createdAt
     file.isDistr    = false
+    file.isCompl    = false
+    file.isDeleted  = false
 
     descr := file.toDescr()
     descr.UCounter = 2
@@ -90,6 +93,8 @@ func OpenSpecUnusedFile(reg dscom.IFSReg, baseDir string, fileId, fileVer int64)
     file.updatedAt  = descr.UpdatedAt
 
     file.isDistr    = descr.IsDistr
+    file.isCompl    = descr.IsCompl
+    file.isDeleted  = descr.IsDeleted
 
     batchCount := descr.BatchCount
 
@@ -170,18 +175,23 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
     var err error
     var written int64
 
-    exitFunc := func() {
+    exitFunc := func(file *File, err error) {
         if written > 0 {
-            file.reg.DecSpecFileDescrUC(2, file.fileId, file.fileVer)
+            descr := file.toDescr()
             file.fileSize += written
             file.fileVer    = time.Now().UnixNano()
             file.updatedAt  = time.Now().Unix()
-            descr := file.toDescr()
-            descr.UCounter = 2
-            file.reg.AddNewFileDescr(descr)
+            if err == nil {
+                file.isCompl = true
+                file.isDistr = false
+            }
+            newDescr := file.toDescr()
+            newDescr.UCounter = 2
+            file.reg.AddNewFileDescr(newDescr)
+            file.reg.DecSpecFileDescrUC(2, descr.FileId, descr.FileVer)
         }
     }
-    defer exitFunc()
+    defer exitFunc(file, err)
 
     for i := range file.batchs {
         if need < 1 {
@@ -214,27 +224,27 @@ func (file *File) Write(reader io.Reader, need int64) (int64, error) {
         }
         need -= batchWritten
     }
-    if written > 0 {
-        // Save prev state to descr
-        descr := file.toDescr()
-        // Update state
-        file.fileSize += written // TODO: change to file.size()
-        file.fileVer    = time.Now().UnixNano()
-        file.updatedAt  = time.Now().Unix()
-        // Save new state to descr
-        newDescr := file.toDescr()
-        descr.UCounter = 2
-        // Add new version of descr
-        err = file.reg.AddNewFileDescr(newDescr)
-        if err != nil {
-            return written, dserr.Err(err)
-        }
-        // Descrease usage counter of old state
-        file.reg.DecSpecFileDescrUC(2, descr.FileId, descr.FileVer)
-        if err != nil {
-            return written, dserr.Err(err)
-        }
-    }
+    //if written > 0 {
+    //    // Save prev state to descr
+    //    descr := file.toDescr()
+    //    // Update state
+    //    file.fileSize += written // TODO: change to file.size()
+    //    file.fileVer    = time.Now().UnixNano()
+    //    file.updatedAt  = time.Now().Unix()
+    //    // Save new state to descr
+    //    newDescr := file.toDescr()
+    //    descr.UCounter = 2
+    //    // Add new version of descr
+    //    err = file.reg.AddNewFileDescr(newDescr)
+    //    if err != nil {
+    //        return written, dserr.Err(err)
+    //    }
+    //    // Descrease usage counter of old state
+    //    file.reg.DecSpecFileDescrUC(2, descr.FileId, descr.FileVer)
+    //    if err != nil {
+    //        return written, dserr.Err(err)
+    //    }
+    //}
     return written, dserr.Err(err)
 }
 
@@ -396,5 +406,7 @@ func (file *File) toDescr() *dscom.FileDescr {
     descr.CreatedAt     = file.createdAt
     descr.UpdatedAt     = time.Now().Unix()
     descr.IsDistr       = file.isDistr
+    descr.IsCompl       = file.isCompl
+    descr.IsDeleted     = file.isDeleted
     return descr
 }

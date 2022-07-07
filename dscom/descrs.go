@@ -70,6 +70,9 @@ type FileDescr struct {
     UpdatedAt   int64       `json:"updatedAt"   db:"updated_at"`
     CreatedAt   int64       `json:"createdAt"   db:"created_at"`
     IsDistr     bool        `json:"isDistr"     db:"is_distr"`
+
+    IsCompl     bool        `json:"isCompl"     db:"is_compl"`
+    IsDeleted   bool        `json:"isDeleted"   db:"is_deleted"`
 }
 
 func NewFileDescr() *FileDescr {

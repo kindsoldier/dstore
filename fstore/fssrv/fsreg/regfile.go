@@ -31,7 +31,9 @@ const fileSchema = `
         created_at      BIGINT,
         updated_at      BIGINT,
 
-        is_distr        BOOL
+        is_distr        BOOL,
+        is_compl        BOOL,
+        is_deleted      BOOL
     );
     --- DROP INDEX IF EXISTS fs_file_idx;
     CREATE UNIQUE INDEX IF NOT EXISTS fs_file_idx
@@ -58,12 +60,13 @@ func (reg *Reg) AddNewFileDescr(descr *dscom.FileDescr) error {
     request := `
         INSERT INTO fs_files(file_id, batch_count, file_ver, u_counter,
                                                         batch_size, block_size, file_size,
-                                                            created_at, updated_at, is_distr)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`
-
+                                                            created_at, updated_at, is_distr,
+                                                            is_compl, is_deleted)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`
     _, err = reg.db.Exec(request, descr.FileId, descr.BatchCount, descr.FileVer, descr.UCounter,
                                                     descr.BatchSize, descr.BlockSize, descr.FileSize,
-                                                    descr.CreatedAt, descr.UpdatedAt, descr.IsDistr)
+                                                    descr.CreatedAt, descr.UpdatedAt, descr.IsDistr,
+                                                    descr.IsCompl, descr.IsDeleted)
 
     if err != nil {
         return dserr.Err(err)
@@ -77,7 +80,8 @@ func (reg *Reg) GetNewestFileDescr(fileId int64) (bool, *dscom.FileDescr, error)
     var descr *dscom.FileDescr
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files
         WHERE file_id = $1
             AND u_counter > 0
@@ -101,7 +105,8 @@ func (reg *Reg) GetSpecFileDescr(fileId, fileVer int64) (bool, *dscom.FileDescr,
     var descr *dscom.FileDescr
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files
         WHERE file_id = $1
             AND file_ver = $2
@@ -126,7 +131,8 @@ func (reg *Reg) GetSpecUnusedFileDescr(fileId, fileVer int64) (bool, *dscom.File
     var descr *dscom.FileDescr
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files
         WHERE file_id = $1
             AND file_ver = $2
@@ -152,7 +158,8 @@ func (reg *Reg) GetAnyUnusedFileDescr() (bool, *dscom.FileDescr, error) {
     blocks := make([]*dscom.FileDescr, 0)
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files
         WHERE u_counter < 1
         LIMIT 1;`
@@ -201,7 +208,8 @@ func (reg *Reg) ListAllFileDescrs() ([]*dscom.FileDescr, error) {
     blocks := make([]*dscom.FileDescr, 0)
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files;`
     err = reg.db.Select(&blocks, request)
     if err != nil {
@@ -217,12 +225,14 @@ func (reg *Reg) EraseSpecFileDescr(fileId, fileVer int64) error {
         return dserr.Err(err)
     }
     request1 := `
-        DELETE FROM fs_fileids
+        DELETE
+            FROM fs_fileids
             WHERE file_id = $1;`
     _, err = tx.Exec(request1, fileId)
 
     request2 := `
-        DELETE FROM fs_files
+        DELETE
+            FROM fs_files
             WHERE file_id = $1
             AND file_ver = $2;`
     _, err = tx.Exec(request2, fileId, fileVer)
@@ -243,10 +253,14 @@ func (reg *Reg) GetAnyNotDistrFileDescr() (bool, *dscom.FileDescr, error) {
     descrs := make([]*dscom.FileDescr, 0)
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
+
         FROM fs_files
         WHERE u_counter > 0
-            AND is_distr = FALSE
+            AND is_deleted = false
+            AND is_distr = false
+            AND is_compl = true
             AND ($1 - updated_at) > $2
         ORDER BY file_ver DESC
         LIMIT 1;`
@@ -269,17 +283,20 @@ func (reg *Reg) GetSetNotDistrFileDescr(count int) (bool, []*dscom.FileDescr, er
     descrs := make([]*dscom.FileDescr, 0)
     request := `
         SELECT file_id, batch_count, file_ver, u_counter, batch_size, block_size, file_size,
-                                                                created_at, updated_at, is_distr
+                                                                created_at, updated_at, is_distr,
+                                                                is_compl, is_deleted
         FROM fs_files
         WHERE u_counter > 0
             AND batch_count > 0
             AND file_size > 0
-            AND is_distr = FALSE
+            AND is_deleted = false
+            AND is_compl = true
+            AND is_distr = false
             AND ($1 - updated_at) > $2
         ORDER BY file_ver DESC
         LIMIT $1;`
     now := time.Now().Unix()
-    gap := int64(30)
+    gap := int64(5)
     err = reg.db.Select(&descrs, request, now, gap)
     if err != nil {
         return exists, descrs, dserr.Err(err)
