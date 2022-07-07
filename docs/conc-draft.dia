@@ -1,0 +1,2642 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dia:diagram xmlns:dia="http://www.lysator.liu.se/~alla/dia/">
+  <dia:diagramdata>
+    <dia:attribute name="background">
+      <dia:color val="#ffffff"/>
+    </dia:attribute>
+    <dia:attribute name="pagebreak">
+      <dia:color val="#000099"/>
+    </dia:attribute>
+    <dia:attribute name="paper">
+      <dia:composite type="paper">
+        <dia:attribute name="name">
+          <dia:string>#A4#</dia:string>
+        </dia:attribute>
+        <dia:attribute name="tmargin">
+          <dia:real val="2.8222000598907471"/>
+        </dia:attribute>
+        <dia:attribute name="bmargin">
+          <dia:real val="2.8222000598907471"/>
+        </dia:attribute>
+        <dia:attribute name="lmargin">
+          <dia:real val="2.8222000598907471"/>
+        </dia:attribute>
+        <dia:attribute name="rmargin">
+          <dia:real val="2.8222000598907471"/>
+        </dia:attribute>
+        <dia:attribute name="is_portrait">
+          <dia:boolean val="true"/>
+        </dia:attribute>
+        <dia:attribute name="scaling">
+          <dia:real val="1"/>
+        </dia:attribute>
+        <dia:attribute name="fitto">
+          <dia:boolean val="false"/>
+        </dia:attribute>
+      </dia:composite>
+    </dia:attribute>
+    <dia:attribute name="grid">
+      <dia:composite type="grid">
+        <dia:attribute name="width_x">
+          <dia:real val="1"/>
+        </dia:attribute>
+        <dia:attribute name="width_y">
+          <dia:real val="1"/>
+        </dia:attribute>
+        <dia:attribute name="visible_x">
+          <dia:int val="1"/>
+        </dia:attribute>
+        <dia:attribute name="visible_y">
+          <dia:int val="1"/>
+        </dia:attribute>
+        <dia:composite type="color"/>
+      </dia:composite>
+    </dia:attribute>
+    <dia:attribute name="color">
+      <dia:color val="#d8e5e5"/>
+    </dia:attribute>
+    <dia:attribute name="guides">
+      <dia:composite type="guides">
+        <dia:attribute name="hguides"/>
+        <dia:attribute name="vguides"/>
+      </dia:composite>
+    </dia:attribute>
+  </dia:diagramdata>
+  <dia:layer name="Background" visible="true" active="true">
+    <dia:object type="Standard - ZigZagLine" version="1" id="O0">
+      <dia:attribute name="obj_pos">
+        <dia:point val="24,24.1112"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="23.9368,15.5007;35.1118,24.5444"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="24,24.1112"/>
+        <dia:point val="29.5,24.1112"/>
+        <dia:point val="29.5,15.8625"/>
+        <dia:point val="35,15.8625"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O2" connection="11"/>
+        <dia:connection handle="1" to="O1" connection="6"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O1">
+      <dia:attribute name="obj_pos">
+        <dia:point val="35,12"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="34.95,11.95;45.05,17.2"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="35,12"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="10"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="5.1499999999999986"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#REGISTERS#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="40,14.8175"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#c2cee4"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O2">
+      <dia:attribute name="obj_pos">
+        <dia:point val="18,23"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="17.95,22.95;24.05,27.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="18,23"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#FILE
+RECORDER#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="21,25.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#ccede2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O3">
+      <dia:attribute name="obj_pos">
+        <dia:point val="30,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="29.95,26.95;35.715,30.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="30,27"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#FILE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="32.8325,29.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O4">
+      <dia:attribute name="obj_pos">
+        <dia:point val="40,29"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="39.95,28.95;45.715,32.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="40,29"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BATCH#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="42.8325,31.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O5">
+      <dia:attribute name="obj_pos">
+        <dia:point val="39,28"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="38.95,27.95;44.715,31.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="39,28"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BATCH#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="41.8325,30.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O6">
+      <dia:attribute name="obj_pos">
+        <dia:point val="38,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="37.95,26.95;43.715,30.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="38,27"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BATCH#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="40.8325,29.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O7">
+      <dia:attribute name="obj_pos">
+        <dia:point val="50,30"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="49.95,29.95;55.715,33.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="50,30"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="52.8325,32.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O8">
+      <dia:attribute name="obj_pos">
+        <dia:point val="49,29"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="48.95,28.95;54.715,32.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="49,29"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="51.8325,31.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O9">
+      <dia:attribute name="obj_pos">
+        <dia:point val="48,28"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="47.95,27.95;53.715,31.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="48,28"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="50.8325,30.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O10">
+      <dia:attribute name="obj_pos">
+        <dia:point val="29,26"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="28.95,25.95;34.715,29.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="29,26"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#FILE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="31.8325,28.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O11">
+      <dia:attribute name="obj_pos">
+        <dia:point val="28,25"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="27.95,24.95;33.715,28.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="28,25"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="5.6649999999999956"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#FILE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="30.8325,27.115"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O12">
+      <dia:attribute name="obj_pos">
+        <dia:point val="24,26.3338"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="23.9368,25.7756;28.1118,27.2343"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="24,26.3338"/>
+        <dia:point val="26,26.3338"/>
+        <dia:point val="26,26.8725"/>
+        <dia:point val="28,26.8725"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O2" connection="9"/>
+        <dia:connection handle="1" to="O11" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O13">
+      <dia:attribute name="obj_pos">
+        <dia:point val="33.665,26.8725"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="33.6018,26.3144;38.1118,29.2343"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="33.665,26.8725"/>
+        <dia:point val="35.8325,26.8725"/>
+        <dia:point val="35.8325,28.8725"/>
+        <dia:point val="38,28.8725"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O11" connection="10"/>
+        <dia:connection handle="1" to="O6" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O14">
+      <dia:attribute name="obj_pos">
+        <dia:point val="43.665,28.8725"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="43.6018,28.3144;48.1118,31.1706"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="43.665,28.8725"/>
+        <dia:point val="45.8325,28.8725"/>
+        <dia:point val="45.8325,30.8088"/>
+        <dia:point val="48,30.8088"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O6" connection="10"/>
+        <dia:connection handle="1" to="O9" connection="6"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O15">
+      <dia:attribute name="obj_pos">
+        <dia:point val="69,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="68.95,26.95;75.5,31.2"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="69,27"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.4499999999999993"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.1499999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK
+STORE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="72.225,28.9174"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#ccede2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O16">
+      <dia:attribute name="obj_pos">
+        <dia:point val="78,21"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="77.95,20.95;84.5,25.2"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="78,21"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.4499999999999993"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.1499999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#REGISTER#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="81.225,23.3175"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#c2cee4"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O17">
+      <dia:attribute name="obj_pos">
+        <dia:point val="19,5"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="18.95,4.95;25.1775,9.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="19,5"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.1274999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#FSTORE
+USER MGT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="22.0637,7.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#cbdae2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O18">
+      <dia:attribute name="obj_pos">
+        <dia:point val="30.266,25"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="29.7079,17.0382;37.8618,25.0632"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="30.266,25"/>
+        <dia:point val="30.266,21.075"/>
+        <dia:point val="37.5,21.075"/>
+        <dia:point val="37.5,17.15"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O11" connection="2"/>
+        <dia:connection handle="1" to="O1" connection="7"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O19">
+      <dia:attribute name="obj_pos">
+        <dia:point val="39.133,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="38.5749,17.0382;40.3618,27.0632"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="39.133,27"/>
+        <dia:point val="39.133,22.075"/>
+        <dia:point val="40,22.075"/>
+        <dia:point val="40,17.15"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O6" connection="3"/>
+        <dia:connection handle="1" to="O1" connection="8"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O20">
+      <dia:attribute name="obj_pos">
+        <dia:point val="49.133,28"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="42.1382,17.0382;49.5661,28.0632"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="49.133,28"/>
+        <dia:point val="49.133,22.575"/>
+        <dia:point val="42.5,22.575"/>
+        <dia:point val="42.5,17.15"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O9" connection="3"/>
+        <dia:connection handle="1" to="O1" connection="9"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O21">
+      <dia:attribute name="obj_pos">
+        <dia:point val="53.665,29.8725"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="53.6018,27.5107;58.1118,30.3056"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="53.665,29.8725"/>
+        <dia:point val="55.8325,29.8725"/>
+        <dia:point val="55.8325,27.8725"/>
+        <dia:point val="58,27.8725"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O9" connection="10"/>
+        <dia:connection handle="1" to="O35" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O22">
+      <dia:attribute name="obj_pos">
+        <dia:point val="19,0"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="18.95,-0.05;25.1775,4.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="19,0"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.1274999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BSTORE MGT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="22.0637,2.46495"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#cbdae2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O23">
+      <dia:attribute name="obj_pos">
+        <dia:point val="17,11"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="16.95,10.95;23.4375,15.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="17,11"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.3875000000000002"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#WASTE OBJ
+COLLECTORS#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="20.1938,13.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#cbdae2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O24">
+      <dia:attribute name="obj_pos">
+        <dia:point val="17,17"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="16.95,16.95;23.4375,21.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="17,17"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.3875000000000002"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#LOST OBJ 
+COLLECTORS#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="20.1938,19.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#cbdae2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O25">
+      <dia:attribute name="obj_pos">
+        <dia:point val="23.3875,19.2225"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="23.3243,14.2132;35.1118,19.6556"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="23.3875,19.2225"/>
+        <dia:point val="29.1938,19.2225"/>
+        <dia:point val="29.1938,14.575"/>
+        <dia:point val="35,14.575"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O24" connection="10"/>
+        <dia:connection handle="1" to="O1" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O26">
+      <dia:attribute name="obj_pos">
+        <dia:point val="23.3875,13.2225"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="23.3243,12.6644;35.1118,13.6556"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="23.3875,13.2225"/>
+        <dia:point val="29.1938,13.2225"/>
+        <dia:point val="29.1938,13.2875"/>
+        <dia:point val="35,13.2875"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O23" connection="10"/>
+        <dia:connection handle="1" to="O1" connection="4"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O27">
+      <dia:attribute name="obj_pos">
+        <dia:point val="69,19"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="68.95,18.95;75.1775,23.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="69,19"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.1274999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BSTORE
+USER MGT#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="72.0637,21.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#cbdae2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O28">
+      <dia:attribute name="obj_pos">
+        <dia:point val="25.1275,2.2225"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="25.0643,1.66439;41.3618,12.1118"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="25.1275,2.2225"/>
+        <dia:point val="41,2.2225"/>
+        <dia:point val="41,12"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O22" connection="10"/>
+        <dia:connection handle="1" to="O1" connection="1"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O29">
+      <dia:attribute name="obj_pos">
+        <dia:point val="78,24.1125"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="75.4,23.7507;78.05,28.3993"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="78,24.1125"/>
+        <dia:point val="77.225,24.1125"/>
+        <dia:point val="77.225,28.0375"/>
+        <dia:point val="75.45,28.0375"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="false"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O16" connection="6"/>
+        <dia:connection handle="1" to="O15" connection="11"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O30">
+      <dia:attribute name="obj_pos">
+        <dia:point val="78,22.0375"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="75.0775,20.8607;78.05,22.3993"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="78,22.0375"/>
+        <dia:point val="76.5637,22.0375"/>
+        <dia:point val="76.5637,21.2225"/>
+        <dia:point val="75.1275,21.2225"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O16" connection="4"/>
+        <dia:connection handle="1" to="O27" connection="10"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O31">
+      <dia:attribute name="obj_pos">
+        <dia:point val="25.1275,7.2225"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="25.0643,6.66439;37.3618,12.1118"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="25.1275,7.2225"/>
+        <dia:point val="37,7.2225"/>
+        <dia:point val="37,12"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O17" connection="10"/>
+        <dia:connection handle="1" to="O1" connection="3"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O32">
+      <dia:attribute name="obj_pos">
+        <dia:point val="67,37"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="66.95,36.95;73.5,41.2"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="67,37"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.4499999999999993"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.1499999999999995"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK
+STORE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="70.225,38.9174"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#ccede2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O33">
+      <dia:attribute name="obj_pos">
+        <dia:point val="48,11"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="47.95,10.95;56.05,15.05"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="48,11"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="8"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#DBMS#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="52,13.2425"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#c2cee4"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O34">
+      <dia:attribute name="obj_pos">
+        <dia:point val="45,14.575"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="44.9368,12.6382;48.1118,15.0081"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="45,14.575"/>
+        <dia:point val="46.5,14.575"/>
+        <dia:point val="46.5,13"/>
+        <dia:point val="48,13"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O1" connection="11"/>
+        <dia:connection handle="1" to="O33" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O35">
+      <dia:attribute name="obj_pos">
+        <dia:point val="58,26"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="57.95,25.95;64.165,29.795"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="58,26"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6.1150000000000002"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="3.7450000000000045"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#BLOCK
+DISTRIBUTOR#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="61.0575,27.7149"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#d8e5e5"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O36">
+      <dia:attribute name="obj_pos">
+        <dia:point val="64.115,26.9363"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="64.0518,26.3781;69.1118,28.3993"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="64.115,26.9363"/>
+        <dia:point val="66.5575,26.9363"/>
+        <dia:point val="66.5575,28.0375"/>
+        <dia:point val="69,28.0375"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O35" connection="11"/>
+        <dia:connection handle="1" to="O15" connection="4"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O37">
+      <dia:attribute name="obj_pos">
+        <dia:point val="64,28"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="63.9368,27.4419;67.1118,39.4368"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="64,28"/>
+        <dia:point val="65.5,28"/>
+        <dia:point val="65.5,39.075"/>
+        <dia:point val="67,39.075"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="1" to="O32" connection="5"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O38">
+      <dia:attribute name="obj_pos">
+        <dia:point val="53.665,30.8088"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="53.6018,29.7507;69.1118,31.2419"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="53.665,30.8088"/>
+        <dia:point val="61.3325,30.8088"/>
+        <dia:point val="61.3325,30.1125"/>
+        <dia:point val="69,30.1125"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O9" connection="9"/>
+        <dia:connection handle="1" to="O15" connection="6"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O39">
+      <dia:attribute name="obj_pos">
+        <dia:point val="83,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="82.95,26.95;91.05,31.05"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="83,27"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="8"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#EMBED
+DBMS#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="87,28.8424"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#c2cee4"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O40">
+      <dia:attribute name="obj_pos">
+        <dia:point val="86.2,27"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="84.4,22.7132;86.5618,27.05"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="86.2,27"/>
+        <dia:point val="86.2,23.075"/>
+        <dia:point val="84.45,23.075"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O39" connection="2"/>
+        <dia:connection handle="1" to="O16" connection="10"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O41">
+      <dia:attribute name="obj_pos">
+        <dia:point val="8,30"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="7.95,29.95;14.05,34.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="8,30"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#WEB
+INTERFACE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="11,32.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#ccede2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="SADT - box" version="0" id="O42">
+      <dia:attribute name="obj_pos">
+        <dia:point val="8,22"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="7.95,21.95;14.05,26.495"/>
+      </dia:attribute>
+      <dia:attribute name="meta">
+        <dia:composite type="dict"/>
+      </dia:attribute>
+      <dia:attribute name="elem_corner">
+        <dia:point val="8,22"/>
+      </dia:attribute>
+      <dia:attribute name="elem_width">
+        <dia:real val="6"/>
+      </dia:attribute>
+      <dia:attribute name="elem_height">
+        <dia:real val="4.4450000000000003"/>
+      </dia:attribute>
+      <dia:attribute name="padding">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="text">
+        <dia:composite type="text">
+          <dia:attribute name="string">
+            <dia:string>#NATIVE RPC
+INTERFACE#</dia:string>
+          </dia:attribute>
+          <dia:attribute name="font">
+            <dia:font family="sans" style="80" name="Helvetica-Bold"/>
+          </dia:attribute>
+          <dia:attribute name="height">
+            <dia:real val="0.80009997997416349"/>
+          </dia:attribute>
+          <dia:attribute name="pos">
+            <dia:point val="11,24.0649"/>
+          </dia:attribute>
+          <dia:attribute name="color">
+            <dia:color val="#000000"/>
+          </dia:attribute>
+          <dia:attribute name="alignment">
+            <dia:enum val="1"/>
+          </dia:attribute>
+        </dia:composite>
+      </dia:attribute>
+      <dia:attribute name="line_colour">
+        <dia:color val="#000000"/>
+      </dia:attribute>
+      <dia:attribute name="fill_colour">
+        <dia:color val="#ccede2"/>
+      </dia:attribute>
+      <dia:attribute name="id">
+        <dia:string>##</dia:string>
+      </dia:attribute>
+      <dia:attribute name="cpl_north">
+        <dia:int val="4"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_west">
+        <dia:int val="3"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_south">
+        <dia:int val="2"/>
+      </dia:attribute>
+      <dia:attribute name="cpl_east">
+        <dia:int val="3"/>
+      </dia:attribute>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O43">
+      <dia:attribute name="obj_pos">
+        <dia:point val="14,23.1112"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="13.9368,22.5531;18.1118,24.4731"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="14,23.1112"/>
+        <dia:point val="16,23.1112"/>
+        <dia:point val="16,24.1112"/>
+        <dia:point val="18,24.1112"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O42" connection="11"/>
+        <dia:connection handle="1" to="O2" connection="4"/>
+      </dia:connections>
+    </dia:object>
+    <dia:object type="Standard - ZigZagLine" version="1" id="O44">
+      <dia:attribute name="obj_pos">
+        <dia:point val="14,32.2225"/>
+      </dia:attribute>
+      <dia:attribute name="obj_bb">
+        <dia:rectangle val="13.9368,25.9719;18.1118,32.6556"/>
+      </dia:attribute>
+      <dia:attribute name="orth_points">
+        <dia:point val="14,32.2225"/>
+        <dia:point val="16,32.2225"/>
+        <dia:point val="16,26.3338"/>
+        <dia:point val="18,26.3338"/>
+      </dia:attribute>
+      <dia:attribute name="orth_orient">
+        <dia:enum val="0"/>
+        <dia:enum val="1"/>
+        <dia:enum val="0"/>
+      </dia:attribute>
+      <dia:attribute name="autorouting">
+        <dia:boolean val="true"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow">
+        <dia:enum val="16"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="start_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow">
+        <dia:enum val="22"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_length">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="end_arrow_width">
+        <dia:real val="0.5"/>
+      </dia:attribute>
+      <dia:attribute name="corner_radius">
+        <dia:real val="0.40000000000000002"/>
+      </dia:attribute>
+      <dia:connections>
+        <dia:connection handle="0" to="O41" connection="10"/>
+        <dia:connection handle="1" to="O2" connection="6"/>
+      </dia:connections>
+    </dia:object>
+  </dia:layer>
+</dia:diagram>
