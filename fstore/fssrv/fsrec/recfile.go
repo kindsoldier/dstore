@@ -45,6 +45,9 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
 
     if fileSize < blockSize * batchSize {
         blockSize = fileSize / batchSize
+        rs := int64(1024 * 10)
+        bs := blockSize / rs
+        blockSize = (bs + 1) * rs
     }
 
     fileId, file, err := fsfile.NewFile(store.reg, store.dataRoot, batchSize, blockSize)
@@ -248,7 +251,7 @@ func (store *Store) WasteFileCollecting() {
         //dslog.LogDebug("file waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedFileDescr()
         if exists && err == nil {
-            dslog.LogDebugf("delete waste file descr %d,%d", descr.FileId, descr.FileVer)
+            dslog.LogDebugf("delete waste file descr %s", getFileIdString(descr))
             file, err := fsfile.OpenSpecUnusedFile(store.reg, store.dataRoot, descr.FileId, descr.FileVer)
             err = file.Erase()
             if err != nil {
@@ -269,7 +272,7 @@ func (store *Store) WasteBatchCollecting() {
         //dslog.LogDebug("batch waste collecr call")
         exists, descr, err := store.reg.GetAnyUnusedBatchDescr()
         if exists && err == nil {
-            //dslog.LogDebug("delete waste batch descr:", descr.FileId, descr.BatchId)
+            dslog.LogDebugf("delete waste batch descr %s", getBatchIdString(descr))
             batch, err := fsfile.OpenSpecUnusedBatch(store.reg, store.dataRoot, descr.FileId,
                                                                 descr.BatchId, descr.BatchVer)
             err = batch.Erase()
@@ -296,15 +299,14 @@ func (store *Store) WasteBlockCollecting() {
             for _, descr := range descrs {
 
                 eraseFunc := func(wg *sync.WaitGroup, d *dscom.BlockDescr) {
-                    //dslog.LogDebugf("delete waste block %d,%d,%d,%s,%d", d.FileId, d.BatchId,
-                    //                                d.BlockId, d.BlockType, d.BlockVer)
+                    dslog.LogDebugf("delete waste block %s", getBlockIdString(d))
                     block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, d.FileId,
                                                                 d.BatchId, d.BlockId,
                                                                 d.BlockType, d.BlockVer)
                     defer block.Close()
                     err = block.Erase()
                     if err != nil {
-                        dslog.LogDebug("delete batch err:", dserr.Err(err))
+                        dslog.LogDebug("delete block err:", dserr.Err(err))
                     }
                     wg.Done()
                 }
@@ -320,6 +322,109 @@ func (store *Store) WasteBlockCollecting() {
             case <-time.After(time.Millisecond * 1000):
         }
     }
+}
+
+func (store *Store) LostFileCollecting() {
+    for {
+        count := 10
+        exists, descrs, err := store.reg.GetLostedFileDescrs(count)
+        //dslog.LogDebugf("lost block collect call %t,%d", exists, len(descrs))
+        if exists && err == nil {
+            var wg sync.WaitGroup
+            for _, descr := range descrs {
+
+                eraseFunc := func(wg *sync.WaitGroup, d *dscom.FileDescr) {
+                    dslog.LogDebugf("decrement lost file %s", getFileIdString(d))
+                    store.reg.DecSpecFileDescrUC(100, d.FileId, d.FileVer)
+                    if err != nil {
+                        dslog.LogDebugf("decrement file %s err %s", getFileIdString(d), dserr.Err(err))
+                    }
+                    wg.Done()
+                }
+                wg.Add(1)
+                go eraseFunc(&wg, descr)
+            }
+            wg.Wait()
+            continue
+        }
+        select {
+            //case <-store.fileLCChan:
+            case <-time.After(time.Millisecond * 1000):
+        }
+    }
+}
+
+func (store *Store) LostBatchCollecting() {
+    for {
+        count := 10
+        exists, descrs, err := store.reg.GetLostedBatchDescrs(count)
+        //dslog.LogDebugf("lost block collect call %t,%d", exists, len(descrs))
+        if exists && err == nil {
+            var wg sync.WaitGroup
+            for _, descr := range descrs {
+
+                eraseFunc := func(wg *sync.WaitGroup, d *dscom.BatchDescr) {
+                    dslog.LogDebugf("decrement lost batch %s", getBatchIdString(d))
+                    store.reg.DecSpecBatchDescrUC(100, d.FileId, d.BatchId, d.BatchVer)
+                    if err != nil {
+                        dslog.LogDebugf("decrement lost batch %s err %s", getBatchIdString(d), dserr.Err(err))
+                    }
+                    wg.Done()
+                }
+                wg.Add(1)
+                go eraseFunc(&wg, descr)
+            }
+            wg.Wait()
+            continue
+        }
+        select {
+            //case <-store.batchLCChan:
+            case <-time.After(time.Millisecond * 1000):
+        }
+    }
+}
+
+func (store *Store) LostBlockCollecting() {
+    for {
+        count := 10
+        exists, descrs, err := store.reg.GetLostedBlockDescrs(count)
+        //dslog.LogDebugf("lost block collect call %t,%d", exists, len(descrs))
+        if exists && err == nil {
+            var wg sync.WaitGroup
+            for _, descr := range descrs {
+
+                eraseFunc := func(wg *sync.WaitGroup, d *dscom.BlockDescr) {
+                    dslog.LogDebugf("decrement lost block %s", getBlockIdString(d))
+                    store.reg.DecSpecBlockDescrUC(100, d.FileId, d.BatchId, d.BlockId, d.BlockType, d.BlockVer)
+                    if err != nil {
+                        dslog.LogDebugf("decrement lost block %s err %s", getBlockIdString(d), dserr.Err(err))
+                    }
+                    wg.Done()
+                }
+                wg.Add(1)
+                go eraseFunc(&wg, descr)
+            }
+            wg.Wait()
+            continue
+        }
+        select {
+            //case <-store.blockLCChan:
+            case <-time.After(time.Millisecond * 1000):
+        }
+    }
+}
+
+func getFileIdString(descr *dscom.FileDescr) string {
+    return fmt.Sprintf("%d,%d", descr.FileId, descr.FileVer)
+}
+
+func getBatchIdString(descr *dscom.BatchDescr) string {
+    return fmt.Sprintf("%d,%d,%d", descr.FileId, descr.BatchId, descr.BatchVer)
+}
+
+func getBlockIdString(descr *dscom.BlockDescr) string {
+    return fmt.Sprintf("%d,%d,%d,%s,%d", descr.FileId, descr.BatchId, descr.BlockId,
+                                    descr.BlockType, descr.BlockVer)
 }
 
 func (store *Store) ListFiles(userName string, dirPath string) ([]*dscom.EntryDescr, error) {

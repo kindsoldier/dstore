@@ -42,6 +42,9 @@ type IFileReg interface {
     EraseAllFileDescrs() error
 
     GetSetNotDistrFileDescr(count int) (bool, []*FileDescr, error)
+    GetLostedFileDescrs(count int) (bool, []*FileDescr, error)
+    GetLostedBatchDescrs(count int) (bool, []*BatchDescr, error)
+    GetLostedBlockDescrs(count int) (bool, []*BlockDescr, error)
 }
 
 type IBatchReg interface {

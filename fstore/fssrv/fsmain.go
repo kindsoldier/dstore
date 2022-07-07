@@ -388,8 +388,11 @@ func (server *Server) RunService() error {
     go model.WasteBatchCollecting()
     go model.WasteBlockCollecting()
 
-    //go model.LostObjectFinding()
     go model.StoredFileDistributing()
+
+    go model.LostFileCollecting()
+    go model.LostBatchCollecting()
+    go model.LostBlockCollecting()
 
     contr := fdcont.NewContr(model)
     dslog.LogDebug("dataDir is", server.Params.DataDir)

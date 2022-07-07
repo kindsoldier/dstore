@@ -121,7 +121,6 @@ func openFile(force bool, reg dscom.IFSReg, baseDir string, fileId int64) (*File
     var err error
     var file File
 
-
     file.reg        = reg
     file.baseDir    = baseDir
 

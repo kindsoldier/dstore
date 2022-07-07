@@ -307,6 +307,71 @@ func (reg *Reg) GetSetNotDistrFileDescr(count int) (bool, []*dscom.FileDescr, er
     return exists, descrs, dserr.Err(err)
 }
 
+func (reg *Reg) GetLostedFileDescrs(count int) (bool, []*dscom.FileDescr, error) {
+    var err     error
+    var exists  bool
+    descrs := make([]*dscom.FileDescr, 0)
+    request := `
+        SELECT f.* FROM fs_files AS f
+        LEFT JOIN fs_entries AS e ON e.file_id = f.file_id
+        WHERE e.entry_id IS NULL
+            AND f.u_counter > 0
+        ORDER BY f.file_id
+        LIMIT $1;`
+    err = reg.db.Select(&descrs, request, count)
+    if err != nil {
+        return exists, descrs, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+    }
+    return exists, descrs, dserr.Err(err)
+}
+
+func (reg *Reg) GetLostedBatchDescrs(count int) (bool, []*dscom.BatchDescr, error) {
+    var err     error
+    var exists  bool
+    descrs := make([]*dscom.BatchDescr, 0)
+    request := `
+        SELECT b.* FROM fs_batchs AS b
+        LEFT JOIN fs_files AS f ON b.file_id = f.file_id
+        WHERE f.file_id IS NULL
+            AND b.u_counter > 0
+        ORDER BY b.file_id
+        LIMIT $1;`
+    err = reg.db.Select(&descrs, request, count)
+    if err != nil {
+        return exists, descrs, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+    }
+    return exists, descrs, dserr.Err(err)
+}
+
+func (reg *Reg) GetLostedBlockDescrs(count int) (bool, []*dscom.BlockDescr, error) {
+    var err     error
+    var exists  bool
+    descrs := make([]*dscom.BlockDescr, 0)
+    request := `
+        SELECT bl.* FROM fs_blocks AS bl
+        LEFT JOIN fs_batchs AS bs
+            ON bl.file_id = bs.file_id
+                AND bl.batch_id = bs.batch_id
+        WHERE bs.batch_id IS NULL
+            AND bl.u_counter > 0
+        ORDER BY bl.file_id, bl.batch_id, bl.block_id
+        LIMIT $1;`
+    err = reg.db.Select(&descrs, request, count)
+    if err != nil {
+        return exists, descrs, dserr.Err(err)
+    }
+    if len(descrs) > 0 {
+        exists = true
+    }
+    return exists, descrs, dserr.Err(err)
+}
+
 
 func (reg *Reg) EraseAllFileDescrs() error {
     var err error
