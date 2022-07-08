@@ -272,4 +272,5 @@ AC_SUBST(srv_port, 5200)
 AC_OUTPUT([
 Makefile
 fssrv/fsconf/fsconf.go
+initrc/rc.d/fstored
 ])

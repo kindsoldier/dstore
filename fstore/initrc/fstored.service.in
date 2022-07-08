@@ -1,0 +1,13 @@
+[Unit]
+Description=fstored
+
+[Service]
+Type=forking
+PIDFile=@app_rundir@/fstored.pid
+ExecStart=@prefix@/sbin/fstored --daemon
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStartPre=/usr/bin/install -d -o @app_user@ -g @app_group@ @app_rundir@ @app_logdir@
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,6 +1,8 @@
 
 AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 
+SUBDIRS = initrc
+
 SUFFIXES = .go
 OBJEXT= none
 
