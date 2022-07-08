@@ -920,7 +920,7 @@ instvis:
 	$(GO) install github.com/ofabry/go-callvis
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/bstore/ndsrv -file $(CVDIR)/bstore $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/bstore/bssrv -file $(CVDIR)/bstore $(GOMAIN)
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

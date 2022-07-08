@@ -80,12 +80,12 @@ instvis:
 
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
 CVIGNORE = nsstore/dslog
-CVDIR = .
+CVDIR = docs/
 GOMAIN = ndstore/bstore/bssrv
 GOROOT = ndstore
 
 graph:
-	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/bstore/ndsrv -file $(CVDIR)/bstore $(GOMAIN)
+	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/bstore/bssrv -file $(CVDIR)/bstore $(GOMAIN)
 	$(CVCMD) -ignore $(CVIGNORE) -focus $(GOROOT)/dsrpc -file $(CVDIR)/dcrpc $(GOMAIN)
 
 EXTRA_DIST += \
