@@ -44,12 +44,12 @@ func NewConfig() *Config {
     config.MsgName  = "message.log"
     config.AccName  = "access.log"
 
-    config.DbName   = "ndstore"
+    config.DbName   = "test"
     config.DbHost   = "localhost"
-    config.DbUser   = "ndstore"
-    config.DbPass   = "1234567"
+    config.DbUser   = "test"
+    config.DbPass   = ""
 
-    config.FilePerm = 0655
+    config.FilePerm = 0644
     config.DirPerm  = 0755
 
     return &config

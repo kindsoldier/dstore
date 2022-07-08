@@ -9,7 +9,7 @@
 . /etc/rc.subr
 
 name="bstored"
-rcvar="bstored_enable bstore_samples"
+rcvar="bstored_enable"
 
 command="@prefix@/sbin/${name}"
 command_args=""
@@ -82,13 +82,13 @@ test ! -z "$2" && shift && servlist="$@"
 
 
 case $rc_command in 
-    "restart"|"start"|"stop"|"status"|"list"|"reload") 
+    *restart|*start|*stop|*status|*list|*reload)
         for serv in $servlist; do 
             run_rc_command "$rc_command" "$serv"
         done
         ;;
-    *)
-        run_rc_command "$rc_command"
-        ;;
+#    *)
+#        run_rc_command "$rc_command"
+#        ;;
 esac
 #EOF

@@ -2,7 +2,7 @@ AC_INIT(fstore,0.0.1)
 AM_INIT_AUTOMAKE
 AC_PREFIX_DEFAULT(/usr/local)
 
-PACKAGE=fstore
+PACKAGE=fstored
 
 AC_CHECK_PROG(HAVE_GO, go, true, false, /bin /usr/local/bin /usr/bin)
 if test "x$HAVE_GO" = "xfalse"; then
@@ -158,7 +158,7 @@ AC_SUBST(srv_rundir, "$SRV_RUNDIR")
 
 dnl --------------------------------------------------------------------------------------
 
-default_datadir="/var/dat/$PACKAGE"
+default_datadir="/var/db/$PACKAGE"
 
 AC_ARG_WITH(datadir,
     AS_HELP_STRING([--with-datadir=PATH],[set data directory (default: $default_datadir)]),
@@ -196,8 +196,8 @@ dnl ----------------------------------------------------------------------------
 
 case $host_os in
     *freebsd* )
-    default_user="www"
-    default_group="www"
+    default_user="daemon"
+    default_group="daemon"
         ;;
     *linux* )
     default_user="www-data"
@@ -230,6 +230,10 @@ AC_MSG_NOTICE(srv_user set as ${SRV_USER})
 AC_DEFINE_UNQUOTED(srv_user, "$SRV_USER", [effective user])
 AC_SUBST(srv_user, "$SRV_USER")
 
+AC_DEFINE_UNQUOTED(SRV_USER, "$SRV_USER", [effective user])
+AC_SUBST(SRV_USER, "$SRV_USER")
+
+
 dnl --------------------------------------------------------------------------------------
 
 AC_ARG_WITH(group,
@@ -254,8 +258,13 @@ AS_IF([test "x$enable_devel_mode" = "xyes"], [
 
 AC_MSG_NOTICE(srv_group set as ${SRV_GROUP})
 
-AC_DEFINE_UNQUOTED(srv_group, "$SRV_GROUP", [effective group id])
+AC_DEFINE_UNQUOTED(srv_group, "$SRV_GROUP", [effective group])
 AC_SUBST(srv_group, "$SRV_GROUP")
+
+AC_DEFINE_UNQUOTED(SRV_GROUP, "$SRV_GROUP", [effective group])
+AC_SUBST(SRV_GROUP, "$SRV_GROUP")
+
+dnl --------------------------------------------------------------------------------------
 
 
 SRV_BACKGROUND="true"
@@ -271,6 +280,7 @@ AC_SUBST(srv_port, 5200)
 
 AC_OUTPUT([
 Makefile
+initrc/Makefile
 fssrv/fsconf/fsconf.go
 initrc/rc.d/fstored
 ])

@@ -3,7 +3,7 @@
 # $Id$
 #
 # PROVIDE: fstored
-# REQUIRE: LOGIN
+# REQUIRE: DAEMON
 
 . /etc/rc.subr
 

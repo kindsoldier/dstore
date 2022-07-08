@@ -588,7 +588,9 @@ srv_port
 srv_name
 srv_conf
 srv_background
+SRV_GROUP
 srv_group
+SRV_USER
 srv_user
 srv_datadir
 SRV_DATADIR
@@ -2372,7 +2374,7 @@ fi
 
 
 
-PACKAGE=fstore
+PACKAGE=fstored
 
 # Extract the first word of "go", so it can be a program name with args.
 set dummy go; ac_word=$2
@@ -2867,7 +2869,7 @@ srv_rundir="$SRV_RUNDIR"
 
 
 
-default_datadir="/var/dat/$PACKAGE"
+default_datadir="/var/db/$PACKAGE"
 
 
 # Check whether --with-datadir was given.
@@ -2911,8 +2913,8 @@ srv_datadir="$SRV_DATADIR"
 
 case $host_os in
     *freebsd* )
-    default_user="www"
-    default_group="www"
+    default_user="daemon"
+    default_group="daemon"
         ;;
     *linux* )
     default_user="www-data"
@@ -2958,6 +2960,15 @@ srv_user="$SRV_USER"
 
 
 
+cat >>confdefs.h <<_ACEOF
+#define SRV_USER "$SRV_USER"
+_ACEOF
+
+SRV_USER="$SRV_USER"
+
+
+
+
 
 # Check whether --with-group was given.
 if test "${with_group+set}" = set; then :
@@ -2996,6 +3007,15 @@ srv_group="$SRV_GROUP"
 
 
 
+cat >>confdefs.h <<_ACEOF
+#define SRV_GROUP "$SRV_GROUP"
+_ACEOF
+
+SRV_GROUP="$SRV_GROUP"
+
+
+
+
 SRV_BACKGROUND="true"
 if test "x$enable_devel_mode" = "xyes"; then :
 
@@ -3013,7 +3033,7 @@ srv_name="$PACKAGE"
 srv_port=5200
 
 
-ac_config_files="$ac_config_files Makefile fssrv/fsconf/fsconf.go initrc/rc.d/fstored"
+ac_config_files="$ac_config_files Makefile initrc/Makefile fssrv/fsconf/fsconf.go initrc/rc.d/fstored"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3757,6 +3777,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "initrc/Makefile") CONFIG_FILES="$CONFIG_FILES initrc/Makefile" ;;
     "fssrv/fsconf/fsconf.go") CONFIG_FILES="$CONFIG_FILES fssrv/fsconf/fsconf.go" ;;
     "initrc/rc.d/fstored") CONFIG_FILES="$CONFIG_FILES initrc/rc.d/fstored" ;;
 

@@ -376,7 +376,7 @@ GOFLAGS = -ldflags="-s -w"
 PATH := $(PATH):$(HOME)/go/bin
 CVCMD = go-callvis -nostd  -skipbrowser -graphviz
 CVIGNORE = nsstore/dslog
-CVDIR = .
+CVDIR = docs/
 GOMAIN = ndstore/bstore/bssrv
 GOROOT = ndstore
 all: all-recursive
