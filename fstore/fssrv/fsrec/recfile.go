@@ -56,25 +56,34 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
         file.Delete()
         return dserr.Err(err)
     }
+    err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
+    if err != nil {
+        store.reg.EraseEntryDescr(userId, dirPath, fileName)
+        return dserr.Err(err)
+    }
+    //existFunc := func(err error) {
+    //    if err != nil {
+    //        store.reg.EraseEntryDescr(userId, dirPath, fileName)
+    //    }
+    //}
+    //defer existFunc(err)
+
     written, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
         dslog.LogDebugf("file %d write error is %v", fileId, err)
+        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         return dserr.Err(err)
     }
     if err != nil  {
+        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         return dserr.Err(err)
     }
     if written != fileSize {
+        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         err = fmt.Errorf("file %d size mismatch, file size %d, written %d ", fileId, fileSize, written)
-        return dserr.Err(err)
-    }
-
-    err = store.reg.AddEntryDescr(userId, dirPath, fileName, fileId)
-    if err != nil {
-        file.Delete()
         return dserr.Err(err)
     }
     return dserr.Err(err)
