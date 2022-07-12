@@ -7,6 +7,9 @@ package dskvdb
 import (
     "path/filepath"
     "github.com/syndtr/goleveldb/leveldb"
+    "github.com/syndtr/goleveldb/leveldb/util"
+
+    "dstore/dsinter"
 )
 
 type DB struct {
@@ -42,11 +45,10 @@ func (db *DB) Close() error {
     return db.ldb.Close()
 }
 
-type IterFunc = func(key []byte, val []byte) (bool, error)
-
-func (db *DB) Iter(cb IterFunc) error {
+func (db *DB) Iter(prefix []byte, cb dsinter.IterFunc) error {
     var err error
-    iter := db.ldb.NewIterator(nil, nil)
+    bPrefix := util.BytesPrefix(prefix)
+    iter := db.ldb.NewIterator(bPrefix, nil)
     defer iter.Release()
     for iter.Next() {
         stop, _ := cb(iter.Key(), iter.Value())

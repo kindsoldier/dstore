@@ -8,7 +8,68 @@ import (
     "encoding/json"
 )
 
+const UStateEnabled     string  = "enabled"
+const UStateDisabled    string  = "disabled"
+
+const URoleAdmin        string  = "admin"
+const URoleUser         string  = "user"
+
+type User struct {
+    Login       string      `json:"login"`
+    Pass        string      `json:"pass"`
+    Role        string      `json:"role"`
+    State       string      `json:"state"`
+    CreatedAt   int64       `json:"updatedAt"`
+    UpdatedAt   int64       `json:"createdAt"`
+}
+
+func NewUser() *User {
+    var descr User
+    return &descr
+}
+
+func UnpackUser(descrBin []byte) (*User, error) {
+    var err error
+    var descr User
+    err = json.Unmarshal(descrBin, &descr)
+    return &descr, err
+}
+
+func (descr *User) Pack() ([]byte, error) {
+    var err error
+    descrBin, err := json.Marshal(descr)
+    return descrBin, err
+}
+
+type Entry struct {
+    FilePath    string      `json:"filePath"`
+    FileId      int64       `json:"fileId"`
+    CreatedAt   int64       `json:"updatedAt"`
+    UpdatedAt   int64       `json:"createdAt"`
+}
+
+func NewEntry() *Entry {
+    var descr Entry
+    return &descr
+}
+
+func UnpackEntry(descrBin []byte) (*Entry, error) {
+    var err error
+    var descr Entry
+    err = json.Unmarshal(descrBin, &descr)
+    return &descr, err
+}
+
+func (descr *Entry) Pack() ([]byte, error) {
+    var err error
+    descrBin, err := json.Marshal(descr)
+    return descrBin, err
+}
+
 type Block struct {
+    BlockId     int64       `json:"blockId"`
+    BatchId     int64       `json:"batchId"`
+    FileId      int64       `json:"fileId"`
     BlockSize   int64       `json:"blockSize"`
     DataSize    int64       `json:"dataSize"`
     CreatedAt   int64       `json:"createdAt"`
@@ -35,10 +96,12 @@ func (descr *Block) Pack() ([]byte, error) {
 }
 
 type Batch struct {
-    BatchSize   int64
-    BlockSize   int64
-    CreatedAt   int64
-    UpdatedAt   int64
+    BatchId     int64       `json:"batchId"`
+    FileId      int64       `json:"fileId"`
+    BatchSize   int64       `json:"batchSize"`
+    BlockSize   int64       `json:"blockSize"`
+    CreatedAt   int64       `json:"createdAt"`
+    UpdatedAt   int64       `json:"updatedAt"`
 }
 
 func NewBatch() *Batch {
@@ -60,32 +123,6 @@ func (descr *Batch) Pack() ([]byte, error) {
 }
 
 
-
-type User struct {
-    Login       string      `json:"login"`
-    Passw       string      `json:"passw"`
-    CreatedAt   int64       `json:"updatedAt"`
-    UpdatedAt   int64       `json:"createdAt"`
-}
-
-func NewUser() *User {
-    var descr User
-    return &descr
-}
-
-func UnpackUser(descrBin []byte) (*User, error) {
-    var err error
-    var descr User
-    err = json.Unmarshal(descrBin, &descr)
-    return &descr, err
-}
-
-func (descr *User) Pack() ([]byte, error) {
-    var err error
-    descrBin, err := json.Marshal(descr)
-    return descrBin, err
-}
-
 type Alloc struct {
     TopId   int64           `json:"topId"`
     FreeIds []int64         `json:"freeIds"`
@@ -104,6 +141,33 @@ func UnpackAlloc(descrBin []byte) (*Alloc, error) {
 }
 
 func (descr *Alloc) Pack() ([]byte, error) {
+    var err error
+    descrBin, err := json.Marshal(descr)
+    return descrBin, err
+}
+
+
+type File struct {
+    FileId      int64       `json:"fileId"`
+    BatchCount  int64       `json:"batchCount"`
+    DataSize    int64       `json:"dataSize"`
+    CreatedAt   int64       `json:"createdAt"`
+    UpdatedAt   int64       `json:"updatedAt"`
+}
+
+func NewFile() *File {
+    var descr File
+    return &descr
+}
+
+func UnpackFile(descrBin []byte) (*File, error) {
+    var err error
+    var descr File
+    err = json.Unmarshal(descrBin, &descr)
+    return &descr, err
+}
+
+func (descr *File) Pack() ([]byte, error) {
     var err error
     descrBin, err := json.Marshal(descr)
     return descrBin, err
