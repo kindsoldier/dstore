@@ -12,7 +12,6 @@ import (
     "dstore/dserr"
 )
 
-
 const configName string = "@srv_name@.conf"
 
 type Config struct {
@@ -48,8 +47,8 @@ func NewConfig() *Config {
     config.FilePerm = 0644
     config.DirPerm  = 0755
 
-    config.DebugMode = false
-    config.DevelMode = false
+    config.DebugMode = true
+    config.DevelMode = true
 
     return &config
 }
