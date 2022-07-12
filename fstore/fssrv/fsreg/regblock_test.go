@@ -30,6 +30,7 @@ func TestBlock01(t *testing.T) {
     descr0 := dsdescr.NewBlock()
     descr0.BlockId    = 1
     descr0.BatchId    = 2
+    descr0.FileId     = 3
     descr0.BlockSize  = 1024
     descr0.DataSize   = 1001
     descr0.CreatedAt = 1657645101
@@ -38,11 +39,11 @@ func TestBlock01(t *testing.T) {
     err = reg.PutBlock(descr0)
     require.NoError(t, err)
 
-    has, err = reg.HasBlock(descr0.BlockId)
+    has, err = reg.HasBlock(descr0.BlockId, descr0.BatchId, descr0.FileId)
     require.NoError(t, err)
     require.Equal(t, has, true)
 
-    descr1, err := reg.GetBlock(descr0.BlockId)
+    descr1, err := reg.GetBlock(descr0.BlockId, descr0.BatchId, descr0.FileId)
     require.NoError(t, err)
     require.Equal(t, descr0, descr1)
 
@@ -50,10 +51,10 @@ func TestBlock01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, len(descrs), 1)
 
-    err = reg.DeleteBlock(descr0.BlockId)
+    err = reg.DeleteBlock(descr0.BlockId, descr0.BatchId, descr0.FileId)
     require.NoError(t, err)
 
-    has, err = reg.HasBlock(descr0.BlockId)
+    has, err = reg.HasBlock(descr0.BlockId, descr0.BatchId, descr0.FileId)
     require.NoError(t, err)
     require.Equal(t, has, false)
 }

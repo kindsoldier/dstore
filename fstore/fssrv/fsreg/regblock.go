@@ -8,18 +8,22 @@ import (
 
 func (reg *Reg) PutBlock(descr *dsdescr.Block) error {
     var err error
-    idString := strconv.FormatInt(descr.BlockId, 10)
-    keyArr := []string{ reg.blockBase, idString }
+    blockIdStr := strconv.FormatInt(descr.BlockId, 10)
+    batchIdStr := strconv.FormatInt(descr.BatchId, 10)
+    fileIdStr := strconv.FormatInt(descr.FileId, 10)
+    keyArr := []string{ reg.blockBase, fileIdStr, batchIdStr, blockIdStr }
     keyBin := []byte(strings.Join(keyArr, reg.sep))
     valBin, _ := descr.Pack()
     err = reg.db.Put(keyBin, valBin)
     return err
 }
 
-func (reg *Reg) HasBlock(blockId int64) (bool, error) {
+func (reg *Reg) HasBlock(blockId, batchId, fileId int64) (bool, error) {
     var err error
-    idString := strconv.FormatInt(blockId, 10)
-    keyArr := []string{ reg.blockBase, idString }
+    blockIdStr := strconv.FormatInt(blockId, 10)
+    batchIdStr := strconv.FormatInt(batchId, 10)
+    fileIdStr := strconv.FormatInt(fileId, 10)
+    keyArr := []string{ reg.blockBase, fileIdStr, batchIdStr, blockIdStr }
     keyBin := []byte(strings.Join(keyArr, reg.sep))
     has, err := reg.db.Has(keyBin)
     if err != nil {
@@ -28,11 +32,13 @@ func (reg *Reg) HasBlock(blockId int64) (bool, error) {
     return has, err
 }
 
-func (reg *Reg) GetBlock(blockId int64) (*dsdescr.Block, error) {
+func (reg *Reg) GetBlock(blockId, batchId, fileId int64) (*dsdescr.Block, error) {
     var err error
     var descr *dsdescr.Block
-    idString := strconv.FormatInt(blockId, 10)
-    keyArr := []string{ reg.blockBase, idString }
+    blockIdStr := strconv.FormatInt(blockId, 10)
+    batchIdStr := strconv.FormatInt(batchId, 10)
+    fileIdStr := strconv.FormatInt(fileId, 10)
+    keyArr := []string{ reg.blockBase, fileIdStr, batchIdStr, blockIdStr }
     keyBin := []byte(strings.Join(keyArr, reg.sep))
     valBin, err := reg.db.Get(keyBin)
     if err != nil {
@@ -45,10 +51,12 @@ func (reg *Reg) GetBlock(blockId int64) (*dsdescr.Block, error) {
     return descr, err
 }
 
-func (reg *Reg) DeleteBlock(blockId int64) error {
+func (reg *Reg) DeleteBlock(blockId, batchId, fileId int64) error {
     var err error
-    idString := strconv.FormatInt(blockId, 10)
-    keyArr := []string{ reg.blockBase, idString }
+    blockIdStr := strconv.FormatInt(blockId, 10)
+    batchIdStr := strconv.FormatInt(batchId, 10)
+    fileIdStr := strconv.FormatInt(fileId, 10)
+    keyArr := []string{ reg.blockBase, fileIdStr, batchIdStr, blockIdStr }
     keyBin := []byte(strings.Join(keyArr, reg.sep))
     err = reg.db.Delete(keyBin)
     if err != nil {
