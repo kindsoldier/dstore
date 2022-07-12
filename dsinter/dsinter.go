@@ -22,7 +22,7 @@ type Alloc interface {
     FreeId(id int64) error
 }
 
-type Tank interface {
+type Crate interface {
      Write(data []byte) (int, error)
      Read(data []byte) (int, error)
      Clean() error

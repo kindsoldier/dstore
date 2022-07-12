@@ -11,18 +11,22 @@ import(
     "io"
     "github.com/stretchr/testify/require"
 
-    "dstore/dskeydb"
-    "dstore/fsreg"
+    "dstore/dskvdb"
+    "dstore/fstore/fssrv/fsreg"
     "dstore/dslog"
 )
 
-func xxTestBlock00(t *testing.T) {
+func TestBlock00(t *testing.T) {
     var err error
 
     dataDir := t.TempDir()
 
     var blockSize int64 = 1024
-    block, err := NewBlock(dataDir, blockSize)
+    var blockId int64 = 1
+    var batchId int64 = 2
+    var fileId  int64 = 3
+
+    block, err := NewBlock(dataDir, blockId, batchId, fileId, blockSize)
 
     dataSize := blockSize + 1
     buffer := make([]byte, dataSize)
@@ -45,7 +49,6 @@ func xxTestBlock00(t *testing.T) {
 
     err = block.Clean()
     require.NoError(t, err)
-
 }
 
 
@@ -54,24 +57,26 @@ func TestBlock01(t *testing.T) {
 
     dataDir := t.TempDir()
 
-    db, err := dskeydb.OpenKV(dataDir, "tmp.leveldb")
+    db, err := dskvdb.OpenDB(dataDir, "tmp.leveldb")
     defer db.Close()
     require.NoError(t, err)
 
-    //alloc, err := fsreg.NewBlockAlloc(db)
-    //require.NoError(t, err)
-
-    reg, err := fsreg.NewBlockReg(db)
+    reg, err := fsreg.NewReg(db)
     require.NoError(t, err)
 
     var blockSize int64 = 1024
-    block, err := NewBlock(dataDir, blockSize)
+    var blockId int64 = 1
+    var batchId int64 = 2
+    var fileId  int64 = 3
+
+
+    block, err := NewBlock(dataDir, blockId, batchId, fileId, blockSize)
 
     descr := block.Descr()
     descrBin, err := descr.Pack()
     require.NoError(t, err)
-    dslog.LogDebug(string(descrBin))
 
+    dslog.LogDebug(string(descrBin))
 
     dataSize := blockSize + 1
     buffer := make([]byte, dataSize)
@@ -86,14 +91,18 @@ func TestBlock01(t *testing.T) {
     descr = block.Descr()
     descrBin, err = descr.Pack()
     require.NoError(t, err)
+
     dslog.LogDebug(string(descrBin))
 
-    err = reg.AddBlock(1, descr)
+    err = reg.PutBlock(descr)
     require.NoError(t, err)
 
-    has, descr, err := reg.GetBlock(1)
+    has, err := reg.HasBlock(blockId, batchId, fileId)
     require.NoError(t, err)
     require.Equal(t, has, true)
+
+    descr, err = reg.GetBlock(blockId, batchId, fileId)
+    require.NoError(t, err)
 
     block, err = OpenBlock(dataDir, descr)
     require.NoError(t, err)
@@ -110,7 +119,7 @@ func TestBlock01(t *testing.T) {
     descr = block.Descr()
     descrBin, err = descr.Pack()
     require.NoError(t, err)
-    dslog.LogDebug(string(descrBin))
 
+    dslog.LogDebug(string(descrBin))
 
 }

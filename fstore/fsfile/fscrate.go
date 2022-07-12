@@ -10,20 +10,20 @@ import (
     "os"
 )
 
-type Tank struct {
+type Crate struct {
     dataBase    string
     filePath    string
 }
 
-func NewTank(dataBase, filePath string) (*Tank, error) {
+func NewCrate(dataBase, filePath string) (*Crate, error) {
     var err error
-    var tank Tank
+    var tank Crate
     tank.dataBase = dataBase
     tank.filePath = filePath
     return &tank, err
 }
 
-func (tank *Tank) Write(data []byte) (int, error) {
+func (tank *Crate) Write(data []byte) (int, error) {
     var err error
     var written int
 
@@ -47,7 +47,7 @@ func (tank *Tank) Write(data []byte) (int, error) {
     return written, err
 }
 
-func (tank *Tank)  Read(data []byte) (int, error) {
+func (tank *Crate)  Read(data []byte) (int, error) {
     var err error
     var read int
 
@@ -66,7 +66,7 @@ func (tank *Tank)  Read(data []byte) (int, error) {
     return read, err
 }
 
-func (tank *Tank) Clean() error {
+func (tank *Crate) Clean() error {
     var err error
     fullPath := filepath.Join(tank.dataBase, tank.filePath)
     os.Remove(fullPath)
