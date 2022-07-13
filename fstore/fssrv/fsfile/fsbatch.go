@@ -9,7 +9,6 @@ import (
     "time"
     "dstore/dsinter"
     "dstore/dsdescr"
-    "dstore/dslog"
     "dstore/dserr"
 )
 
@@ -83,25 +82,23 @@ func OpenBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId int64) (*Ba
     return &batch, dserr.Err(err)
 }
 
-func (batch *Batch) Write(reader io.Reader, dataSize int64) (int64, error) {
+func (batch *Batch) Write(reader io.Reader, reqSize int64) (int64, error) {
     var err error
     var wrSize int64
 
-    for i := 0; i < batch.countBlocks(); i++ {
-        if dataSize < 1 {
+    for i := int64(0); i < batch.batchSize; i++ {
+        if reqSize < 1 {
             return wrSize, dserr.Err(err)
         }
-        blockWrSize, err := batch.blocks[i].Write(reader, dataSize)
-        dslog.LogDebugf("written to block: %d", blockWrSize)
+        blockWrSize, err := batch.blocks[i].Write(reader, reqSize)
         wrSize += blockWrSize
         if err == io.EOF {
-            err = nil
             return wrSize, dserr.Err(err)
         }
         if err != nil {
             return wrSize, dserr.Err(err)
         }
-        dataSize -= blockWrSize
+        reqSize -= blockWrSize
     }
 
     if wrSize > 0 {
@@ -118,7 +115,7 @@ func (batch *Batch) Write(reader io.Reader, dataSize int64) (int64, error) {
 func (batch *Batch) Read(writer io.Writer) (int64, error) {
     var err error
     var readSize int64
-    for i := 0; i < batch.countBlocks(); i++ {
+    for i := int64(0); i < batch.batchSize; i++ {
         blockReadSize, err := batch.blocks[i].Read(writer)
         readSize += blockReadSize
         if err != nil {
@@ -130,7 +127,7 @@ func (batch *Batch) Read(writer io.Writer) (int64, error) {
 
 func (batch *Batch) Clean() error {
     var err error
-    for i := 0; i < batch.countBlocks(); i++ {
+    for i := int64(0); i < batch.batchSize; i++ {
         err := batch.blocks[i].Clean()
         if err != nil {
             return dserr.Err(err)
@@ -139,9 +136,9 @@ func (batch *Batch) Clean() error {
     return dserr.Err(err)
 }
 
-func (batch *Batch) countBlocks() int {
-    return len(batch.blocks)
-}
+//func (batch *Batch) countBlocks() int {
+//    return len(batch.blocks)
+//}
 
 func (batch *Batch) toDescr() *dsdescr.Batch {
     descr := dsdescr.NewBatch()
