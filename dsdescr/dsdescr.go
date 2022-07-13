@@ -152,27 +152,3 @@ func (descr *Batch) Pack() ([]byte, error) {
     descrBin, err := json.Marshal(descr)
     return descrBin, err
 }
-
-
-type Alloc struct {
-    TopId   int64           `json:"topId"`
-    FreeIds []int64         `json:"freeIds"`
-}
-
-func NewAlloc() *Alloc {
-    var descr Alloc
-    return &descr
-}
-
-func UnpackAlloc(descrBin []byte) (*Alloc, error) {
-    var err error
-    var descr Alloc
-    err = json.Unmarshal(descrBin, &descr)
-    return &descr, err
-}
-
-func (descr *Alloc) Pack() ([]byte, error) {
-    var err error
-    descrBin, err := json.Marshal(descr)
-    return descrBin, err
-}
