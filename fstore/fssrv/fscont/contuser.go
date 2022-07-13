@@ -16,6 +16,7 @@ func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewAddUserParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     descr := dsdescr.NewUser()
@@ -41,6 +42,7 @@ func (contr *Contr) CheckUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewCheckUserParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     login       := params.Login
@@ -65,6 +67,7 @@ func (contr *Contr) UpdateUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewUpdateUserParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     descr := dsdescr.NewUser()
@@ -92,6 +95,7 @@ func (contr *Contr) DeleteUserHandler(context *dsrpc.Context) error {
     params := fsapi.NewDeleteUserParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     login   := params.Login
@@ -114,6 +118,7 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
     params := fsapi.NewListUsersParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     authLogin := string(context.AuthIdent())

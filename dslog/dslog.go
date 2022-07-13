@@ -75,21 +75,25 @@ func LogInfo(message ...interface{}) {
 
 
 func LogDebugf(format string, args ...interface{}) {
+    format = "[" + format + "]"
     message := fmt.Sprintf(format, args...)
     logrus.Debug(message)
 }
 
 func LogErrorf(format string, args ...interface{}) {
+    format = "[" + format + "]"
     message := fmt.Sprintf(format, args...)
     logrus.Error(message)
 }
 
 func LogWarningf(format string, args ...interface{}) {
+    format = "[" + format + "]"
     message := fmt.Sprintf(format, args...)
     logrus.Warning(message)
 }
 
 func LogInfof(format string, args ...interface{}) {
+    format = "[" + format + "]"
     message := fmt.Sprintf(format, args...)
     logrus.Info(message)
 }

@@ -41,7 +41,7 @@ func (contr *Contr) AuthMidware(debugMode bool) dsrpc.HandlerFunc {
         pass := []byte(user.Pass)
         ok := dsrpc.CheckHash(login, pass, salt, hash)
         if debugMode {
-            dslog.LogDebugf("user %s auth %v", login, ok)
+            dslog.LogDebugf("auth for %s is %v", login, ok)
         }
         if !ok {
             resErr := errors.New("auth mismatch")

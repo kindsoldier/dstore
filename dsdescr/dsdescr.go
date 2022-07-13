@@ -41,33 +41,35 @@ func (descr *User) Pack() ([]byte, error) {
     return descrBin, err
 }
 
-type Entry struct {
-    FilePath    string      `json:"filePath"`
-    FileId      int64       `json:"fileId"`
-    CreatedAt   int64       `json:"updatedAt"`
-    UpdatedAt   int64       `json:"createdAt"`
-}
+//type Entry struct {
+//    FilePath    string      `json:"filePath"`
+//    FileId      int64       `json:"fileId"`
+//    CreatedAt   int64       `json:"updatedAt"`
+//    UpdatedAt   int64       `json:"createdAt"`
+//}
+//
+//func NewEntry() *Entry {
+//    var descr Entry
+//    return &descr
+//}
+//
+//func UnpackEntry(descrBin []byte) (*Entry, error) {
+//    var err error
+//    var descr Entry
+//    err = json.Unmarshal(descrBin, &descr)
+//    return &descr, err
+//}
 
-func NewEntry() *Entry {
-    var descr Entry
-    return &descr
-}
-
-func UnpackEntry(descrBin []byte) (*Entry, error) {
-    var err error
-    var descr Entry
-    err = json.Unmarshal(descrBin, &descr)
-    return &descr, err
-}
-
-func (descr *Entry) Pack() ([]byte, error) {
-    var err error
-    descrBin, err := json.Marshal(descr)
-    return descrBin, err
-}
+//func (descr *Entry) Pack() ([]byte, error) {
+//    var err error
+//    descrBin, err := json.Marshal(descr)
+//    return descrBin, err
+//}
 
 
 type File struct {
+    FilePath    string      `json:"filePath"`
+    Login       string      `json:"login"`
     FileId      int64       `json:"fileId"`
     BatchCount  int64       `json:"batchCount"`
     BatchSize   int64       `json:"batchSize"`

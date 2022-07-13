@@ -10,7 +10,39 @@ sbin_PROGRAMS = fstored fstorecli
 fstored_SOURCES = fssrv/fsserv.go fssrv/fsconf.go
 fstorecli_SOURCES = fscli/fscli.go
 
-EXTRA_fstored_SOURCES = 
+
+EXTRA_fstorecli_SOURCES = \
+	fsapi/fileapi.go \
+	fsapi/servapi.go \
+	fsapi/userapi.go
+
+
+EXTRA_fstored_SOURCES = \
+	fsapi/fileapi.go \
+	fsapi/servapi.go \
+	fsapi/userapi.go \
+	\
+	fssrv/fscont/contauth.go \
+	fssrv/fscont/contcomm.go \
+	fssrv/fscont/contfile.go \
+	fssrv/fscont/contserv.go \
+	fssrv/fscont/contuser.go \
+	\
+	fssrv/fsfile/fsbatch.go \
+	fssrv/fsfile/fsblock.go \
+	fssrv/fsfile/fscrate.go \
+	fssrv/fsfile/fsfile.go \
+	fssrv/fsfile/fstool.go \
+	\
+	fssrv/fsreg/regbatch.go \
+	fssrv/fsreg/regblock.go \
+	fssrv/fsreg/regcomm.go \
+	fssrv/fsreg/regfile.go \
+	fssrv/fsreg/reguser.go \
+	\
+	fssrv/fstore/storecomm.go \
+	fssrv/fstore/storefile.go \
+	fssrv/fstore/storeuser.go
 
 GOFLAGS = -ldflags="-s -w"
 

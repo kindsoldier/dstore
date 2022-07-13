@@ -24,6 +24,8 @@ import (
     "dstore/dslog"
     "dstore/dsrpc"
     "dstore/dserr"
+    "dstore/dsalloc"
+
 )
 
 const successExit   int = 0
@@ -365,7 +367,11 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
-    store, err := fstore.NewStore(dataDir, reg)
+    fileAlloc, err := dsalloc.OpenAlloc(db, []byte("fileIds"))
+    if err != nil {
+        return err
+    }
+    store, err := fstore.NewStore(dataDir, reg, fileAlloc)
     if err != nil {
         return err
     }
@@ -381,9 +387,9 @@ func (server *Server) RunService() error {
         return err
     }
 
-    dslog.LogDebug("dataDir is", server.Params.DataDir)
-    dslog.LogDebug("logDir is", server.Params.LogDir)
-    dslog.LogDebug("runDir is", server.Params.RunDir)
+    dslog.LogInfof("dataDir is %s", server.Params.DataDir)
+    dslog.LogInfof("logDir is %s", server.Params.LogDir)
+    dslog.LogInfof("runDir is %s", server.Params.RunDir)
 
     serv := dsrpc.NewService()
 
@@ -392,6 +398,11 @@ func (server *Server) RunService() error {
     }
     serv.PreMiddleware(contr.AuthMidware(debugMode))
 
+    serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
+    serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
+    serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
+    serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
+
     serv.Handler(fsapi.AddUserMethod, contr.AddUserHandler)
     serv.Handler(fsapi.CheckUserMethod, contr.CheckUserHandler)
     serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
@@ -399,10 +410,11 @@ func (server *Server) RunService() error {
     serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
     serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
 
+
     if debugMode || develMode {
         serv.PostMiddleware(dsrpc.LogResponse)
     }
-    //serv.PostMiddleware(dsrpc.LogAccess)
+    serv.PostMiddleware(dsrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

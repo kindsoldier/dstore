@@ -136,10 +136,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(fstorecli_SOURCES) $(fstored_SOURCES) \
-	$(EXTRA_fstored_SOURCES)
-DIST_SOURCES = $(fstorecli_SOURCES) $(fstored_SOURCES) \
-	$(EXTRA_fstored_SOURCES)
+SOURCES = $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES) \
+	$(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
+DIST_SOURCES = $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES) \
+	$(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -338,7 +338,38 @@ SUFFIXES = .go
 OBJEXT = none
 fstored_SOURCES = fssrv/fsserv.go fssrv/fsconf.go
 fstorecli_SOURCES = fscli/fscli.go
-EXTRA_fstored_SOURCES = 
+EXTRA_fstorecli_SOURCES = \
+	fsapi/fileapi.go \
+	fsapi/servapi.go \
+	fsapi/userapi.go
+
+EXTRA_fstored_SOURCES = \
+	fsapi/fileapi.go \
+	fsapi/servapi.go \
+	fsapi/userapi.go \
+	\
+	fssrv/fscont/contauth.go \
+	fssrv/fscont/contcomm.go \
+	fssrv/fscont/contfile.go \
+	fssrv/fscont/contserv.go \
+	fssrv/fscont/contuser.go \
+	\
+	fssrv/fsfile/fsbatch.go \
+	fssrv/fsfile/fsblock.go \
+	fssrv/fsfile/fscrate.go \
+	fssrv/fsfile/fsfile.go \
+	fssrv/fsfile/fstool.go \
+	\
+	fssrv/fsreg/regbatch.go \
+	fssrv/fsreg/regblock.go \
+	fssrv/fsreg/regcomm.go \
+	fssrv/fsreg/regfile.go \
+	fssrv/fsreg/reguser.go \
+	\
+	fssrv/fstore/storecomm.go \
+	fssrv/fstore/storefile.go \
+	fssrv/fstore/storeuser.go
+
 GOFLAGS = -ldflags="-s -w"
 EXTRA_DIST = \
 	fstore.conf

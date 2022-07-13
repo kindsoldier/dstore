@@ -15,6 +15,7 @@ func (contr *Contr) GetStatusHandler(context *dsrpc.Context) error {
     params := fsapi.NewGetStatusParams()
     err = context.BindParams(params)
     if err != nil {
+        context.SendError(err)
         return dserr.Err(err)
     }
     result := fsapi.NewGetStatusResult()

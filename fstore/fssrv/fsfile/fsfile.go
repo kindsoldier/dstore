@@ -12,6 +12,8 @@ type File struct {
     reg             dsinter.StoreReg
     baseDir         string
 
+    login           string
+    filePath        string
     fileId          int64
     fileVer         int64
     batchSize       int64
@@ -24,11 +26,14 @@ type File struct {
     batchs          []*Batch
 }
 
-func NewFile(baseDir string, reg dsinter.StoreReg, fileId, batchSize, blockSize int64) (*File, error) {
+func NewFile(reg dsinter.StoreReg, baseDir, login, filePath string, fileId, batchSize, blockSize int64) (*File, error) {
     var file File
     var err error
     file.reg        = reg
     file.baseDir    = baseDir
+
+    file.login      = login
+    file.filePath   = filePath
 
     file.fileId     = fileId
     file.batchSize  = batchSize
@@ -46,16 +51,20 @@ func NewFile(baseDir string, reg dsinter.StoreReg, fileId, batchSize, blockSize 
     return &file, dserr.Err(err)
 }
 
-func OpenFile(baseDir string, reg dsinter.StoreReg, fileId int64) (*File, error) {
+func OpenFile(reg dsinter.StoreReg, baseDir, login, filePath string) (*File, error) {
     var err error
     var file File
     file.reg        = reg
     file.baseDir    = baseDir
 
-    descr, err := reg.GetFile(fileId)
+    descr, err := reg.GetFile(login, filePath)
     if err != nil {
         return &file, dserr.Err(err)
     }
+
+    file.login      = descr.Login
+    file.filePath   = descr.FilePath
+
     file.fileId     = descr.FileId
     file.batchSize  = descr.BatchSize
     file.blockSize  = descr.BlockSize
@@ -66,7 +75,7 @@ func OpenFile(baseDir string, reg dsinter.StoreReg, fileId int64) (*File, error)
 
     file.batchs = make([]*Batch, file.batchCount)
     for i := int64(0); i < file.batchCount; i++ {
-        batch, err := OpenBatch(baseDir, reg, i, file.fileId)
+        batch, err := OpenBatch(reg, baseDir, i, file.fileId)
         if err != nil {
             return &file, dserr.Err(err)
         }
@@ -102,9 +111,8 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
         if dataSize < 1 {
             return written, dserr.Err(err)
         }
-
         batchNumber := file.batchCount
-        batch, err := NewBatch(file.baseDir, file.reg, batchNumber, file.fileId, file.batchSize, file.blockSize)
+        batch, err := NewBatch(file.reg, file.baseDir, batchNumber, file.fileId, file.batchSize, file.blockSize)
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -115,6 +123,7 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
         }
         batchWritten, err := batch.Write(reader, dataSize)
         written += batchWritten
+        file.dataSize += batchWritten
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -125,39 +134,54 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
 
 func (file *File) Read(writer io.Writer) (int64, error) {
     var err error
-    var read int64
+    var readSize int64
     for i := int64(0); i < file.batchCount; i++ {
         blockRead, err := file.batchs[i].Read(writer)
-        read += blockRead
+        readSize += blockRead
+        if err == io.EOF {
+            err = nil
+            return readSize, dserr.Err(err)
+        }
         if err != nil {
-            return read, dserr.Err(err)
+            return readSize, dserr.Err(err)
         }
     }
-    return read, dserr.Err(err)
+    return readSize, dserr.Err(err)
 }
 
 
 func (file *File) Clean() error {
     var err error
-    for i := int64(0); i < file.batchCount; i++ {
-        batch := file.batchs[i]
-        if batch != nil {
-            err := batch.Clean()
+    for i := file.batchCount - 1; i > -1; i-- {
+        if file.batchs[i] != nil {
+            err := file.batchs[i].Clean()
             if err != nil {
                 return dserr.Err(err)
             }
+            err = file.reg.DeleteBatch(i, file.fileId)
+            if err != nil {
+                return dserr.Err(err)
+            }
+            file.batchCount = i
+            file.batchs[i] = nil
         }
     }
-    descr := file.toDescr()
-    err = file.reg.PutFile(descr)
+    file.dataSize = 0
+    err = file.reg.DeleteFile(file.login, file.filePath)
     if err != nil {
         return dserr.Err(err)
     }
     return dserr.Err(err)
 }
 
+func (file *File) FileId() int64 {
+    return file.fileId
+}
+
 func (file *File) toDescr() *dsdescr.File {
     descr := dsdescr.NewFile()
+    descr.Login         = file.login
+    descr.FilePath      = file.filePath
     descr.FileId        = file.fileId
     descr.BatchSize     = file.batchSize
     descr.BlockSize     = file.blockSize

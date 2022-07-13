@@ -8,13 +8,12 @@ package dsrpc
 
 import (
     "encoding/json"
-    "github.com/shamaton/msgpack/v2"
 )
 
 type Request struct {
-    Method  string      `json:"method"  msgpack:"method"`
-    Params  any         `json:"params"  msgpack:"params"`
-    Auth    *Auth       `json:"auth"    msgpack:"auth"`
+    Method  string      `json:"method"            msgpack:"method"`
+    Params  any         `json:"params,omitempty"  msgpack:"params"`
+    Auth    *Auth       `json:"auth,omitempty"    msgpack:"auth"`
 }
 
 func NewRequest() *Request {
@@ -24,7 +23,7 @@ func NewRequest() *Request {
 }
 
 func (this *Request) Pack() ([]byte, error) {
-    rBytes, err := msgpack.Marshal(this)
+    rBytes, err := json.Marshal(this)
     return rBytes, Err(err)
 }
 

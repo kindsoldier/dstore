@@ -27,7 +27,7 @@ type Block struct {
     updatedAt   int64
 }
 
-func NewBlock(baseDir string, reg dsinter.StoreReg, blockId, batchId, fileId, blockSize int64) (*Block, error) {
+func NewBlock(reg dsinter.StoreReg, baseDir string, blockId, batchId, fileId, blockSize int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
@@ -51,7 +51,7 @@ func NewBlock(baseDir string, reg dsinter.StoreReg, blockId, batchId, fileId, bl
     return &block, dserr.Err(err)
 }
 
-func OpenBlock(baseDir string, reg dsinter.StoreReg, blockId, batchId, fileId int64) (*Block, error) {
+func OpenBlock(reg dsinter.StoreReg, baseDir string, blockId, batchId, fileId int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
@@ -196,8 +196,7 @@ func (block *Block) Clean() error {
     block.dataSize = 0
     block.filePath = newFilePath()
 
-    descr := block.toDescr()
-    err = block.reg.PutBlock(descr)
+    err = block.reg.DeleteBlock(block.blockId, block.batchId, block.fileId)
     if err != nil {
         return dserr.Err(err)
     }

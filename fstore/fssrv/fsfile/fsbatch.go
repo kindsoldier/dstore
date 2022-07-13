@@ -24,7 +24,7 @@ type Batch struct {
     blocks      []*Block
 }
 
-func NewBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId, batchSize, blockSize int64) (*Batch, error) {
+func NewBatch(reg dsinter.StoreReg, baseDir string, batchId, fileId, batchSize, blockSize int64) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
@@ -39,7 +39,7 @@ func NewBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId, batchSize, 
 
     batch.blocks = make([]*Block, batch.batchSize)
     for i := int64(0); i < batchSize; i++ {
-        block, err := NewBlock(baseDir, batch.reg, i, batch.batchId, batch.fileId, blockSize)
+        block, err := NewBlock(batch.reg, baseDir, i, batch.batchId, batch.fileId, blockSize)
         if err != nil {
             return &batch, dserr.Err(err)
         }
@@ -53,7 +53,7 @@ func NewBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId, batchSize, 
     return &batch, dserr.Err(err)
 }
 
-func OpenBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId int64) (*Batch, error) {
+func OpenBatch(reg dsinter.StoreReg, baseDir string, batchId, fileId int64) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
@@ -73,7 +73,7 @@ func OpenBatch(baseDir string, reg dsinter.StoreReg, batchId, fileId int64) (*Ba
 
     batch.blocks = make([]*Block, batch.batchSize)
     for i := int64(0); i < batch.batchSize; i++ {
-        block, err := OpenBlock(baseDir, reg, i, batch.batchId, batch.fileId)
+        block, err := OpenBlock(reg, baseDir, i, batch.batchId, batch.fileId)
         if err != nil {
             return &batch, dserr.Err(err)
         }
@@ -127,18 +127,21 @@ func (batch *Batch) Read(writer io.Writer) (int64, error) {
 
 func (batch *Batch) Clean() error {
     var err error
-    for i := int64(0); i < batch.batchSize; i++ {
-        err := batch.blocks[i].Clean()
-        if err != nil {
-            return dserr.Err(err)
+    for i := batch.batchSize - 1; i >= 0; i-- {
+        if batch.blocks[i] != nil {
+            err := batch.blocks[i].Clean()
+            if err != nil {
+                return dserr.Err(err)
+            }
+            batch.blocks[i] = nil
         }
+    }
+    err = batch.reg.DeleteBatch(batch.batchId, batch.fileId)
+    if err != nil {
+        return dserr.Err(err)
     }
     return dserr.Err(err)
 }
-
-//func (batch *Batch) countBlocks() int {
-//    return len(batch.blocks)
-//}
 
 func (batch *Batch) toDescr() *dsdescr.Batch {
     descr := dsdescr.NewBatch()

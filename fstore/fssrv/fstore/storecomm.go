@@ -16,12 +16,15 @@ type Store struct {
     dirPerm     fs.FileMode
     filePerm    fs.FileMode
     startTime   int64
+
+    fileAlloc   dsinter.Alloc
 }
 
-func NewStore(dataDir string, reg dsinter.StoreReg) (*Store, error) {
+func NewStore(dataDir string, reg dsinter.StoreReg, fileAlloc dsinter.Alloc) (*Store, error) {
     var err error
     var store Store
     store.dataDir   = dataDir
+    store.fileAlloc = fileAlloc
     store.reg       = reg
     store.dirPerm   = 0755
     store.filePerm  = 0644

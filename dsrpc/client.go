@@ -7,11 +7,11 @@
 package dsrpc
 
 import (
+    "encoding/json"
     "errors"
     "io"
     "net"
     "sync"
-    "github.com/shamaton/msgpack/v2"
 )
 
 
@@ -273,7 +273,7 @@ func (context *Context) DownloadBin() error {
 func (context *Context) BindResponse() error {
     var err error
 
-    err = msgpack.Unmarshal(context.resPacket.rcpPayload, context.resRPC)
+    err = json.Unmarshal(context.resPacket.rcpPayload, context.resRPC)
     if err != nil {
         return Err(err)
     }

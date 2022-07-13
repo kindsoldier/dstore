@@ -27,31 +27,33 @@ func TestFile01(t *testing.T) {
     require.NotEqual(t, reg, nil)
 
     descr0 := dsdescr.NewFile()
-    descr0.FileId      = 2
-    descr0.BatchCount  = 1
-    descr0.DataSize    = 5
-    descr0.CreatedAt   = 1657645101
-    descr0.UpdatedAt   = 1657645102
+    descr0.Login        = "admin"
+    descr0.FilePath     = "/qwerty"
+    descr0.FileId       = 2
+    descr0.BatchCount   = 1
+    descr0.DataSize     = 5
+    descr0.CreatedAt    = 1657645101
+    descr0.UpdatedAt    = 1657645102
 
     err = reg.PutFile(descr0)
     require.NoError(t, err)
 
-    has, err = reg.HasFile(descr0.FileId)
+    has, err = reg.HasFile(descr0.Login, descr0.FilePath)
     require.NoError(t, err)
     require.Equal(t, has, true)
 
-    descr1, err := reg.GetFile(descr0.FileId)
+    descr1, err := reg.GetFile(descr0.Login, descr0.FilePath)
     require.NoError(t, err)
     require.Equal(t, descr0, descr1)
 
-    descrs, err := reg.ListFiles()
+    descrs, err := reg.ListFiles(descr0.Login)
     require.NoError(t, err)
     require.Equal(t, len(descrs), 1)
 
-    err = reg.DeleteFile(descr0.FileId)
+    err = reg.DeleteFile(descr0.Login, descr0.FilePath)
     require.NoError(t, err)
 
-    has, err = reg.HasFile(descr0.FileId)
+    has, err = reg.HasFile(descr0.Login, descr0.FilePath)
     require.NoError(t, err)
     require.Equal(t, has, false)
 }

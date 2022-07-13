@@ -7,6 +7,7 @@ package main
 import (
     "encoding/json"
     "fmt"
+    "io/fs"
     "flag"
     "os"
     "path/filepath"
@@ -93,7 +94,7 @@ func (util *Util) GetOpt() error {
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
         fmt.Printf("Command list: help, getStatus, \n")
-//        fmt.Printf("    saveFile, loadFile, listFiles, deleteFile \n")
+        fmt.Printf("    saveFile, loadFile, listFiles, deleteFile \n")
         fmt.Printf("    addUser, checkUser, updateUser, listUsers, deleteUser \n")
 //        fmt.Printf("    addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
 
@@ -133,46 +134,46 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-//        case saveFileCmd, loadFileCmd:
-//            flagSet := flag.NewFlagSet(saveFileCmd, flag.ExitOnError)
-//            flagSet.StringVar(&util.LocalFilePath, "local", util.LocalFilePath, "local file name")
-//            flagSet.StringVar(&util.RemoteFilePath, "remote", util.RemoteFilePath, "remote file path")
-//            flagSet.Usage = func() {
-//                fmt.Printf("\n")
-//                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
-//                fmt.Printf("\n")
-//                fmt.Printf("The command options:\n")
-//                flagSet.PrintDefaults()
-//                fmt.Printf("\n")
-//            }
-//            flagSet.Parse(subArgs)
-//            util.SubCmd = subCmd
-//        case listFilesCmd:
-//            flagSet := flag.NewFlagSet(listFilesCmd, flag.ExitOnError)
-//            flagSet.Usage = func() {
-//                fmt.Printf("\n")
-//                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
-//                fmt.Printf("\n")
-//                fmt.Printf("The command options: none\n")
-//                flagSet.PrintDefaults()
-//                fmt.Printf("\n")
-//            }
-//            flagSet.Parse(subArgs)
-//            util.SubCmd = subCmd
-//        case deleteFileCmd:
-//            flagSet := flag.NewFlagSet(saveFileCmd, flag.ExitOnError)
-//            flagSet.StringVar(&util.RemoteFilePath, "path", util.RemoteFilePath, "remote file path")
-//
-//            flagSet.Usage = func() {
-//                fmt.Printf("\n")
-//                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
-//                fmt.Printf("\n")
-//                fmt.Printf("The command options:\n")
-//                flagSet.PrintDefaults()
-//                fmt.Printf("\n")
-//            }
-//            flagSet.Parse(subArgs)
-//            util.SubCmd = subCmd
+        case saveFileCmd, loadFileCmd:
+            flagSet := flag.NewFlagSet(saveFileCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.LocalFilePath, "local", util.LocalFilePath, "local file name")
+            flagSet.StringVar(&util.RemoteFilePath, "remote", util.RemoteFilePath, "remote file path")
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case listFilesCmd:
+            flagSet := flag.NewFlagSet(listFilesCmd, flag.ExitOnError)
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options: none\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case deleteFileCmd:
+            flagSet := flag.NewFlagSet(saveFileCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.RemoteFilePath, "path", util.RemoteFilePath, "remote file path")
+
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
         case addUserCmd, checkUserCmd, updateUserCmd:
             flagSet := flag.NewFlagSet(addUserCmd, flag.ExitOnError)
             flagSet.StringVar(&util.Login, "login", util.Login, "login")
@@ -298,14 +299,14 @@ func (util *Util) Exec() error {
         case getStatusCmd:
             result, err = util.GetStatusCmd(auth)
 
-//        case saveFileCmd:
-//            result, err = util.SaveFileCmd(auth)
-//        case loadFileCmd:
-//            result, err = util.LoadFileCmd(auth)
-//        case listFilesCmd:
-//            result, err = util.ListFilesCmd(auth)
-//        case deleteFileCmd:
-//            result, err = util.DeleteFileCmd(auth)
+        case saveFileCmd:
+            result, err = util.SaveFileCmd(auth)
+        case loadFileCmd:
+            result, err = util.LoadFileCmd(auth)
+        case listFilesCmd:
+            result, err = util.ListFilesCmd(auth)
+        case deleteFileCmd:
+            result, err = util.DeleteFileCmd(auth)
 
         case addUserCmd:
             result, err = util.AddUserCmd(auth)
@@ -347,71 +348,71 @@ func (util *Util) GetStatusCmd(auth *dsrpc.Auth) (*fsapi.GetStatusResult, error)
     return result, err
 }
 
-//func (util *Util) SaveFileCmd(auth *dsrpc.Auth) (*fsapi.SaveFileResult, error) {
-//    var err error
-//    params := fsapi.NewSaveFileParams()
-//    params.FilePath  = util.RemoteFilePath
-//    result := fsapi.NewSaveFileResult()
-//    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDONLY, 0)
-//    defer localFile.Close()
-//    if err != nil {
-//        return result, err
-//    }
-//    fileInfo, err := localFile.Stat()
-//    if err != nil {
-//        return result, err
-//    }
-//    fileSize := fileInfo.Size()
-//
-//    err = dsrpc.Put(util.URI, fsapi.SaveFileMethod, localFile, fileSize, params, result, auth)
-//    if err != nil {
-//        return result, err
-//    }
-//    return result, err
-//}
+func (util *Util) SaveFileCmd(auth *dsrpc.Auth) (*fsapi.SaveFileResult, error) {
+    var err error
+    params := fsapi.NewSaveFileParams()
+    params.FilePath  = util.RemoteFilePath
+    result := fsapi.NewSaveFileResult()
+    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDONLY, 0)
+    defer localFile.Close()
+    if err != nil {
+        return result, err
+    }
+    fileInfo, err := localFile.Stat()
+    if err != nil {
+        return result, err
+    }
+    fileSize := fileInfo.Size()
 
-//const dirPerm   fs.FileMode = 0755
-//const filePerm  fs.FileMode = 0644
+    err = dsrpc.Put(util.URI, fsapi.SaveFileMethod, localFile, fileSize, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
 
-//func (util *Util) LoadFileCmd(auth *dsrpc.Auth) (*fsapi.LoadFileResult, error) {
-//    var err error
-//    params := fsapi.NewLoadFileParams()
-//    params.FilePath   = util.RemoteFilePath
-//    result := fsapi.NewLoadFileResult()
-//    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
-//    defer localFile.Close()
-//    if err != nil {
-//        return result, err
-//    }
-//    err = dsrpc.Get(util.URI, fsapi.LoadFileMethod, localFile, params, result, auth)
-//    if err != nil {
-//        return result, err
-//    }
-//    return result, err
-//}
+const dirPerm   fs.FileMode = 0755
+const filePerm  fs.FileMode = 0644
 
-//func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error) {
-//    var err error
-//    params := fsapi.NewListFilesParams()
-//    result := fsapi.NewListFilesResult()
-//    err = dsrpc.Exec(util.URI, fsapi.ListFilesMethod, params, result, auth)
-//    if err != nil {
-//        return result, err
-//    }
-//    return result, err
-//}
+func (util *Util) LoadFileCmd(auth *dsrpc.Auth) (*fsapi.LoadFileResult, error) {
+    var err error
+    params := fsapi.NewLoadFileParams()
+    params.FilePath   = util.RemoteFilePath
+    result := fsapi.NewLoadFileResult()
+    localFile, err := os.OpenFile(util.LocalFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, filePerm)
+    defer localFile.Close()
+    if err != nil {
+        return result, err
+    }
+    err = dsrpc.Get(util.URI, fsapi.LoadFileMethod, localFile, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
 
-//func (util *Util) DeleteFileCmd(auth *dsrpc.Auth) (*fsapi.DeleteFileResult, error) {
-//    var err error
-//    params := fsapi.NewDeleteFileParams()
-//    params.FilePath   = util.RemoteFilePath
-//    result := fsapi.NewDeleteFileResult()
-//    err = dsrpc.Exec(util.URI, fsapi.DeleteFileMethod, params, result, auth)
-//    if err != nil {
-//        return result, err
-//    }
-//    return result, err
-//}
+func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error) {
+    var err error
+    params := fsapi.NewListFilesParams()
+    result := fsapi.NewListFilesResult()
+    err = dsrpc.Exec(util.URI, fsapi.ListFilesMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
+func (util *Util) DeleteFileCmd(auth *dsrpc.Auth) (*fsapi.DeleteFileResult, error) {
+    var err error
+    params := fsapi.NewDeleteFileParams()
+    params.FilePath   = util.RemoteFilePath
+    result := fsapi.NewDeleteFileResult()
+    err = dsrpc.Exec(util.URI, fsapi.DeleteFileMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
 
 func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*fsapi.AddUserResult, error) {
     var err error

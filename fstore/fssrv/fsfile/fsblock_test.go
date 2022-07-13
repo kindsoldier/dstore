@@ -33,7 +33,7 @@ func TestBlock01(t *testing.T) {
     var batchId int64 = 2
     var fileId  int64 = 3
 
-    block, err := NewBlock(dataDir, reg, blockId, batchId, fileId, blockSize)
+    block, err := NewBlock(reg, dataDir, blockId, batchId, fileId, blockSize)
     require.NoError(t, err)
     require.NotEqual(t, block, nil)
 
@@ -47,7 +47,7 @@ func TestBlock01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, wrSize, needSize)
 
-    block, err = OpenBlock(dataDir, reg, blockId, batchId, fileId)
+    block, err = OpenBlock(reg, dataDir, blockId, batchId, fileId)
     require.NoError(t, err)
     require.NotEqual(t, block, nil)
 

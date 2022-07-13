@@ -7,12 +7,12 @@
 package dsrpc
 
 import (
+    "encoding/json"
     "context"
     "errors"
     "io"
     "net"
     "sync"
-    "github.com/shamaton/msgpack/v2"
 )
 
 type HandlerFunc =  func(*Context) error
@@ -47,7 +47,6 @@ func (this *Service) PreMiddleware(mw HandlerFunc) {
 func (this *Service) PostMiddleware(mw HandlerFunc) {
     this.postMw = append(this.postMw, mw)
 }
-
 
 func (this *Service) Handler(method string, handler HandlerFunc) {
     this.handlers[method] = handler
@@ -200,14 +199,14 @@ func (context *Context) ReadBin(writer io.Writer) error {
 
 func (context *Context) BindMethod() error {
     var err error
-    err = msgpack.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
+    err = json.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
     return Err(err)
 }
 
 func (context *Context) BindParams(params any) error {
     var err error
     context.reqRPC.Params = params
-    err = msgpack.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
+    err = json.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
     if err != nil {
         return Err(err)
     }
