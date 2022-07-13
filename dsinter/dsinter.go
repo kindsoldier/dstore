@@ -52,4 +52,10 @@ type StoreReg interface {
     HasBlock(blockId, batchId, fileId int64) (bool, error)
     ListBlocks() ([]*dsdescr.Block, error)
     PutBlock(descr *dsdescr.Block) error
+
+    DeleteEntry(login, filePath string) error
+    GetEntry(login, filePath string) (*dsdescr.Entry, error)
+    HasEntry(login, filePath string) (bool, error)
+    ListEntrys(login string) ([]*dsdescr.Entry, error)
+    PutEntry(login string, descr *dsdescr.Entry) error
 }
