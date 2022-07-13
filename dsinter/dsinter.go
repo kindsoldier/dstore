@@ -28,11 +28,28 @@ type Crate interface {
      Clean() error
 }
 
-
 type StoreReg interface {
     PutUser(descr *dsdescr.User) error
     HasUser(login string) (bool, error)
     GetUser(login string) (*dsdescr.User, error)
     ListUsers() ([]*dsdescr.User, error)
     DeleteUser(login string) error
+
+    DeleteFile(fileId int64) error
+    GetFile(fileId int64) (*dsdescr.File, error)
+    HasFile(fileId int64) (bool, error)
+    ListFiles() ([]*dsdescr.File, error)
+    PutFile(descr *dsdescr.File) error
+
+    DeleteBatch(batchId, fileId int64) error
+    GetBatch(batchId, fileId int64) (*dsdescr.Batch, error)
+    HasBatch(batchId, fileId int64) (bool, error)
+    ListBatchs() ([]*dsdescr.Batch, error)
+    PutBatch(descr *dsdescr.Batch) error
+
+    DeleteBlock(blockId, batchId, fileId int64) error
+    GetBlock(blockId, batchId, fileId int64) (*dsdescr.Block, error)
+    HasBlock(blockId, batchId, fileId int64) (bool, error)
+    ListBlocks() ([]*dsdescr.Block, error)
+    PutBlock(descr *dsdescr.Block) error
 }

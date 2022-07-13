@@ -11,9 +11,11 @@ import (
 
     "dstore/dsdescr"
     "dstore/dsinter"
+    "dstore/dserr"
 )
 
 type Block struct {
+    reg         dsinter.StoreReg
     baseDir     string
     filePath    string
     blockId     int64
@@ -25,11 +27,11 @@ type Block struct {
     updatedAt   int64
 }
 
-
-func NewBlock(baseDir string, blockId, batchId, fileId, blockSize int64) (*Block, error) {
+func NewBlock(baseDir string, reg dsinter.StoreReg, blockId, batchId, fileId, blockSize int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
+    block.reg       = reg
 
     block.blockId   = blockId
     block.batchId   = batchId
@@ -40,13 +42,25 @@ func NewBlock(baseDir string, blockId, batchId, fileId, blockSize int64) (*Block
     block.filePath  = newFilePath()
     block.createdAt = time.Now().Unix()
     block.updatedAt = block.createdAt
-    return &block, err
+
+    descr := block.toDescr()
+    err = reg.PutBlock(descr)
+    if err != nil {
+        return &block, dserr.Err(err)
+    }
+    return &block, dserr.Err(err)
 }
 
-func OpenBlock(baseDir string, descr *dsdescr.Block) (*Block, error) {
+func OpenBlock(baseDir string, reg dsinter.StoreReg, blockId, batchId, fileId int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
+    block.reg       = reg
+
+    descr, err := reg.GetBlock(blockId, batchId, fileId)
+    if err != nil {
+        return &block, dserr.Err(err)
+    }
 
     block.blockId   = descr.BlockId
     block.batchId   = descr.BatchId
@@ -57,7 +71,7 @@ func OpenBlock(baseDir string, descr *dsdescr.Block) (*Block, error) {
     block.filePath  = descr.FilePath
     block.createdAt = descr.CreatedAt
     block.updatedAt = descr.UpdatedAt
-    return &block, err
+    return &block, dserr.Err(err)
 }
 
 
@@ -69,13 +83,13 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
         dataSize = remainSize
     }
     if remainSize < 1 || dataSize < 1 {
-        return wrSize, err
+        return wrSize, dserr.Err(err)
     }
     newPath := newFilePath()
     writer, err := NewCrate(block.baseDir, newPath)
     if err != nil {
         err = fmt.Errorf("block write error: %s", err)
-        return wrSize, err
+        return wrSize, dserr.Err(err)
     }
     var origin dsinter.Crate
     if block.dataSize > 0 {
@@ -83,15 +97,16 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
         reader, err := NewCrate(block.baseDir, block.filePath)
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
-            return wrSize, err
+            return wrSize, dserr.Err(err)
         }
         wrSize, err = copyData(reader, writer, block.dataSize)
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
-            return wrSize, err
+            return wrSize, dserr.Err(err)
         }
         if wrSize != dataSize {
             err = fmt.Errorf("block recopy only %d", wrSize)
+            return wrSize, dserr.Err(err)
         }
         origin = reader
     }
@@ -99,12 +114,12 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     if err != nil {
         writer.Clean()
         err = fmt.Errorf("block copy error: %s", err)
-        return wrSize, err
+        return wrSize, dserr.Err(err)
     }
     if wrSize != dataSize {
         writer.Clean()
         err = fmt.Errorf("block copy only %d", wrSize)
-        return wrSize, err
+        return wrSize, dserr.Err(err)
     }
     block.updatedAt = time.Now().Unix()
     block.filePath  = newPath
@@ -112,31 +127,48 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     if origin != nil {
         origin.Clean()
     }
-    return wrSize, err
+
+    descr := block.toDescr()
+    err = block.reg.PutBlock(descr)
+    if err != nil {
+        return wrSize, dserr.Err(err)
+    }
+    return wrSize, dserr.Err(err)
 }
 
 func (block *Block) Read(writer io.Writer) (int64, error) {
     var err error
     var readSize int64
 
+    descr, err := block.reg.GetBlock(block.blockId, block.batchId, block.fileId)
+    if err != nil {
+        return readSize, dserr.Err(err)
+    }
+
+    block.blockSize = descr.BlockSize
+    block.dataSize  = descr.DataSize
+    block.filePath  = descr.FilePath
+    block.createdAt = descr.CreatedAt
+    block.updatedAt = descr.UpdatedAt
+
     reader, err := NewCrate(block.baseDir, block.filePath)
     if err != nil {
         err = fmt.Errorf("block read error: %s", err)
-        return readSize, err
+        return readSize, dserr.Err(err)
     }
 
     readSize, err = copyData(reader, writer, block.dataSize)
     if err != nil {
         err = fmt.Errorf("block recopy error: %s", err)
-        return readSize, err
+        return readSize, dserr.Err(err)
     }
     if readSize != block.dataSize {
         err = fmt.Errorf("block recopy only %d", readSize)
     }
-    return readSize, err
+    return readSize, dserr.Err(err)
 }
 
-func (block *Block) Descr() *dsdescr.Block {
+func (block *Block) toDescr() *dsdescr.Block {
     descr := dsdescr.NewBlock()
     descr.BlockId   = block.blockId
     descr.BatchId   = block.batchId
@@ -151,17 +183,23 @@ func (block *Block) Descr() *dsdescr.Block {
 
 func (block *Block) Clean() error {
     var err error
-    tank, err := NewCrate(block.baseDir, block.filePath)
+    crate, err := NewCrate(block.baseDir, block.filePath)
     if err != nil {
         err = fmt.Errorf("block clean error: %s", err)
-        return err
+        return dserr.Err(err)
     }
-    err = tank.Clean()
+    err = crate.Clean()
     if err != nil {
         err = fmt.Errorf("block clean error: %s", err)
-        return err
+        return dserr.Err(err)
     }
     block.dataSize = 0
     block.filePath = newFilePath()
-    return err
+
+    descr := block.toDescr()
+    err = block.reg.PutBlock(descr)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
 }

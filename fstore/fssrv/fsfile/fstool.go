@@ -7,11 +7,13 @@ package fsfile
 import (
     "crypto/sha256"
     "encoding/hex"
+    "errors"
+    "io"
     "math/rand"
     "path/filepath"
     "time"
-    "io"
-    "errors"
+
+    "dstore/dserr"
 )
 
 func init() {
@@ -36,32 +38,32 @@ func newFilePath() (string) {
 
 func copyData(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     var err error
-    var bufSize int64 = 1024 * 8
+    var bufSize int64 = 1024 * 16
     var total   int64 = 0
     var remains int64 = size
     buffer := make([]byte, bufSize)
 
     for {
         if remains == 0 {
-            return total, err
+            return total, dserr.Err(err)
         }
         if remains < bufSize {
             bufSize = remains
         }
         received, err := reader.Read(buffer[0:bufSize])
         if err != nil {
-            return total, err
+            return total, dserr.Err(err)
         }
         written, err := writer.Write(buffer[0:received])
         if err != nil {
-            return total, err
+            return total, dserr.Err(err)
         }
         if written != received {
             err = errors.New("write error")
-            return total, err
+            return total, dserr.Err(err)
         }
         total += int64(written)
         remains -= int64(written)
     }
-    return total, err
+    return total, dserr.Err(err)
 }

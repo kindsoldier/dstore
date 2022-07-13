@@ -22,7 +22,6 @@ func TestBatch01(t *testing.T) {
     defer db.Close()
     require.NoError(t, err)
 
-
     reg, err := NewReg(db)
     require.NoError(t, err)
     require.NotEqual(t, reg, nil)
