@@ -21,7 +21,7 @@ func TestBatch01(t *testing.T) {
 
     dataDir := t.TempDir()
 
-    db, err := dskvdb.OpenDB(dataDir, "tmp.leveldb")
+    db, err := dskvdb.OpenDB(dataDir, "tmp.db")
     defer db.Close()
     require.NoError(t, err)
 

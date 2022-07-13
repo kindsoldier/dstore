@@ -8,12 +8,13 @@ package dsrpc
 
 import (
     "encoding/json"
+    "github.com/shamaton/msgpack/v2"
 )
 
 
 type Response struct {
-    Error   string      `json:"error,omitempty" msgpack:"error,omitempty"`
-    Result  any         `json:"result,omitemty" msgpack:"result,omitemty"`
+    Error   string      `json:"error"   msgpack:"error"`
+    Result  any         `json:"result"  msgpack:"result"`
 }
 
 func NewResponse() *Response {
@@ -26,6 +27,6 @@ func (this *Response) JSON() []byte {
 }
 
 func (this *Response) Pack() ([]byte, error) {
-    rBytes, err := json.Marshal(this)
+    rBytes, err := msgpack.Marshal(this)
     return rBytes, Err(err)
 }

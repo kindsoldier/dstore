@@ -335,7 +335,7 @@ func loadHandler(context *Context) error {
 const HelloMethod string = "hello"
 
 type HelloParams struct {
-    Message string      `json:"message" json:"message"`
+    Message string      `json:"message" msgpack:"message"`
 }
 
 func NewHelloParams() *HelloParams {
@@ -343,7 +343,7 @@ func NewHelloParams() *HelloParams {
 }
 
 type HelloResult struct {
-    Message string      `json:"message" json:"message"`
+    Message string      `json:"message" msgpack:"message"`
 }
 
 func NewHelloResult() *HelloResult {

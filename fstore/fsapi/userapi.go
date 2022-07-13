@@ -11,9 +11,9 @@ import (
 
 const AddUserMethod string = "addUser"
 type AddUserParams struct {
-    Login   string      `json:"login"`
-    Pass    string      `json:"pass"`
-    State   string      `json:"state"`
+    Login   string      `msgpack:"login"    json:"login"`
+    Pass    string      `msgpack:"pass"    json:"pass"`
+    State   string      `msgpack:"state"    json:"state"`
 }
 type AddUserResult struct {
 }

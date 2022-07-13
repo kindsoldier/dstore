@@ -402,7 +402,7 @@ func (server *Server) RunService() error {
     if debugMode || develMode {
         serv.PostMiddleware(dsrpc.LogResponse)
     }
-    serv.PostMiddleware(dsrpc.LogAccess)
+    //serv.PostMiddleware(dsrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = serv.Listen(listenParam)

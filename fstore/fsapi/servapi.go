@@ -11,7 +11,7 @@ type GetStatusParams struct {
 }
 
 type GetStatusResult struct {
-    Uptime int64      `json:"uptime"`
+    Uptime int64      `json:"uptime"    msgpack:"uptime"`
 }
 
 func NewGetStatusResult() *GetStatusResult {
