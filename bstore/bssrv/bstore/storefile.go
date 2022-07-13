@@ -2,13 +2,13 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package fstore
+package bstore
 
 import (
     "fmt"
     "io"
     "path/filepath"
-    "dstore/fstore/fssrv/fsfile"
+    "dstore/bstore/bssrv/bsfile"
     "dstore/dserr"
     "dstore/dsdescr"
 )
@@ -30,18 +30,18 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
     var batchSize   int64 = 5
     var blockSize   int64 = 1000 * 1000
 
-    if fileSize < blockSize * batchSize {
-        blockSize = fileSize / batchSize
-        rs := int64(1024 * 10)
-        bs := blockSize / rs
-        blockSize = (bs + 1) * rs
-    }
+    //if fileSize < blockSize * batchSize {
+    //    blockSize = fileSize / batchSize
+    //    rs := int64(1024 * 10)
+    //    bs := blockSize / rs
+    //    blockSize = (bs + 1) * rs
+    //}
 
     fileId, err := store.fileAlloc.NewId()
     if err != nil {
         return dserr.Err(err)
     }
-    file, err := fsfile.NewFile(store.reg, store.dataDir, login, filePath, fileId, batchSize, blockSize)
+    file, err := bsfile.NewFile(store.reg, store.dataDir, login, filePath, fileId, batchSize, blockSize)
     if err != nil {
         return dserr.Err(err)
     }
@@ -90,7 +90,7 @@ func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer
         err = fmt.Errorf("file %s not exist", filePath)
         return dserr.Err(err)
     }
-    file, err := fsfile.OpenFile(store.reg, store.dataDir, login, filePath)
+    file, err := bsfile.OpenFile(store.reg, store.dataDir, login, filePath)
     if err != nil {
         return dserr.Err(err)
     }
@@ -123,7 +123,7 @@ func (store *Store) DeleteFile(login string, filePath string) error {
         err = fmt.Errorf("file %s not exist", filePath)
         return dserr.Err(err)
     }
-    file, err := fsfile.OpenFile(store.reg, store.dataDir, login, filePath)
+    file, err := bsfile.OpenFile(store.reg, store.dataDir, login, filePath)
     if err != nil {
         return dserr.Err(err)
     }
