@@ -56,7 +56,7 @@ func TestFile01(t *testing.T) {
 
     writer := bytes.NewBuffer(nil)
 
-    readSize, err := file.Read(writer)
+    readSize, err := file.Read(writer, needSize)
     require.NoError(t, err)
     require.Equal(t, wrSize, readSize)
     //require.Equal(t, origin[0:wrSize], writer.Bytes())

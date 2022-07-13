@@ -82,19 +82,23 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     if remainSize < dataSize {
         dataSize = remainSize
     }
+
     if remainSize < 1 || dataSize < 1 {
         return wrSize, dserr.Err(err)
     }
     newPath := newFilePath()
-    writer, err := NewCrate(block.baseDir, newPath)
+    writer, err := OpenCrate(block.baseDir, newPath, WRONLY)
+    defer writer.Close()
     if err != nil {
         err = fmt.Errorf("block write error: %s", err)
         return wrSize, dserr.Err(err)
     }
+
     var origin dsinter.Crate
     if block.dataSize > 0 {
         var wrSize int64
-        reader, err := NewCrate(block.baseDir, block.filePath)
+        reader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
+        defer reader.Close()
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
             return wrSize, dserr.Err(err)
@@ -136,10 +140,13 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     return wrSize, dserr.Err(err)
 }
 
-func (block *Block) Read(writer io.Writer) (int64, error) {
+func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
     var err error
     var readSize int64
 
+    if dataSize < 1 {
+        return readSize, dserr.Err(err)
+    }
     descr, err := block.reg.GetBlock(block.blockId, block.batchId, block.fileId)
     if err != nil {
         return readSize, dserr.Err(err)
@@ -151,7 +158,8 @@ func (block *Block) Read(writer io.Writer) (int64, error) {
     block.createdAt = descr.CreatedAt
     block.updatedAt = descr.UpdatedAt
 
-    reader, err := NewCrate(block.baseDir, block.filePath)
+    reader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
+    defer reader.Close()
     if err != nil {
         err = fmt.Errorf("block read error: %s", err)
         return readSize, dserr.Err(err)
@@ -183,7 +191,8 @@ func (block *Block) toDescr() *dsdescr.Block {
 
 func (block *Block) Clean() error {
     var err error
-    crate, err := NewCrate(block.baseDir, block.filePath)
+    crate, err := OpenCrate(block.baseDir, block.filePath, WRONLY)
+    defer crate.Close()
     if err != nil {
         err = fmt.Errorf("block clean error: %s", err)
         return dserr.Err(err)

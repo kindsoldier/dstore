@@ -81,6 +81,7 @@ func (store *Store) HasFile(login string, filePath string) (bool, int64, error) 
 
 func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer) error {
     var err error
+    filePath = cleanPath(filePath)
     has, err := store.reg.HasFile(login, filePath)
     if err != nil {
         return dserr.Err(err)

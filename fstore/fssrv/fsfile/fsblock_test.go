@@ -51,7 +51,7 @@ func TestBlock01(t *testing.T) {
     require.NoError(t, err)
     require.NotEqual(t, block, nil)
 
-    readSize, err := block.Read(io.Discard)
+    readSize, err := block.Read(io.Discard, needSize)
     require.NoError(t, err)
     require.Equal(t, wrSize, readSize)
 

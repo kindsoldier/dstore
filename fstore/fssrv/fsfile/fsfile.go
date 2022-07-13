@@ -135,9 +135,11 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
 func (file *File) Read(writer io.Writer) (int64, error) {
     var err error
     var readSize int64
+    dataSize := file.dataSize
     for i := int64(0); i < file.batchCount; i++ {
-        blockRead, err := file.batchs[i].Read(writer)
-        readSize += blockRead
+        batchRead, err := file.batchs[i].Read(writer, dataSize)
+        readSize += batchRead
+        dataSize -= batchRead
         if err == io.EOF {
             err = nil
             return readSize, dserr.Err(err)
@@ -177,6 +179,11 @@ func (file *File) Clean() error {
 func (file *File) FileId() int64 {
     return file.fileId
 }
+
+func (file *File) DataSize() int64 {
+    return file.dataSize
+}
+
 
 func (file *File) toDescr() *dsdescr.File {
     descr := dsdescr.NewFile()

@@ -112,12 +112,18 @@ func (batch *Batch) Write(reader io.Reader, reqSize int64) (int64, error) {
     return wrSize, dserr.Err(err)
 }
 
-func (batch *Batch) Read(writer io.Writer) (int64, error) {
+func (batch *Batch) Read(writer io.Writer, dataSize int64) (int64, error) {
     var err error
     var readSize int64
+
+    if dataSize < 1 {
+        return readSize, dserr.Err(err)
+    }
+
     for i := int64(0); i < batch.batchSize; i++ {
-        blockReadSize, err := batch.blocks[i].Read(writer)
+        blockReadSize, err := batch.blocks[i].Read(writer, dataSize)
         readSize += blockReadSize
+        dataSize -= blockReadSize
         if err != nil {
             return readSize, dserr.Err(err)
         }

@@ -51,7 +51,7 @@ func TestBatch01(t *testing.T) {
     require.NoError(t, err)
     require.NotEqual(t, batch, nil)
 
-    readSize, err := batch.Read(io.Discard)
+    readSize, err := batch.Read(io.Discard, needSize)
     require.NoError(t, err)
     require.Equal(t, wrSize, readSize)
 
