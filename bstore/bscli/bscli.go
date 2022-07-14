@@ -153,6 +153,8 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case listBlocksCmd:
             flagSet := flag.NewFlagSet(listBlocksCmd, flag.ExitOnError)
+            flagSet.Int64Var(&util.FileId, "fileId", util.FileId, "file id")
+
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
@@ -345,6 +347,7 @@ func (util *Util) LoadBlockCmd(auth *dsrpc.Auth) (*bsapi.LoadBlockResult, error)
 func (util *Util) ListBlocksCmd(auth *dsrpc.Auth) (*bsapi.ListBlocksResult, error) {
     var err error
     params := bsapi.NewListBlocksParams()
+    params.FileId       = util.FileId
     result := bsapi.NewListBlocksResult()
     err = dsrpc.Exec(util.URI, bsapi.ListBlocksMethod, params, result, auth)
     if err != nil {
