@@ -5,7 +5,6 @@
 package bstore
 
 import (
-    "fmt"
     "testing"
     "github.com/stretchr/testify/require"
 
@@ -24,7 +23,7 @@ func TestUser01(t *testing.T) {
     defer db.Close()
     require.NoError(t, err)
 
-    reg, err := fsreg.NewReg(db)
+    reg, err := bsreg.NewReg(db)
     require.NoError(t, err)
 
     store, err := NewStore(dataDir, reg)
@@ -74,9 +73,6 @@ func TestUser01(t *testing.T) {
 
     descrs, err := store.ListUsers(adminLogin)
     require.NoError(t, err)
+    require.Equal(t, len(descrs), 2)
 
-    for _, descr := range descrs {
-        descrBin, _ := descr.Pack()
-        fmt.Println(string(descrBin))
-    }
 }

@@ -7,16 +7,45 @@ SUFFIXES = .go
 OBJEXT= none
 
 sbin_PROGRAMS = bstored bstorecli 
-bstored_SOURCES = bssrv/bsserv.go bssrv/bsconf.go
+bstored_SOURCES = bssrv/bsserv.go 
+nodist_bstored_SOURCES = bssrv/bsconf.go
 bstorecli_SOURCES = bscli/bscli.go
 
-EXTRA_bstorecli_SOURCES = 
-EXTRA_bstored_SOURCES = 
+EXTRA_bstorecli_SOURCES = \
+	bsapi/blockapi.go \
+	bsapi/servapi.go \
+	bsapi/userapi.go
+
+EXTRA_bstored_SOURCES = \
+	bsapi/blockapi.go \
+	bsapi/servapi.go \
+	bsapi/userapi.go \
+	\
+	bssrv/bsblock/fsblock.go \
+	bssrv/bsblock/fscrate.go \
+	bssrv/bsblock/fstool.go \
+	bssrv/bsconf.go.in \
+	\
+	bssrv/bscont/contauth.go \
+	bssrv/bscont/contblock.go \
+	bssrv/bscont/contcomm.go \
+	bssrv/bscont/contserv.go \
+	bssrv/bscont/contuser.go \
+	\
+	bssrv/bsreg/regblock.go \
+	bssrv/bsreg/regcomm.go \
+	bssrv/bsreg/reguser.go \
+	\
+	bssrv/bstore/storeblock.go \
+	bssrv/bstore/storecomm.go \
+	bssrv/bstore/storeuser.go
+
 
 GOFLAGS = -ldflags="-s -w"
 
 bstored$(EXEEXT): $(bstored_SOURCES) $(EXTRA_bstored_SOURCES)
-	$(GO) build $(GOFLAGS) -o bstored$(EXEEXT) $(bstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o bstored$(EXEEXT) $(bstored_SOURCES) \
+	   $(nodist_bstored_SOURCES)
 
 bstorecli$(EXEEXT): $(bstorecli_SOURCES) $(EXTRA_bstorecli_SOURCES)
 	$(GO) build $(GOFLAGS) -o bstorecli$(EXEEXT) $(bstorecli_SOURCES)

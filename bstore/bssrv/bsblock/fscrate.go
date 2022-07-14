@@ -2,7 +2,7 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package bsfile
+package bsblock
 
 import (
     "fmt"

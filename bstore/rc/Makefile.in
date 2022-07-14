@@ -263,6 +263,11 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 @LINUX_OS_TRUE@nobase_etc_SCRIPTS = init.d/bstored
 @LINUX_OS_TRUE@@SYSTEMD_TRUE@systemddir = /lib/systemd/system
 @LINUX_OS_TRUE@@SYSTEMD_TRUE@nobase_systemd_DATA = bstored.service
+EXTRA_DIST = \
+	bstored.service.in \
+	init.d/bstored.in \
+	rc.d/bstored.in
+
 all: all-am
 
 .SUFFIXES:

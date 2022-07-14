@@ -25,3 +25,8 @@ etcdir = @sysconfdir@
 nobase_etc_SCRIPTS = init.d/bstored
 endif
 
+EXTRA_DIST = \
+	bstored.service.in \
+	init.d/bstored.in \
+	rc.d/bstored.in
+

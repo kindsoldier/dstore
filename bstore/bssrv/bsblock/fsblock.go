@@ -2,7 +2,7 @@
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
  */
 
-package bsfile
+package bsblock
 
 import (
     "fmt"
@@ -15,27 +15,31 @@ import (
 )
 
 type Block struct {
-    reg         dsinter.StoreReg
+    reg         dsinter.BStoreReg
     baseDir     string
     filePath    string
-    blockId     int64
-    batchId     int64
+
     fileId      int64
+    batchId     int64
+    blockType   int64
+    blockId     int64
+
     blockSize   int64
     dataSize    int64
     createdAt   int64
     updatedAt   int64
 }
 
-func NewBlock(reg dsinter.StoreReg, baseDir string, blockId, batchId, fileId, blockSize int64) (*Block, error) {
+func NewBlock(reg dsinter.BStoreReg, baseDir string, fileId, batchId, blockType, blockId, blockSize int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
     block.reg       = reg
 
-    block.blockId   = blockId
-    block.batchId   = batchId
     block.fileId    = fileId
+    block.batchId   = batchId
+    block.blockType = blockType
+    block.blockId   = blockId
 
     block.blockSize = blockSize
     block.dataSize  = 0
@@ -51,24 +55,26 @@ func NewBlock(reg dsinter.StoreReg, baseDir string, blockId, batchId, fileId, bl
     return &block, dserr.Err(err)
 }
 
-func OpenBlock(reg dsinter.StoreReg, baseDir string, blockId, batchId, fileId int64) (*Block, error) {
+func OpenBlock(reg dsinter.BStoreReg, baseDir string, fileId, batchId, blockType, blockId int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
     block.reg       = reg
 
-    descr, err := reg.GetBlock(blockId, batchId, fileId)
+    descr, err := reg.GetBlock(fileId, batchId, blockType, blockId)
     if err != nil {
         return &block, dserr.Err(err)
     }
 
-    block.blockId   = descr.BlockId
-    block.batchId   = descr.BatchId
     block.fileId    = descr.FileId
+    block.batchId   = descr.BatchId
+    block.blockType = descr.BlockType
+    block.blockId   = descr.BlockId
 
     block.blockSize = descr.BlockSize
     block.dataSize  = descr.DataSize
     block.filePath  = descr.FilePath
+
     block.createdAt = descr.CreatedAt
     block.updatedAt = descr.UpdatedAt
     return &block, dserr.Err(err)
@@ -147,7 +153,7 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
     if dataSize < 1 {
         return readSize, dserr.Err(err)
     }
-    descr, err := block.reg.GetBlock(block.blockId, block.batchId, block.fileId)
+    descr, err := block.reg.GetBlock(block.fileId, block.batchId, block.blockType, block.blockId)
     if err != nil {
         return readSize, dserr.Err(err)
     }
@@ -155,6 +161,7 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
     block.blockSize = descr.BlockSize
     block.dataSize  = descr.DataSize
     block.filePath  = descr.FilePath
+
     block.createdAt = descr.CreatedAt
     block.updatedAt = descr.UpdatedAt
 
@@ -178,12 +185,16 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
 
 func (block *Block) toDescr() *dsdescr.Block {
     descr := dsdescr.NewBlock()
-    descr.BlockId   = block.blockId
-    descr.BatchId   = block.batchId
+
     descr.FileId    = block.fileId
+    descr.BatchId   = block.batchId
+    descr.BlockType = block.blockType
+    descr.BlockId   = block.blockId
+
     descr.BlockSize = block.blockSize
     descr.DataSize  = block.dataSize
     descr.FilePath  = block.filePath
+
     descr.CreatedAt = block.createdAt
     descr.UpdatedAt = block.updatedAt
     return descr
@@ -205,7 +216,7 @@ func (block *Block) Clean() error {
     block.dataSize = 0
     block.filePath = newFilePath()
 
-    err = block.reg.DeleteBlock(block.blockId, block.batchId, block.fileId)
+    err = block.reg.DeleteBlock(block.fileId, block.batchId, block.blockType, block.blockId)
     if err != nil {
         return dserr.Err(err)
     }

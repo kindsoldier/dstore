@@ -24,8 +24,6 @@ import (
     "dstore/dslog"
     "dstore/dsrpc"
     "dstore/dserr"
-    "dstore/dsalloc"
-
 )
 
 const successExit   int = 0
@@ -367,11 +365,7 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
-    fileAlloc, err := dsalloc.OpenAlloc(db, []byte("fileIds"))
-    if err != nil {
-        return err
-    }
-    store, err := bstore.NewStore(dataDir, reg, fileAlloc)
+    store, err := bstore.NewStore(dataDir, reg)
     if err != nil {
         return err
     }
@@ -398,16 +392,17 @@ func (server *Server) RunService() error {
     }
     serv.PreMiddleware(contr.AuthMidware(debugMode))
 
-    serv.Handler(bsapi.SaveFileMethod, contr.SaveFileHandler)
-    serv.Handler(bsapi.LoadFileMethod, contr.LoadFileHandler)
-    serv.Handler(bsapi.ListFilesMethod, contr.ListFilesHandler)
-    serv.Handler(bsapi.DeleteFileMethod, contr.DeleteFileHandler)
+    serv.Handler(bsapi.SaveBlockMethod, contr.SaveBlockHandler)
+    serv.Handler(bsapi.LoadBlockMethod, contr.LoadBlockHandler)
+    serv.Handler(bsapi.ListBlocksMethod, contr.ListBlocksHandler)
+    serv.Handler(bsapi.DeleteBlockMethod, contr.DeleteBlockHandler)
 
     serv.Handler(bsapi.AddUserMethod, contr.AddUserHandler)
     serv.Handler(bsapi.CheckUserMethod, contr.CheckUserHandler)
     serv.Handler(bsapi.UpdateUserMethod, contr.UpdateUserHandler)
     serv.Handler(bsapi.ListUsersMethod, contr.ListUsersHandler)
     serv.Handler(bsapi.DeleteUserMethod, contr.DeleteUserHandler)
+
     serv.Handler(bsapi.GetStatusMethod, contr.GetStatusHandler)
 
 

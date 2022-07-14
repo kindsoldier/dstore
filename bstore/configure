@@ -2374,7 +2374,7 @@ fi
 
 
 
-PACKAGE=dstored
+PACKAGE=bstored
 
 # Extract the first word of "go", so it can be a program name with args.
 set dummy go; ac_word=$2

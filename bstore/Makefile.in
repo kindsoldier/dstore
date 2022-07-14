@@ -107,7 +107,8 @@ am_bstorecli_OBJECTS =
 bstorecli_OBJECTS = $(am_bstorecli_OBJECTS)
 bstorecli_LDADD = $(LDADD)
 am_bstored_OBJECTS =
-bstored_OBJECTS = $(am_bstored_OBJECTS)
+nodist_bstored_OBJECTS =
+bstored_OBJECTS = $(am_bstored_OBJECTS) $(nodist_bstored_OBJECTS)
 bstored_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -137,7 +138,8 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(bstorecli_SOURCES) $(EXTRA_bstorecli_SOURCES) \
-	$(bstored_SOURCES) $(EXTRA_bstored_SOURCES)
+	$(bstored_SOURCES) $(EXTRA_bstored_SOURCES) \
+	$(nodist_bstored_SOURCES)
 DIST_SOURCES = $(bstorecli_SOURCES) $(EXTRA_bstorecli_SOURCES) \
 	$(bstored_SOURCES) $(EXTRA_bstored_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -336,10 +338,38 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUBDIRS = rc
 SUFFIXES = .go
 OBJEXT = none
-bstored_SOURCES = bssrv/bsserv.go bssrv/bsconf.go
+bstored_SOURCES = bssrv/bsserv.go 
+nodist_bstored_SOURCES = bssrv/bsconf.go
 bstorecli_SOURCES = bscli/bscli.go
-EXTRA_bstorecli_SOURCES = 
-EXTRA_bstored_SOURCES = 
+EXTRA_bstorecli_SOURCES = \
+	bsapi/blockapi.go \
+	bsapi/servapi.go \
+	bsapi/userapi.go
+
+EXTRA_bstored_SOURCES = \
+	bsapi/blockapi.go \
+	bsapi/servapi.go \
+	bsapi/userapi.go \
+	\
+	bssrv/bsblock/fsblock.go \
+	bssrv/bsblock/fscrate.go \
+	bssrv/bsblock/fstool.go \
+	bssrv/bsconf.go.in \
+	\
+	bssrv/bscont/contauth.go \
+	bssrv/bscont/contblock.go \
+	bssrv/bscont/contcomm.go \
+	bssrv/bscont/contserv.go \
+	bssrv/bscont/contuser.go \
+	\
+	bssrv/bsreg/regblock.go \
+	bssrv/bsreg/regcomm.go \
+	bssrv/bsreg/reguser.go \
+	\
+	bssrv/bstore/storeblock.go \
+	bssrv/bstore/storecomm.go \
+	bssrv/bstore/storeuser.go
+
 GOFLAGS = -ldflags="-s -w"
 EXTRA_DIST = \
 	bstore.conf
@@ -863,7 +893,8 @@ uninstall-am: uninstall-sbinPROGRAMS
 
 
 bstored$(EXEEXT): $(bstored_SOURCES) $(EXTRA_bstored_SOURCES)
-	$(GO) build $(GOFLAGS) -o bstored$(EXEEXT) $(bstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o bstored$(EXEEXT) $(bstored_SOURCES) \
+	   $(nodist_bstored_SOURCES)
 
 bstorecli$(EXEEXT): $(bstorecli_SOURCES) $(EXTRA_bstorecli_SOURCES)
 	$(GO) build $(GOFLAGS) -o bstorecli$(EXEEXT) $(bstorecli_SOURCES)
