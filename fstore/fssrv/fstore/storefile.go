@@ -28,7 +28,7 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
     }
 
     var batchSize   int64 = 5
-    var blockSize   int64 = 1000 * 1000
+    var blockSize   int64 = 1024 * 1024 * 13
 
     if fileSize < blockSize * batchSize {
         blockSize = fileSize / batchSize

@@ -38,7 +38,7 @@ func newFilePath() (string) {
 
 func copyData(reader io.Reader, writer io.Writer, size int64) (int64, error) {
     var err error
-    var bufSize int64 = 1024 * 8
+    var bufSize int64 = 1024 * 16
     var total   int64 = 0
     var remains int64 = size
     buffer := make([]byte, bufSize)
