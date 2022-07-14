@@ -10,6 +10,7 @@ import (
     "io/fs"
     "os"
     "os/signal"
+    "os/user"
     "path/filepath"
     "strconv"
     "syscall"
@@ -61,6 +62,7 @@ func (server *Server) Execute() error {
     if err != nil {
         return err
     }
+
     err = server.PrepareEnv()
     if err != nil {
         return err
@@ -74,7 +76,12 @@ func (server *Server) Execute() error {
         if err != nil {
             return err
         }
+        err = server.ChangeUid()
+        if err != nil {
+            return err
+        }
     }
+
     err = server.RedirLog()
     if err != nil {
         return err
@@ -176,6 +183,79 @@ func (server *Server) ForkCmd() error {
     os.Unsetenv(keyEnv)
     return err
 }
+
+func (server *Server) ChangeUid() error {
+    var err error
+
+    username := server.Params.SrvUser
+
+    currUid := syscall.Getuid()
+    if currUid != 0 {
+        err = fmt.Errorf("impossible to change uid for non-root")
+        return err
+    }
+
+    userDescr, err := user.Lookup(username)
+    if err != nil {
+        err = fmt.Errorf("no username %s found, err: %v", username, err)
+        return err
+    }
+
+    newGid, err := strconv.Atoi(userDescr.Gid)
+    if err != nil {
+        err = fmt.Errorf("cannot convert gid, err: %v", err)
+        return err
+    }
+    err = syscall.Setgid(newGid)
+    if err != nil {
+        err = fmt.Errorf("cannot change gid, err: %v", err)
+        return err
+    }
+    currGid := syscall.Getgid()
+    if currGid != newGid {
+        err = fmt.Errorf("unable to change gid for unknown reason")
+        return err
+    }
+
+    newUid, err := strconv.Atoi(userDescr.Uid)
+    if err != nil {
+        err = fmt.Errorf("cannot convert uid, err: %v", err)
+        return err
+    }
+
+    runDir := server.Params.RunDir
+    err = os.Chown(runDir, newUid, newGid)
+    if err != nil {
+            return err
+    }
+
+    logDir := server.Params.LogDir
+    err = os.Chown(logDir, newUid, newGid)
+    if err != nil {
+            return err
+    }
+
+    dataDir := server.Params.DataDir
+    err = os.Chown(dataDir, newUid, newGid)
+    if err != nil {
+            return err
+    }
+
+    err = syscall.Setuid(newUid)
+    if err != nil {
+        err = fmt.Errorf("cannot change uid, err: %v", err)
+        return err
+    }
+
+    currUid = syscall.Getuid()
+    if currUid != newUid {
+        err = fmt.Errorf("unable to change uid for unknown reason")
+        return err
+    }
+    return err
+}
+
+
 
 func (server *Server) PrepareEnv() error {
     var err error

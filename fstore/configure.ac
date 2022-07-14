@@ -11,13 +11,18 @@ fi
 AC_PATH_PROG([go],[go])
 AC_PATH_PROG([GO],[go])
 
-AC_CHECK_PROG(HAVE_CP, cp, true, false, /bin /usr/local/bin /usr/bin)
-if test "x$HAVE_CP" = "xfalse"; then
+AC_PATH_PROG([CP],[gcp cp])
+if test -z "$CP"; then
     AC_MSG_ERROR([Requested program cp not found])
 fi
-AC_PATH_PROG([CP],[cp])
+AC_PATH_PROG([CHOWN],[gchown chown])
+if test -z "$CHOWN"; then
+    AC_MSG_ERROR([Requested program chown not found])
+fi
+
 
 AC_PROG_INSTALL
+AC_PROG_MKDIR_P
 AC_CANONICAL_HOST
 
 case $host_os in

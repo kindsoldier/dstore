@@ -30,6 +30,8 @@ type Config struct {
 
     DebugMode   bool        `json:"debug"   yaml:"debug"`
     DevelMode   bool        `json:"-"       yaml:"-"`
+
+    SrvUser     string      `json:"srvUser" yaml:"srvUser"`
 }
 
 func NewConfig() *Config {
@@ -49,6 +51,8 @@ func NewConfig() *Config {
 
     config.DebugMode = true
     config.DevelMode = true
+
+    config.SrvUser = "@srv_user@"
 
     return &config
 }
