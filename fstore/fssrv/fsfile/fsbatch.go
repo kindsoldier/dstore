@@ -54,6 +54,14 @@ func NewBatch(reg dsinter.FStoreReg, baseDir string, fileId, batchId, batchSize,
 }
 
 func OpenBatch(reg dsinter.FStoreReg, baseDir string, fileId, batchId int64) (*Batch, error) {
+    return openBatch(false, reg, baseDir, fileId, batchId)
+}
+
+func ForceOpenBatch(reg dsinter.FStoreReg, baseDir string, fileId, batchId int64) (*Batch, error) {
+    return openBatch(true, reg, baseDir, fileId, batchId)
+}
+
+func openBatch(force bool, reg dsinter.FStoreReg, baseDir string, fileId, batchId int64) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
@@ -72,11 +80,19 @@ func OpenBatch(reg dsinter.FStoreReg, baseDir string, fileId, batchId int64) (*B
 
     batch.blocks = make([]*Block, batch.batchSize)
     for i := int64(0); i < batch.batchSize; i++ {
-        block, err := OpenBlock(reg, baseDir, batch.fileId, batch.batchId, dsdescr.BTData, i)
-        if err != nil {
-            return &batch, dserr.Err(err)
+        switch {
+            case force == false:
+                block, err := OpenBlock(reg, baseDir, batch.fileId, batch.batchId, dsdescr.BTData, i)
+                if err != nil {
+                    return &batch, dserr.Err(err)
+                }
+                batch.blocks[i] = block
+            default:
+                block, blockErr := OpenBlock(reg, baseDir, batch.fileId, batch.batchId, dsdescr.BTData, i)
+                if blockErr == nil {
+                    batch.blocks[i] = block
+                }
         }
-        batch.blocks[i] = block
     }
     return &batch, dserr.Err(err)
 }

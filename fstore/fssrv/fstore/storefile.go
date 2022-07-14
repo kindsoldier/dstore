@@ -123,7 +123,7 @@ func (store *Store) DeleteFile(login string, filePath string) error {
         err = fmt.Errorf("file %s not exist", filePath)
         return dserr.Err(err)
     }
-    file, err := fsfile.OpenFile(store.reg, store.dataDir, login, filePath)
+    file, err := fsfile.ForceOpenFile(store.reg, store.dataDir, login, filePath)
     if err != nil {
         return dserr.Err(err)
     }

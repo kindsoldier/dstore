@@ -52,6 +52,14 @@ func NewFile(reg dsinter.FStoreReg, baseDir, login, filePath string, fileId, bat
 }
 
 func OpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
+    return openFile(false, reg, baseDir, login, filePath)
+}
+
+func ForceOpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
+    return openFile(true, reg, baseDir, login, filePath)
+}
+
+func openFile(force bool, reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
     var err error
     var file File
     file.reg        = reg
@@ -75,11 +83,19 @@ func OpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, er
 
     file.batchs = make([]*Batch, file.batchCount)
     for i := int64(0); i < file.batchCount; i++ {
-        batch, err := OpenBatch(reg, baseDir, i, file.fileId)
-        if err != nil {
-            return &file, dserr.Err(err)
+        switch {
+            case force == false:
+                batch, err := OpenBatch(reg, baseDir, i, file.fileId)
+                if err != nil {
+                    return &file, dserr.Err(err)
+                }
+                file.batchs[i] = batch
+            default:
+                batch, batchErr := ForceOpenBatch(reg, baseDir, i, file.fileId)
+                if batchErr == nil {
+                    file.batchs[i] = batch
+                }
         }
-        file.batchs[i] = batch
     }
     return &file, dserr.Err(err)
 }
