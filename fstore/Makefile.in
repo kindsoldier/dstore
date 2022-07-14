@@ -107,7 +107,8 @@ am_fstorecli_OBJECTS =
 fstorecli_OBJECTS = $(am_fstorecli_OBJECTS)
 fstorecli_LDADD = $(LDADD)
 am_fstored_OBJECTS =
-fstored_OBJECTS = $(am_fstored_OBJECTS)
+nodist_fstored_OBJECTS =
+fstored_OBJECTS = $(am_fstored_OBJECTS) $(nodist_fstored_OBJECTS)
 fstored_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -137,7 +138,8 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES) \
-	$(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
+	$(fstored_SOURCES) $(EXTRA_fstored_SOURCES) \
+	$(nodist_fstored_SOURCES)
 DIST_SOURCES = $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES) \
 	$(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
@@ -336,7 +338,8 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-installinfo
 SUBDIRS = rc
 SUFFIXES = .go
 OBJEXT = none
-fstored_SOURCES = fssrv/fsserv.go fssrv/fsconf.go
+fstored_SOURCES = fssrv/fsserv.go
+nodist_fstored_SOURCES = fssrv/fsconf.go
 fstorecli_SOURCES = fscli/fscli.go
 EXTRA_fstorecli_SOURCES = \
 	fsapi/fileapi.go \
@@ -893,7 +896,8 @@ uninstall-am: uninstall-sbinPROGRAMS
 
 
 fstored$(EXEEXT): $(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
-	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES) \
+	    $(nodist_fstored_SOURCES)
 
 fstorecli$(EXEEXT): $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES)
 	$(GO) build $(GOFLAGS) -o fstorecli$(EXEEXT) $(fstorecli_SOURCES)

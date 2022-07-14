@@ -6,8 +6,9 @@ SUBDIRS = rc
 SUFFIXES = .go
 OBJEXT= none
 
-sbin_PROGRAMS = fstored fstorecli 
-fstored_SOURCES = fssrv/fsserv.go fssrv/fsconf.go
+sbin_PROGRAMS = fstored fstorecli
+fstored_SOURCES = fssrv/fsserv.go
+nodist_fstored_SOURCES = fssrv/fsconf.go
 fstorecli_SOURCES = fscli/fscli.go
 
 
@@ -47,7 +48,8 @@ EXTRA_fstored_SOURCES = \
 GOFLAGS = -ldflags="-s -w"
 
 fstored$(EXEEXT): $(fstored_SOURCES) $(EXTRA_fstored_SOURCES)
-	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES)
+	$(GO) build $(GOFLAGS) -o fstored$(EXEEXT) $(fstored_SOURCES) \
+	    $(nodist_fstored_SOURCES)
 
 fstorecli$(EXEEXT): $(fstorecli_SOURCES) $(EXTRA_fstorecli_SOURCES)
 	$(GO) build $(GOFLAGS) -o fstorecli$(EXEEXT) $(fstorecli_SOURCES)
