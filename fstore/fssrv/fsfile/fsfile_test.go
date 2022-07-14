@@ -10,7 +10,7 @@ import(
     "testing"
     "github.com/stretchr/testify/require"
 
-    "dstore/dskvdb"
+    "dstore/dscomm/dskvdb"
     "dstore/fstore/fssrv/fsreg"
 )
 

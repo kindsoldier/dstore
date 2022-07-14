@@ -9,7 +9,7 @@ import (
     "github.com/syndtr/goleveldb/leveldb"
     "github.com/syndtr/goleveldb/leveldb/util"
 
-    "dstore/dsinter"
+    "dstore/dscomm/dsinter"
 )
 
 type DB struct {

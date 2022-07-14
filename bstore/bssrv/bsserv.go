@@ -20,10 +20,10 @@ import (
     "dstore/bstore/bssrv/bsreg"
     "dstore/bstore/bssrv/bstore"
 
-    "dstore/dskvdb"
-    "dstore/dslog"
-    "dstore/dsrpc"
-    "dstore/dserr"
+    "dstore/dscomm/dskvdb"
+    "dstore/dscomm/dslog"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
 )
 
 const successExit   int = 0

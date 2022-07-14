@@ -6,7 +6,7 @@
 package fsapi
 
 import (
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 const AddUserMethod string = "addUser"

@@ -6,9 +6,9 @@ package bscont
 
 import (
     "dstore/bstore/bsapi"
-    "dstore/dsrpc"
-    "dstore/dserr"
-    "dstore/dsdescr"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (contr *Contr) AddUserHandler(context *dsrpc.Context) error {

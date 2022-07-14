@@ -8,8 +8,8 @@ import (
     "testing"
     "github.com/stretchr/testify/require"
 
-    "dstore/dskvdb"
-    "dstore/dsdescr"
+    "dstore/dscomm/dskvdb"
+    "dstore/dscomm/dsdescr"
     "dstore/fstore/fssrv/fsreg"
 )
 

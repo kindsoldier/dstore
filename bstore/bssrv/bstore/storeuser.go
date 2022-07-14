@@ -8,8 +8,8 @@ import (
     "errors"
     "fmt"
     "time"
-    "dstore/dsdescr"
-    "dstore/dserr"
+    "dstore/dscomm/dsdescr"
+    "dstore/dscomm/dserr"
 )
 
 

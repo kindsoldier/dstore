@@ -9,8 +9,8 @@ import (
     "io"
     "path/filepath"
     "dstore/fstore/fssrv/fsfile"
-    "dstore/dserr"
-    "dstore/dsdescr"
+    "dstore/dscomm/dserr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader, fileSize int64) error {

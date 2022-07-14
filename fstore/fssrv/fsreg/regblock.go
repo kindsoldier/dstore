@@ -3,7 +3,7 @@ package fsreg
 import (
     "strings"
     "strconv"
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (reg *Reg) PutBlock(descr *dsdescr.Block) error {

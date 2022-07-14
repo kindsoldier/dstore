@@ -5,7 +5,7 @@
 package dsinter
 
 import (
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 type IterFunc = func(key []byte, val []byte) (bool, error)

@@ -6,9 +6,8 @@ package dsalloc
 
 import (
     "encoding/json"
-    //json "github.com/shamaton/msgpack/v2"
     "sync"
-    "dstore/dsinter"
+    "dstore/dscomm/dsinter"
 )
 
 type Alloc struct {

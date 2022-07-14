@@ -7,9 +7,9 @@ package fsfile
 import (
     "io"
     "time"
-    "dstore/dsinter"
-    "dstore/dsdescr"
-    "dstore/dserr"
+    "dstore/dscomm/dsinter"
+    "dstore/dscomm/dsdescr"
+    "dstore/dscomm/dserr"
 )
 
 type Batch struct {

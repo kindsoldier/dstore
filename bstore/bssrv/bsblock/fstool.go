@@ -13,7 +13,7 @@ import (
     "path/filepath"
     "time"
 
-    "dstore/dserr"
+    "dstore/dscomm/dserr"
 )
 
 func init() {

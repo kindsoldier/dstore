@@ -7,7 +7,7 @@ package bstore
 import (
     "io/fs"
     "time"
-    "dstore/dsinter"
+    "dstore/dscomm/dsinter"
 )
 
 type Store struct {

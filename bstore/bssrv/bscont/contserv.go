@@ -6,8 +6,8 @@ package bscont
 
 import (
     "dstore/bstore/bsapi"
-    "dstore/dsrpc"
-    "dstore/dserr"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
 )
 
 func (contr *Contr) GetStatusHandler(context *dsrpc.Context) error {

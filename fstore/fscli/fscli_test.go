@@ -9,7 +9,7 @@ import (
     "testing"
 
     "github.com/stretchr/testify/require"
-    "dstore/dsrpc"
+    "dstore/dscomm/dsrpc"
 )
 
 func BenchmarkStatus(b *testing.B) {

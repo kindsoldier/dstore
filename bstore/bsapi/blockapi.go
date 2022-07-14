@@ -6,7 +6,7 @@
 package bsapi
 
 import (
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 const SaveBlockMethod string = "saveBlock"

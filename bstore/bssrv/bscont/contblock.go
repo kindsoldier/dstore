@@ -7,8 +7,8 @@ package bscont
 import (
     "errors"
     "dstore/bstore/bsapi"
-    "dstore/dsrpc"
-    "dstore/dserr"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
 )
 
 func (contr *Contr) SaveBlockHandler(context *dsrpc.Context) error {

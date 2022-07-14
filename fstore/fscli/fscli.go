@@ -14,7 +14,7 @@ import (
     "errors"
 
     "dstore/fstore/fsapi"
-    "dstore/dsrpc"
+    "dstore/dscomm/dsrpc"
 )
 
 type any = interface{}

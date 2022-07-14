@@ -9,7 +9,7 @@ import (
     "os"
     "io/fs"
     "github.com/go-yaml/yaml"
-    "dstore/dserr"
+    "dstore/dscomm/dserr"
 )
 
 const configName string = "@srv_name@.conf"

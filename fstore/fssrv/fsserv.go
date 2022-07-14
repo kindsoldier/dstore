@@ -20,11 +20,11 @@ import (
     "dstore/fstore/fssrv/fsreg"
     "dstore/fstore/fssrv/fstore"
 
-    "dstore/dskvdb"
-    "dstore/dslog"
-    "dstore/dsrpc"
-    "dstore/dserr"
-    "dstore/dsalloc"
+    "dstore/dscomm/dskvdb"
+    "dstore/dscomm/dslog"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
+    "dstore/dscomm/dsalloc"
 
 )
 

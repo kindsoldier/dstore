@@ -2,7 +2,7 @@ package fsreg
 
 import (
     "strings"
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (reg *Reg) PutFile(descr *dsdescr.File) error {

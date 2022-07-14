@@ -2,7 +2,7 @@
 package fsreg
 
 import (
-    "dstore/dsinter"
+    "dstore/dscomm/dsinter"
 )
 
 type Reg struct {

@@ -11,7 +11,7 @@ import(
 
     "github.com/stretchr/testify/require"
 
-    "dstore/dskvdb"
+    "dstore/dscomm/dskvdb"
     "dstore/bstore/bssrv/bsreg"
 )
 

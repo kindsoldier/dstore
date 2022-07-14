@@ -11,8 +11,8 @@ import (
 
     "github.com/stretchr/testify/require"
 
-    "dstore/dskvdb"
-    "dstore/dsalloc"
+    "dstore/dscomm/dskvdb"
+    "dstore/dscomm/dsalloc"
     "dstore/fstore/fssrv/fsreg"
 )
 

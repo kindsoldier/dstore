@@ -3,9 +3,9 @@ package fsfile
 import (
     "io"
     "time"
-    "dstore/dsdescr"
-    "dstore/dsinter"
-    "dstore/dserr"
+    "dstore/dscomm/dsdescr"
+    "dstore/dscomm/dsinter"
+    "dstore/dscomm/dserr"
 )
 
 type File struct {

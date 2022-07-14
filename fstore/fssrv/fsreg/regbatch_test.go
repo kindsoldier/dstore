@@ -8,8 +8,8 @@ import(
     "testing"
     "github.com/stretchr/testify/require"
 
-    "dstore/dsdescr"
-    "dstore/dskvdb"
+    "dstore/dscomm/dsdescr"
+    "dstore/dscomm/dskvdb"
 )
 
 func TestBatch01(t *testing.T) {

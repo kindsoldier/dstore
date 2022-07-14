@@ -7,8 +7,8 @@ package fscont
 import (
     "errors"
     "dstore/fstore/fsapi"
-    "dstore/dsrpc"
-    "dstore/dserr"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dserr"
 )
 
 func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {

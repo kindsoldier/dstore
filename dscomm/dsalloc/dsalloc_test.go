@@ -4,7 +4,7 @@ package dsalloc
 import (
     "testing"
     "github.com/stretchr/testify/require"
-    "dstore/dskvdb"
+    "dstore/dscomm/dskvdb"
 )
 
 func TestAlloc01(t *testing.T) {

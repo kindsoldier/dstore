@@ -8,8 +8,8 @@ import (
     "fmt"
     "io"
     "dstore/bstore/bssrv/bsblock"
-    "dstore/dserr"
-    "dstore/dsdescr"
+    "dstore/dscomm/dserr"
+    "dstore/dscomm/dsdescr"
 )
 
 

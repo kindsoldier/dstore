@@ -2,7 +2,7 @@ package bsreg
 
 import (
     "strings"
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (reg *Reg) PutUser(descr *dsdescr.User) error {

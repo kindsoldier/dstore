@@ -3,7 +3,7 @@ package fsreg
 import (
     "strings"
     "strconv"
-    "dstore/dsdescr"
+    "dstore/dscomm/dsdescr"
 )
 
 func (reg *Reg) PutBatch(descr *dsdescr.Batch) error {

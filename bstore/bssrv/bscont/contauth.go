@@ -7,9 +7,9 @@ package bscont
 import (
     "errors"
 
-    "dstore/dsrpc"
-    "dstore/dslog"
-    "dstore/dserr"
+    "dstore/dscomm/dsrpc"
+    "dstore/dscomm/dslog"
+    "dstore/dscomm/dserr"
 )
 
 

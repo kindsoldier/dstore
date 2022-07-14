@@ -7,12 +7,12 @@ package fstore
 import (
     "io/fs"
     "time"
-    "dstore/dsinter"
+    "dstore/dscomm/dsinter"
 )
 
 type Store struct {
     dataDir     string
-    reg         dsinter.StoreReg
+    reg         dsinter.FStoreReg
     dirPerm     fs.FileMode
     filePerm    fs.FileMode
     startTime   int64
@@ -20,7 +20,7 @@ type Store struct {
     fileAlloc   dsinter.Alloc
 }
 
-func NewStore(dataDir string, reg dsinter.StoreReg, fileAlloc dsinter.Alloc) (*Store, error) {
+func NewStore(dataDir string, reg dsinter.FStoreReg, fileAlloc dsinter.Alloc) (*Store, error) {
     var err error
     var store Store
     store.dataDir   = dataDir
