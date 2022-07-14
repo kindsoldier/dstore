@@ -5,7 +5,6 @@
 package fstore
 
 import (
-    "fmt"
     "testing"
     "github.com/stretchr/testify/require"
 
@@ -27,7 +26,7 @@ func TestUser01(t *testing.T) {
     reg, err := fsreg.NewReg(db)
     require.NoError(t, err)
 
-    store, err := NewStore(dataDir, reg)
+    store, err := NewStore(dataDir, reg, nil)
     require.NoError(t, err)
 
     err = store.SeedUsers()
@@ -74,9 +73,5 @@ func TestUser01(t *testing.T) {
 
     descrs, err := store.ListUsers(adminLogin)
     require.NoError(t, err)
-
-    for _, descr := range descrs {
-        descrBin, _ := descr.Pack()
-        fmt.Println(string(descrBin))
-    }
+    require.Equal(t, len(descrs), 2)
 }

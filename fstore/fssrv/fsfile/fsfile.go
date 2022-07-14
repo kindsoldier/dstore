@@ -9,7 +9,7 @@ import (
 )
 
 type File struct {
-    reg             dsinter.StoreReg
+    reg             dsinter.FStoreReg
     baseDir         string
 
     login           string
@@ -26,7 +26,7 @@ type File struct {
     batchs          []*Batch
 }
 
-func NewFile(reg dsinter.StoreReg, baseDir, login, filePath string, fileId, batchSize, blockSize int64) (*File, error) {
+func NewFile(reg dsinter.FStoreReg, baseDir, login, filePath string, fileId, batchSize, blockSize int64) (*File, error) {
     var file File
     var err error
     file.reg        = reg
@@ -51,7 +51,7 @@ func NewFile(reg dsinter.StoreReg, baseDir, login, filePath string, fileId, batc
     return &file, dserr.Err(err)
 }
 
-func OpenFile(reg dsinter.StoreReg, baseDir, login, filePath string) (*File, error) {
+func OpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
     var err error
     var file File
     file.reg        = reg

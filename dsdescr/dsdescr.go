@@ -41,31 +41,6 @@ func (descr *User) Pack() ([]byte, error) {
     return descrBin, err
 }
 
-//type Entry struct {
-//    FilePath    string      `json:"filePath"`
-//    FileId      int64       `json:"fileId"`
-//    CreatedAt   int64       `json:"updatedAt"`
-//    UpdatedAt   int64       `json:"createdAt"`
-//}
-//
-//func NewEntry() *Entry {
-//    var descr Entry
-//    return &descr
-//}
-//
-//func UnpackEntry(descrBin []byte) (*Entry, error) {
-//    var err error
-//    var descr Entry
-//    err = json.Unmarshal(descrBin, &descr)
-//    return &descr, err
-//}
-
-//func (descr *Entry) Pack() ([]byte, error) {
-//    var err error
-//    descrBin, err := json.Marshal(descr)
-//    return descrBin, err
-//}
-
 
 type File struct {
     FilePath    string      `json:"filePath"`
@@ -108,6 +83,7 @@ type Block struct {
     CreatedAt   int64       `json:"createdAt"`
     UpdatedAt   int64       `json:"updatedAt"`
     FilePath    string      `json:"filePath"`
+    BlockType   int64       `json:"blockType"`
 }
 
 func NewBlock() *Block {

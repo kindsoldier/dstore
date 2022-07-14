@@ -28,7 +28,7 @@ type Crate interface {
      Clean() error
 }
 
-type StoreReg interface {
+type FStoreReg interface {
     PutUser(descr *dsdescr.User) error
     HasUser(login string) (bool, error)
     GetUser(login string) (*dsdescr.User, error)
@@ -52,4 +52,18 @@ type StoreReg interface {
     HasBlock(blockId, batchId, fileId int64) (bool, error)
     ListBlocks() ([]*dsdescr.Block, error)
     PutBlock(descr *dsdescr.Block) error
+}
+
+type BStoreReg interface {
+    PutUser(descr *dsdescr.User) error
+    HasUser(login string) (bool, error)
+    GetUser(login string) (*dsdescr.User, error)
+    ListUsers() ([]*dsdescr.User, error)
+    DeleteUser(login string) error
+
+    PutBlock(descr *dsdescr.Block) error
+    GetBlock(fileId, batchId, blockType, blockId int64) (*dsdescr.Block, error)
+    HasBlock(fileId, batchId, blockType, blockId int64) (bool, error)
+    ListBlocks(fileId int64) ([]*dsdescr.Block, error)
+    DeleteBlock(fileId, batchId, blockType, blockId int64) error
 }

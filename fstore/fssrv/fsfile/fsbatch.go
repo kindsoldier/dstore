@@ -13,7 +13,7 @@ import (
 )
 
 type Batch struct {
-    reg         dsinter.StoreReg
+    reg         dsinter.FStoreReg
     baseDir     string
     batchId     int64
     fileId      int64
@@ -24,7 +24,7 @@ type Batch struct {
     blocks      []*Block
 }
 
-func NewBatch(reg dsinter.StoreReg, baseDir string, batchId, fileId, batchSize, blockSize int64) (*Batch, error) {
+func NewBatch(reg dsinter.FStoreReg, baseDir string, batchId, fileId, batchSize, blockSize int64) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
@@ -53,7 +53,7 @@ func NewBatch(reg dsinter.StoreReg, baseDir string, batchId, fileId, batchSize, 
     return &batch, dserr.Err(err)
 }
 
-func OpenBatch(reg dsinter.StoreReg, baseDir string, batchId, fileId int64) (*Batch, error) {
+func OpenBatch(reg dsinter.FStoreReg, baseDir string, batchId, fileId int64) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
