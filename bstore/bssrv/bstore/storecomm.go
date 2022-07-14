@@ -7,6 +7,7 @@ package bstore
 import (
     "io/fs"
     "time"
+    "syscall"
     "dstore/dscomm/dsinter"
 )
 
@@ -41,4 +42,19 @@ func (store *Store) GetUptime() (int64, error) {
     var err error
     uptime := time.Now().Unix() - store.startTime
     return uptime, err
+}
+
+func (store *Store) GetUsage() (uint64, uint64, uint64, error) {
+    var err error
+    var all, free, used uint64
+    path := store.dataDir
+    fs := syscall.Statfs_t{}
+    err = syscall.Statfs(path, &fs)
+    if err != nil {
+        return all, free, used, err
+    }
+    all = fs.Blocks * uint64(fs.Bsize)
+    free = fs.Bfree * uint64(fs.Bsize)
+    used = all - free
+    return all, free, used, err
 }

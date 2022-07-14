@@ -24,7 +24,17 @@ func (contr *Contr) GetStatusHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return dserr.Err(err)
     }
-    result.Uptime = uptime
+    result.SrvUptime = uptime
+
+    diskAll, diskFree, diskUsed, err := contr.store.GetUsage()
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    result.DiskAll  = diskAll
+    result.DiskFree = diskFree
+    result.DiskUsed = diskUsed
+
     err = context.SendResult(result, 0)
     if err != nil {
         return dserr.Err(err)

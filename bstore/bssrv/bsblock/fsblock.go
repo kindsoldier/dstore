@@ -12,7 +12,6 @@ import (
     "dstore/dscomm/dsdescr"
     "dstore/dscomm/dsinter"
     "dstore/dscomm/dserr"
-    "dstore/dscomm/dslog"
 )
 
 type Block struct {
@@ -94,19 +93,6 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
         return wrSize, dserr.Err(err)
     }
 
-    exitFunc := func() {
-        descr := block.toDescr()
-        block.reg.PutBlock(descr)
-        //if err != nil {
-        //    return wrSize, dserr.Err(err)
-        //}
-        descr, _ = block.reg.GetBlock(block.fileId, block.batchId, block.blockType, block.blockId)
-        descrBin, _ := descr.Pack()
-        dslog.LogDebug(string(descrBin))
-    }
-    defer exitFunc()
-
-
     newPath := newFilePath()
     writer, err := OpenCrate(block.baseDir, newPath, WRONLY)
     defer writer.Close()
@@ -151,6 +137,12 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     block.dataSize += wrSize
     if origin != nil {
         origin.Clean()
+    }
+
+    descr := block.toDescr()
+    err = block.reg.PutBlock(descr)
+    if err != nil {
+        return wrSize, dserr.Err(err)
     }
 
     return wrSize, dserr.Err(err)

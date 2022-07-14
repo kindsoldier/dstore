@@ -27,7 +27,7 @@ func newFilePath() (string) {
     hasher.Write(origin)
     hashSum := hasher.Sum(nil)
     hashHex := hex.EncodeToString(hashSum)
-    fileName := hashHex
+    fileName := hashHex + ".block"
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[1:3])
     l3 := string(hashHex[3:5])

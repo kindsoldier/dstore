@@ -104,15 +104,23 @@ const BTData int64 = 1
 const BTReco int64 = 2
 
 type Block struct {
-    BlockId     int64       `json:"blockId"`
-    BatchId     int64       `json:"batchId"`
     FileId      int64       `json:"fileId"`
+    BatchId     int64       `json:"batchId"`
+    BlockType   int64       `json:"blockType"`
+    BlockId     int64       `json:"blockId"`
+
     BlockSize   int64       `json:"blockSize"`
     DataSize    int64       `json:"dataSize"`
     CreatedAt   int64       `json:"createdAt"`
     UpdatedAt   int64       `json:"updatedAt"`
     FilePath    string      `json:"filePath"`
-    BlockType   int64       `json:"blockType"`
+
+    HashInit    string      `json:"hashInit"`
+    HashSum     string      `json:"hashSum"`
+
+    HasLocal    bool        `json:"hasLocal"`
+    HasRemote   bool        `json:"hasRemote"`
+    BstoreId    int64       `json:"bstoreId"`
 }
 
 func NewBlock() *Block {
