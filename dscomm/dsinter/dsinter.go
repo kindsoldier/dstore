@@ -47,11 +47,11 @@ type FStoreReg interface {
     ListBatchs() ([]*dsdescr.Batch, error)
     PutBatch(descr *dsdescr.Batch) error
 
-    DeleteBlock(blockId, batchId, fileId int64) error
-    GetBlock(blockId, batchId, fileId int64) (*dsdescr.Block, error)
-    HasBlock(blockId, batchId, fileId int64) (bool, error)
-    ListBlocks() ([]*dsdescr.Block, error)
     PutBlock(descr *dsdescr.Block) error
+    GetBlock(fileId, batchId, blockType, blockId int64) (*dsdescr.Block, error)
+    HasBlock(fileId, batchId, blockType, blockId int64) (bool, error)
+    ListBlocks(fileId int64) ([]*dsdescr.Block, error)
+    DeleteBlock(fileId, batchId, blockType, blockId int64) error
 }
 
 type BStoreReg interface {

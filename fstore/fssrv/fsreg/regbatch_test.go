@@ -27,8 +27,8 @@ func TestBatch01(t *testing.T) {
     require.NotEqual(t, reg, nil)
 
     descr0 := dsdescr.NewBatch()
-    descr0.BatchId    = 2
     descr0.FileId     = 3
+    descr0.BatchId    = 2
     descr0.BatchSize  = 5
     descr0.BlockSize  = 1024
     descr0.CreatedAt = 1657645101
@@ -37,11 +37,11 @@ func TestBatch01(t *testing.T) {
     err = reg.PutBatch(descr0)
     require.NoError(t, err)
 
-    has, err = reg.HasBatch(descr0.BatchId, descr0.FileId)
+    has, err = reg.HasBatch(descr0.FileId, descr0.BatchId)
     require.NoError(t, err)
     require.Equal(t, has, true)
 
-    descr1, err := reg.GetBatch(descr0.BatchId, descr0.FileId)
+    descr1, err := reg.GetBatch(descr0.FileId, descr0.BatchId)
     require.NoError(t, err)
     require.Equal(t, descr0, descr1)
 
@@ -49,10 +49,10 @@ func TestBatch01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, len(descrs), 1)
 
-    err = reg.DeleteBatch(descr0.BatchId, descr0.FileId)
+    err = reg.DeleteBatch(descr0.FileId, descr0.BatchId)
     require.NoError(t, err)
 
-    has, err = reg.HasBatch(descr0.BatchId, descr0.FileId)
+    has, err = reg.HasBatch(descr0.FileId, descr0.BatchId)
     require.NoError(t, err)
     require.Equal(t, has, false)
 }

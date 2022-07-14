@@ -17,7 +17,7 @@ func (reg *Reg) PutBatch(descr *dsdescr.Batch) error {
     return err
 }
 
-func (reg *Reg) HasBatch(batchId, fileId int64) (bool, error) {
+func (reg *Reg) HasBatch(fileId, batchId int64) (bool, error) {
     var err error
     batchIdStr := strconv.FormatInt(batchId, 10)
     fileIdStr := strconv.FormatInt(fileId, 10)
@@ -30,7 +30,7 @@ func (reg *Reg) HasBatch(batchId, fileId int64) (bool, error) {
     return has, err
 }
 
-func (reg *Reg) GetBatch(batchId, fileId int64) (*dsdescr.Batch, error) {
+func (reg *Reg) GetBatch(fileId, batchId int64) (*dsdescr.Batch, error) {
     var err error
     var descr *dsdescr.Batch
     batchIdStr := strconv.FormatInt(batchId, 10)
@@ -48,7 +48,7 @@ func (reg *Reg) GetBatch(batchId, fileId int64) (*dsdescr.Batch, error) {
     return descr, err
 }
 
-func (reg *Reg) DeleteBatch(batchId, fileId int64) error {
+func (reg *Reg) DeleteBatch(fileId, batchId int64) error {
     var err error
     batchIdStr := strconv.FormatInt(batchId, 10)
     fileIdStr := strconv.FormatInt(fileId, 10)
