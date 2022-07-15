@@ -29,9 +29,9 @@ to be able to use the pseudo-directory listing
 
 ## Generic draft
 
-```
-![](/docs/toplev-draft1.svg "Draft")
-```
+
+![](/docs/draft01.svg "Draft")
+
 
 ## Comman line samples
 
