@@ -107,7 +107,6 @@ func (store *Store) DeleteBlock(fileId, batchId, blockType, blockId int64) error
         return dserr.Err(err)
     }
     if !has {
-        err = fmt.Errorf("block %d,%d,%d,%d not exist", fileId, batchId, blockType, blockId)
         return dserr.Err(err)
     }
     block, err := bsblock.OpenBlock(store.reg, store.dataDir, fileId, batchId, blockType, blockId)

@@ -427,8 +427,8 @@ func (server *Server) RunService() error {
     dirPerm     := server.Params.DirPerm
     dataDir     := server.Params.DataDir
 
-    develMode   := server.Params.DevelMode
-    debugMode   := server.Params.DebugMode
+    develMode   := false //server.Params.DevelMode
+    debugMode   := false //server.Params.DebugMode
 
     dslog.SetDebugMode(debugMode)
 
