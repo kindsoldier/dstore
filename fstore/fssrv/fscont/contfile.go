@@ -25,13 +25,14 @@ func (contr *Contr) SaveFileHandler(context *dsrpc.Context) error {
     login    := string(context.AuthIdent())
 
     filePath := params.FilePath
-    err = contr.store.SaveFile(login, filePath, fileReader, fileSize)
+    descr, err := contr.store.SaveFile(login, filePath, fileReader, fileSize)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
     }
 
     result := fsapi.NewSaveFileResult()
+    result.File = descr
     err = context.SendResult(result, 0)
     if err != nil {
         return dserr.Err(err)
@@ -53,7 +54,7 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
     fileWriter  := context.BinWriter()
     login := string(context.AuthIdent())
 
-    has, fileSize, err := contr.store.HasFile(login, filePath)
+    has, descr, err := contr.store.HasFile(login, filePath)
     if err != nil {
         err = dserr.Err(err)
         context.SendError(err)
@@ -65,7 +66,16 @@ func (contr *Contr) LoadFileHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return err
     }
+    if descr == nil {
+        err = errors.New("file descr is nil")
+        err = dserr.Err(err)
+        context.SendError(err)
+        return err
+    }
+
+    fileSize := descr.DataSize
     result := fsapi.NewLoadFileResult()
+    result.File = descr
     err = context.SendResult(result, fileSize)
     if err != nil {
         return dserr.Err(err)
@@ -89,12 +99,13 @@ func (contr *Contr) DeleteFileHandler(context *dsrpc.Context) error {
     filePath    := params.FilePath
     login    := string(context.AuthIdent())
 
-    err = contr.store.DeleteFile(login, filePath)
+    descr, err:= contr.store.DeleteFile(login, filePath)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
     }
     result := fsapi.NewDeleteFileResult()
+    result.File = descr
     err = context.SendResult(result, 0)
     if err != nil {
         return dserr.Err(err)

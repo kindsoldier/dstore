@@ -433,11 +433,11 @@ func (server *Server) RunService() error {
 
     dslog.SetDebugMode(debugMode)
 
-    dserr.SetDevelMode(develMode)
-    dserr.SetDebugMode(debugMode)
+    //dserr.SetDevelMode(develMode)
+    //dserr.SetDebugMode(debugMode)
 
-    dsrpc.SetDevelMode(develMode)
-    dsrpc.SetDebugMode(debugMode)
+    //dsrpc.SetDevelMode(develMode)
+    //dsrpc.SetDebugMode(debugMode)
 
     db, err := dskvdb.OpenDB(dataDir, "storedb")
     if err != nil {

@@ -9,21 +9,24 @@ import (
     "dstore/dscomm/dsdescr"
 )
 
-const DeleteFileMethod string = "deleteFile"
-type DeleteFileParams struct {
+const SaveFileMethod string = "saveFile"
+
+type SaveFileParams struct {
     FilePath    string              `msgpack:"filePath"  json:"filePath"`
 }
 
-type DeleteFileResult struct {
+type SaveFileResult struct {
+    File   *dsdescr.File            `msgpack:"file"    json:"file"`
 }
 
-func NewDeleteFileResult() *DeleteFileResult {
-    return &DeleteFileResult{}
+func NewSaveFileResult() *SaveFileResult {
+    return &SaveFileResult{}
 }
 
-func NewDeleteFileParams() *DeleteFileParams {
-    return &DeleteFileParams{}
+func NewSaveFileParams() *SaveFileParams {
+    return &SaveFileParams{}
 }
+
 
 const ListFilesMethod string = "listFiles"
 
@@ -43,6 +46,7 @@ func NewListFilesParams() *ListFilesParams {
     return &ListFilesParams{}
 }
 
+
 const LoadFileMethod string = "loadFile"
 
 type LoadFileParams struct {
@@ -50,6 +54,7 @@ type LoadFileParams struct {
 }
 
 type LoadFileResult struct {
+    File   *dsdescr.File            `msgpack:"file"    json:"file"`
 }
 
 func NewLoadFileResult() *LoadFileResult {
@@ -59,19 +64,20 @@ func NewLoadFileParams() *LoadFileParams {
     return &LoadFileParams{}
 }
 
-const SaveFileMethod string = "saveFile"
 
-type SaveFileParams struct {
+const DeleteFileMethod string = "deleteFile"
+type DeleteFileParams struct {
     FilePath    string              `msgpack:"filePath"  json:"filePath"`
 }
 
-type SaveFileResult struct {
+type DeleteFileResult struct {
+    File   *dsdescr.File            `msgpack:"file"    json:"file"`
 }
 
-func NewSaveFileResult() *SaveFileResult {
-    return &SaveFileResult{}
+func NewDeleteFileResult() *DeleteFileResult {
+    return &DeleteFileResult{}
 }
 
-func NewSaveFileParams() *SaveFileParams {
-    return &SaveFileParams{}
+func NewDeleteFileParams() *DeleteFileParams {
+    return &DeleteFileParams{}
 }

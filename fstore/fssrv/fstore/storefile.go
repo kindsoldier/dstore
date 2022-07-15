@@ -11,72 +11,90 @@ import (
     "dstore/fstore/fssrv/fsfile"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsdescr"
+    "dstore/dscomm/dslog"
 )
 
-func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader, fileSize int64) error {
+func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader, fileSize int64) (*dsdescr.File, error) {
     var err error
     var has bool
+    var descr *dsdescr.File
 
     filePath = cleanPath(filePath)
     has, err = store.reg.HasFile(login, filePath)
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     if has {
+        descr, err = store.reg.GetFile(login, filePath)
+        if err != nil {
+            return descr, dserr.Err(err)
+        }
         err = fmt.Errorf("file %s already exist", filePath)
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
 
     var batchSize   int64 = 5
-    var blockSize   int64 = 1024 * 1024 * 13
+    var blockSize   int64 = 1024 * 1024 * 8
 
     if fileSize < blockSize * batchSize {
         blockSize = fileSize / batchSize
-        rs := int64(1024 * 10)
+        rs := int64(1024 * 16)
         bs := blockSize / rs
         blockSize = (bs + 1) * rs
     }
 
     fileId, err := store.fileAlloc.NewId()
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     file, err := fsfile.NewFile(store.reg, store.dataDir, login, filePath, fileId, batchSize, blockSize)
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     wrSize, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     if err != nil  {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     if wrSize != fileSize {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
-    return dserr.Err(err)
+
+    has, err = store.reg.HasFile(login, filePath)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+    if !has {
+        err = fmt.Errorf("file %s not saved", filePath)
+        return descr, dserr.Err(err)
+    }
+    descr, err = store.reg.GetFile(login, filePath)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+    return descr, dserr.Err(err)
 }
 
-func (store *Store) HasFile(login string, filePath string) (bool, int64, error) {
+func (store *Store) HasFile(login string, filePath string) (bool, *dsdescr.File, error) {
     var err error
     var has bool
-    var fileSize int64
+    var descr *dsdescr.File
     filePath = cleanPath(filePath)
     has, err = store.reg.HasFile(login, filePath)
     if err != nil {
-        return has, fileSize, dserr.Err(err)
+        return has, descr, dserr.Err(err)
     }
     if !has {
         err = fmt.Errorf("file %s not exist", filePath)
-        return has, fileSize, dserr.Err(err)
+        return has, descr, dserr.Err(err)
     }
-    descr, err := store.reg.GetFile(login, filePath)
+    descr, err = store.reg.GetFile(login, filePath)
     if err != nil {
-        return has, fileSize, dserr.Err(err)
+        return has, descr, dserr.Err(err)
     }
-    fileSize = descr.DataSize
-    return has, fileSize, dserr.Err(err)
+    return has, descr, dserr.Err(err)
 }
 
 func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer) error {
@@ -112,30 +130,37 @@ func (store *Store) ListFiles(login string, dirPath string) ([]*dsdescr.File, er
     return files, dserr.Err(err)
 }
 
-func (store *Store) DeleteFile(login string, filePath string) error {
+func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, error) {
     var err error
+    var descr *dsdescr.File
     filePath = cleanPath(filePath)
     has, err := store.reg.HasFile(login, filePath)
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     if !has {
-        err = fmt.Errorf("file %s not exist", filePath)
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
+    descr, err = store.reg.GetFile(login, filePath)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+
     file, err := fsfile.ForceOpenFile(store.reg, store.dataDir, login, filePath)
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     err = file.Clean()
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
     store.fileAlloc.FreeId(file.FileId())
     if err != nil {
-        return dserr.Err(err)
+        return descr, dserr.Err(err)
     }
-    return dserr.Err(err)
+    allocJSON, _ := store.fileAlloc.JSON()
+    dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+    return descr, dserr.Err(err)
 }
 
 func (store *Store) checkLogin(login string) error {

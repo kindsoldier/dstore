@@ -241,6 +241,12 @@ func (store *Store) DeleteUser(authLogin string, login string) error {
         return dserr.Err(err)
     }
 
+    files, err := store.reg.ListFiles(login)
+    if len(files) > 0 {
+        err = fmt.Errorf("user %s has files", login)
+        return dserr.Err(err)
+    }
+
     err = store.reg.DeleteUser(login)
     if err != nil {
         return dserr.Err(err)
