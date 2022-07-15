@@ -8,6 +8,7 @@ import (
     "fmt"
     "io"
     "path/filepath"
+    "regexp"
     "dstore/fstore/fssrv/fsfile"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsdescr"
@@ -119,15 +120,86 @@ func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer
     return dserr.Err(err)
 }
 
-
-func (store *Store) ListFiles(login string, dirPath string) ([]*dsdescr.File, error) {
+func (store *Store) FileStats(login, pattern, regular string) (int64, int64, error) {
     var err error
-    files := make([]*dsdescr.File, 0)
-    files, err = store.reg.ListFiles(login)
+    var usage int64
+    var count int64
+    descrs, err := store.ListFiles(login, pattern, regular)
     if err != nil {
-        return files, dserr.Err(err)
+        return count, usage, err
     }
-    return files, dserr.Err(err)
+    for _, descr := range descrs {
+        usage += descr.DataSize
+        count++
+    }
+    return count, usage, err
+}
+
+func (store *Store) ListFiles(login, pattern, regular string) ([]*dsdescr.File, error) {
+    return store.listFiles(login, pattern, regular)
+}
+
+func (store *Store) listFiles(login, pattern, regular string) ([]*dsdescr.File, error) {
+    var err error
+    resDescrs := make([]*dsdescr.File, 0)
+    descrs, err := store.reg.ListFiles(login)
+    if err != nil {
+        return resDescrs, dserr.Err(err)
+    }
+
+    usePattern := false
+    useRegular := false
+    if len(pattern) > 0 {
+        usePattern = true
+    }
+    if len(regular) > 0 {
+        useRegular = true
+    }
+
+    dslog.LogDebug("use pattern:", pattern, regular)
+
+    dslog.LogDebug("use pattern:", usePattern, useRegular)
+
+    if !usePattern && !useRegular {
+        resDescrs = descrs
+        return resDescrs, dserr.Err(err)
+    }
+
+    pattern = "/" + pattern
+    pattern = filepath.Clean(pattern)
+
+    re, err := regexp.CompilePOSIX(regular)
+    if err != nil {
+        return resDescrs, dserr.Err(err)
+    }
+
+    for _, descr := range descrs {
+        ok1 := false
+        ok2 := false
+        switch useRegular {
+            case true:
+                ok1 = re.Match([]byte(descr.FilePath))
+                if err != nil {
+                    return resDescrs, dserr.Err(err)
+                }
+            default:
+                ok1 = true
+        }
+        switch usePattern {
+            case true:
+                ok2, err = filepath.Match(pattern, descr.FilePath)
+                if err != nil {
+                    return resDescrs, dserr.Err(err)
+                }
+            default:
+                ok2 = true
+        }
+        if ok1 && ok2 {
+            dslog.LogDebug("res ok:", ok1, ok2)
+            resDescrs = append(resDescrs, descr)
+        }
+    }
+    return resDescrs, dserr.Err(err)
 }
 
 func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, error) {
@@ -159,7 +231,9 @@ func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, er
         return descr, dserr.Err(err)
     }
     allocJSON, _ := store.fileAlloc.JSON()
+
     dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+
     return descr, dserr.Err(err)
 }
 

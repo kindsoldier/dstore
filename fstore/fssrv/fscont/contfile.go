@@ -121,16 +121,44 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return dserr.Err(err)
     }
-    dirPath := params.DirPath
+    pattern := params.Pattern
+    regular := params.Regular
     login   := string(context.AuthIdent())
 
-    files, err := contr.store.ListFiles(login, dirPath)
+    files, err := contr.store.ListFiles(login, pattern, regular)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
     }
     result := fsapi.NewListFilesResult()
     result.Files = files
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+
+func (contr *Contr) FileStatsHandler(context *dsrpc.Context) error {
+    var err error
+    params := fsapi.NewFileStatsParams()
+    err = context.BindParams(params)
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    pattern := params.Pattern
+    regular := params.Regular
+    login   := string(context.AuthIdent())
+
+    count, usage, err := contr.store.FileStats(login, pattern, regular)
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    result := fsapi.NewFileStatsResult()
+    result.Usage = usage
+    result.Count = count
     err = context.SendResult(result, 0)
     if err != nil {
         return dserr.Err(err)

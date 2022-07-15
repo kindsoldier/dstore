@@ -122,7 +122,8 @@ func (contr *Contr) ListUsersHandler(context *dsrpc.Context) error {
         return dserr.Err(err)
     }
     authLogin := string(context.AuthIdent())
-    users, err := contr.store.ListUsers(authLogin)
+    regular := params.Regular
+    users, err := contr.store.ListUsers(authLogin, regular)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)

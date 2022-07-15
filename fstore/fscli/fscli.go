@@ -46,6 +46,9 @@ type Util struct {
 
     LocalFilePath   string
     RemoteFilePath  string
+
+    Pattern     string
+    Regular     string
 }
 
 func NewUtil() *Util {
@@ -58,10 +61,11 @@ func NewUtil() *Util {
     return &util
 }
 
-const getStatusCmd       string = "getStatus"
+const getStatusCmd      string = "getStatus"
 const saveFileCmd       string = "saveFile"
 const loadFileCmd       string = "loadFile"
 const listFilesCmd      string = "listFiles"
+const fileStatsCmd      string = "fileStats"
 const deleteFileCmd     string = "deleteFile"
 
 const addUserCmd        string = "addUser"
@@ -70,11 +74,10 @@ const updateUserCmd     string = "updateUser"
 const deleteUserCmd     string = "deleteUser"
 const listUsersCmd      string = "listUsers"
 
-const addBStoreCmd        string = "addBStore"
-const updateBStoreCmd     string = "updateBStore"
-const deleteBStoreCmd     string = "deleteBStore"
-const listBStoresCmd      string = "listBStores"
-
+const addBStoreCmd      string = "addBStore"
+const updateBStoreCmd   string = "updateBStore"
+const deleteBStoreCmd   string = "deleteBStore"
+const listBStoresCmd    string = "listBStores"
 
 const helpCmd           string = "help"
 
@@ -94,7 +97,7 @@ func (util *Util) GetOpt() error {
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
         fmt.Printf("Command list: help, getStatus, \n")
-        fmt.Printf("    saveFile, loadFile, listFiles, deleteFile \n")
+        fmt.Printf("    saveFile, loadFile, listFiles, fileStats, deleteFile \n")
         fmt.Printf("    addUser, checkUser, updateUser, listUsers, deleteUser \n")
 //        fmt.Printf("    addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
 
@@ -148,8 +151,11 @@ func (util *Util) GetOpt() error {
             }
             flagSet.Parse(subArgs)
             util.SubCmd = subCmd
-        case listFilesCmd:
+        case listFilesCmd, fileStatsCmd:
             flagSet := flag.NewFlagSet(listFilesCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Pattern, "patt", util.Pattern, "shell-like pattern")
+            flagSet.StringVar(&util.Regular, "regex", util.Regular, "regexp pattern")
+
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
@@ -203,6 +209,7 @@ func (util *Util) GetOpt() error {
             util.SubCmd = subCmd
         case listUsersCmd:
             flagSet := flag.NewFlagSet(deleteUserCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Regular, "regex", util.Regular, "regexp pattern")
             flagSet.Usage = func() {
                 fmt.Printf("\n")
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
@@ -305,6 +312,8 @@ func (util *Util) Exec() error {
             result, err = util.LoadFileCmd(auth)
         case listFilesCmd:
             result, err = util.ListFilesCmd(auth)
+        case fileStatsCmd:
+            result, err = util.FileStatsCmd(auth)
         case deleteFileCmd:
             result, err = util.DeleteFileCmd(auth)
 
@@ -394,6 +403,8 @@ func (util *Util) LoadFileCmd(auth *dsrpc.Auth) (*fsapi.LoadFileResult, error) {
 func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error) {
     var err error
     params := fsapi.NewListFilesParams()
+    params.Pattern = util.Pattern
+    params.Regular = util.Regular
     result := fsapi.NewListFilesResult()
     err = dsrpc.Exec(util.URI, fsapi.ListFilesMethod, params, result, auth)
     if err != nil {
@@ -401,6 +412,20 @@ func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error)
     }
     return result, err
 }
+
+func (util *Util) FileStatsCmd(auth *dsrpc.Auth) (*fsapi.FileStatsResult, error) {
+    var err error
+    params := fsapi.NewFileStatsParams()
+    params.Pattern = util.Pattern
+    params.Regular = util.Regular
+    result := fsapi.NewFileStatsResult()
+    err = dsrpc.Exec(util.URI, fsapi.FileStatsMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
 
 func (util *Util) DeleteFileCmd(auth *dsrpc.Auth) (*fsapi.DeleteFileResult, error) {
     var err error
@@ -468,6 +493,7 @@ func (util *Util) DeleteUserCmd(auth *dsrpc.Auth) (*fsapi.DeleteUserResult, erro
 func (util *Util) ListUsersCmd(auth *dsrpc.Auth) (*fsapi.ListUsersResult, error) {
     var err error
     params := fsapi.NewListUsersParams()
+    params.Regular = util.Regular
     result := fsapi.NewListUsersResult()
     err = dsrpc.Exec(util.URI, fsapi.ListUsersMethod, params, result, auth)
     if err != nil {

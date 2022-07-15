@@ -11,9 +11,9 @@ import (
 
 const AddUserMethod string = "addUser"
 type AddUserParams struct {
-    Login   string      `msgpack:"login"    json:"login"`
-    Pass    string      `msgpack:"pass"    json:"pass"`
-    State   string      `msgpack:"state"    json:"state"`
+    Login   string              `msgpack:"login"    json:"login"`
+    Pass    string              `msgpack:"pass"     json:"pass"`
+    State   string              `msgpack:"state"    json:"state"`
 }
 type AddUserResult struct {
 }
@@ -26,9 +26,9 @@ func NewAddUserParams() *AddUserParams {
 
 const UpdateUserMethod string = "updateUser"
 type UpdateUserParams struct {
-    Login   string      `json:"login"`
-    Pass    string      `json:"pass"`
-    State   string      `json:"state"`
+    Login   string              `json:"login"`
+    Pass    string              `json:"pass"`
+    State   string              `json:"state"`
 }
 type UpdateUserResult struct {
 }
@@ -42,11 +42,11 @@ func NewUpdateUserParams() *UpdateUserParams {
 
 const CheckUserMethod string = "checkUser"
 type CheckUserParams struct {
-    Login   string      `json:"login"`
-    Pass    string      `json:"pass"`
+    Login   string              `json:"login"`
+    Pass    string              `json:"pass"`
 }
 type CheckUserResult struct {
-    Match   bool        `json:"match"`
+    Match   bool                `json:"match"`
 }
 
 func NewCheckUserResult() *CheckUserResult {
@@ -58,9 +58,10 @@ func NewCheckUserParams() *CheckUserParams {
 
 const ListUsersMethod string = "listUsers"
 type ListUsersParams struct {
+    Regular string              `json:"regular"`
 }
 type ListUsersResult struct {
-    Users  []*dsdescr.User     `json:"users"`
+    Users  []*dsdescr.User      `json:"users"`
 }
 func NewListUsersResult() *ListUsersResult {
     return &ListUsersResult{}

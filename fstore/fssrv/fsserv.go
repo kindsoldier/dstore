@@ -480,6 +480,7 @@ func (server *Server) RunService() error {
 
     serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
     serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
+    serv.Handler(fsapi.FileStatsMethod, contr.FileStatsHandler)
     serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
     serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
 

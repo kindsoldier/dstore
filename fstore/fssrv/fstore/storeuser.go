@@ -7,6 +7,7 @@ package fstore
 import (
     "errors"
     "fmt"
+    "regexp"
     "time"
     "dstore/dscomm/dsdescr"
     "dstore/dscomm/dserr"
@@ -217,19 +218,35 @@ func (store *Store) UpdateUser(authLogin string, user *dsdescr.User) error {
     return dserr.Err(err)
 }
 
-func (store *Store) ListUsers(authLogin string) ([]*dsdescr.User, error) {
+func (store *Store) ListUsers(authLogin, regular string) ([]*dsdescr.User, error) {
     var err error
-    users := make([]*dsdescr.User, 0)
+
+    resDescrs := make([]*dsdescr.User, 0)
     userRole, err := store.getUserRole(authLogin)
     if userRole != dsdescr.URoleAdmin {
         err = fmt.Errorf("user %s have insufficient rights", authLogin)
-        return users, dserr.Err(err)
+        return resDescrs, dserr.Err(err)
     }
-    users, err = store.reg.ListUsers()
+
+    descrs, err := store.reg.ListUsers()
     if err != nil {
-        return users, dserr.Err(err)
+        return resDescrs, dserr.Err(err)
     }
-    return users, dserr.Err(err)
+    if len(regular) == 0 {
+        resDescrs = descrs
+        return resDescrs, dserr.Err(err)
+    }
+    re, err := regexp.CompilePOSIX(regular)
+    if err != nil {
+        return resDescrs, dserr.Err(err)
+    }
+    for _, descr := range descrs {
+        ok := re.Match([]byte(descr.Login))
+        if ok {
+            resDescrs = append(resDescrs, descr)
+        }
+    }
+    return resDescrs, dserr.Err(err)
 }
 
 func (store *Store) DeleteUser(authLogin string, login string) error {

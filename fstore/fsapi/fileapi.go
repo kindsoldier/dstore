@@ -31,7 +31,8 @@ func NewSaveFileParams() *SaveFileParams {
 const ListFilesMethod string = "listFiles"
 
 type ListFilesParams struct {
-    DirPath     string              `msgpack:"dirPath"  json:"dirPath"`
+    Pattern     string              `msgpack:"pattern"  json:"pattern"`
+    Regular     string              `msgpack:"pegular"  json:"regular"`
 }
 
 type ListFilesResult struct {
@@ -80,4 +81,25 @@ func NewDeleteFileResult() *DeleteFileResult {
 
 func NewDeleteFileParams() *DeleteFileParams {
     return &DeleteFileParams{}
+}
+
+
+const FileStatsMethod string = "fileStats"
+
+type FileStatsParams struct {
+    Pattern     string              `msgpack:"pattern"  json:"pattern"`
+    Regular     string              `msgpack:"pegular"  json:"regular"`
+}
+
+type FileStatsResult struct {
+    Count      int64                `msgpack:"count"    json:"count"`
+    Usage      int64                `msgpack:"usage"    json:"usage"`
+}
+
+func NewFileStatsResult() *FileStatsResult {
+    return &FileStatsResult{}
+}
+
+func NewFileStatsParams() *FileStatsParams {
+    return &FileStatsParams{}
 }
