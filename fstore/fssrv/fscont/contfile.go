@@ -121,11 +121,13 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return dserr.Err(err)
     }
-    pattern := params.Pattern
-    regular := params.Regular
+    pattern     := params.Pattern
+    regular     := params.Regular
+    gPattern    := params.GPattern
+
     login   := string(context.AuthIdent())
 
-    files, err := contr.store.ListFiles(login, pattern, regular)
+    files, err := contr.store.ListFiles(login, pattern, regular, gPattern)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -147,11 +149,13 @@ func (contr *Contr) FileStatsHandler(context *dsrpc.Context) error {
         context.SendError(err)
         return dserr.Err(err)
     }
-    pattern := params.Pattern
-    regular := params.Regular
+    pattern     := params.Pattern
+    regular     := params.Regular
+    gPattern    := params.GPattern
+
     login   := string(context.AuthIdent())
 
-    count, usage, err := contr.store.FileStats(login, pattern, regular)
+    count, usage, err := contr.store.FileStats(login, pattern, regular, gPattern)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)

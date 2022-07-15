@@ -48,6 +48,7 @@ type Util struct {
     RemoteFilePath  string
 
     Pattern     string
+    GPattern    string
     Regular     string
 }
 
@@ -155,6 +156,7 @@ func (util *Util) GetOpt() error {
             flagSet := flag.NewFlagSet(listFilesCmd, flag.ExitOnError)
             flagSet.StringVar(&util.Pattern, "patt", util.Pattern, "shell-like pattern")
             flagSet.StringVar(&util.Regular, "regex", util.Regular, "regexp pattern")
+            flagSet.StringVar(&util.GPattern, "glob", util.GPattern, "glob pattern")
 
             flagSet.Usage = func() {
                 fmt.Printf("\n")
@@ -405,6 +407,8 @@ func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error)
     params := fsapi.NewListFilesParams()
     params.Pattern = util.Pattern
     params.Regular = util.Regular
+    params.GPattern = util.GPattern
+
     result := fsapi.NewListFilesResult()
     err = dsrpc.Exec(util.URI, fsapi.ListFilesMethod, params, result, auth)
     if err != nil {
@@ -416,8 +420,10 @@ func (util *Util) ListFilesCmd(auth *dsrpc.Auth) (*fsapi.ListFilesResult, error)
 func (util *Util) FileStatsCmd(auth *dsrpc.Auth) (*fsapi.FileStatsResult, error) {
     var err error
     params := fsapi.NewFileStatsParams()
-    params.Pattern = util.Pattern
-    params.Regular = util.Regular
+    params.Pattern  = util.Pattern
+    params.Regular  = util.Regular
+    params.GPattern = util.GPattern
+
     result := fsapi.NewFileStatsResult()
     err = dsrpc.Exec(util.URI, fsapi.FileStatsMethod, params, result, auth)
     if err != nil {
@@ -442,8 +448,8 @@ func (util *Util) DeleteFileCmd(auth *dsrpc.Auth) (*fsapi.DeleteFileResult, erro
 func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*fsapi.AddUserResult, error) {
     var err error
     params := fsapi.NewAddUserParams()
-    params.Login = util.Login
-    params.Pass = util.Pass
+    params.Login    = util.Login
+    params.Pass     = util.Pass
     result := fsapi.NewAddUserResult()
     err = dsrpc.Exec(util.URI, fsapi.AddUserMethod, params, result, auth)
     if err != nil {

@@ -9,6 +9,9 @@ import (
     "io"
     "path/filepath"
     "regexp"
+
+    "github.com/ganbarodigital/go_glob"
+
     "dstore/fstore/fssrv/fsfile"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsdescr"
@@ -120,11 +123,11 @@ func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer
     return dserr.Err(err)
 }
 
-func (store *Store) FileStats(login, pattern, regular string) (int64, int64, error) {
+func (store *Store) FileStats(login, pattern, regular, gPattern string) (int64, int64, error) {
     var err error
     var usage int64
     var count int64
-    descrs, err := store.ListFiles(login, pattern, regular)
+    descrs, err := store.ListFiles(login, pattern, regular, gPattern)
     if err != nil {
         return count, usage, err
     }
@@ -135,11 +138,11 @@ func (store *Store) FileStats(login, pattern, regular string) (int64, int64, err
     return count, usage, err
 }
 
-func (store *Store) ListFiles(login, pattern, regular string) ([]*dsdescr.File, error) {
-    return store.listFiles(login, pattern, regular)
+func (store *Store) ListFiles(login, pattern, regular, gPattern string) ([]*dsdescr.File, error) {
+    return store.listFiles(login, pattern, regular, gPattern)
 }
 
-func (store *Store) listFiles(login, pattern, regular string) ([]*dsdescr.File, error) {
+func (store *Store) listFiles(login, pattern, regular, gPattern string) ([]*dsdescr.File, error) {
     var err error
     resDescrs := make([]*dsdescr.File, 0)
     descrs, err := store.reg.ListFiles(login)
@@ -147,20 +150,20 @@ func (store *Store) listFiles(login, pattern, regular string) ([]*dsdescr.File, 
         return resDescrs, dserr.Err(err)
     }
 
-    usePattern := false
-    useRegular := false
+    usePattern  := false
+    useRegular  := false
+    useGPattern := false
     if len(pattern) > 0 {
         usePattern = true
     }
     if len(regular) > 0 {
         useRegular = true
     }
+    if len(gPattern) > 0 {
+        useGPattern = true
+    }
 
-    dslog.LogDebug("use pattern:", pattern, regular)
-
-    dslog.LogDebug("use pattern:", usePattern, useRegular)
-
-    if !usePattern && !useRegular {
+    if !usePattern && !useRegular && !useGPattern {
         resDescrs = descrs
         return resDescrs, dserr.Err(err)
     }
@@ -172,16 +175,15 @@ func (store *Store) listFiles(login, pattern, regular string) ([]*dsdescr.File, 
     if err != nil {
         return resDescrs, dserr.Err(err)
     }
+    g := glob.NewGlob(gPattern)
 
     for _, descr := range descrs {
         ok1 := false
         ok2 := false
+        ok3 := false
         switch useRegular {
             case true:
                 ok1 = re.Match([]byte(descr.FilePath))
-                if err != nil {
-                    return resDescrs, dserr.Err(err)
-                }
             default:
                 ok1 = true
         }
@@ -194,8 +196,17 @@ func (store *Store) listFiles(login, pattern, regular string) ([]*dsdescr.File, 
             default:
                 ok2 = true
         }
-        if ok1 && ok2 {
-            dslog.LogDebug("res ok:", ok1, ok2)
+        switch useGPattern {
+            case true:
+                ok3, err = g.Match(descr.FilePath)
+                if err != nil {
+                    return resDescrs, dserr.Err(err)
+                }
+            default:
+                ok3 = true
+        }
+
+        if ok1 && ok2 && ok3 {
             resDescrs = append(resDescrs, descr)
         }
     }

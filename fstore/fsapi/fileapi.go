@@ -33,6 +33,7 @@ const ListFilesMethod string = "listFiles"
 type ListFilesParams struct {
     Pattern     string              `msgpack:"pattern"  json:"pattern"`
     Regular     string              `msgpack:"pegular"  json:"regular"`
+    GPattern    string              `msgpack:"gPattern"     json:"gPattern"`
 }
 
 type ListFilesResult struct {
@@ -87,8 +88,9 @@ func NewDeleteFileParams() *DeleteFileParams {
 const FileStatsMethod string = "fileStats"
 
 type FileStatsParams struct {
-    Pattern     string              `msgpack:"pattern"  json:"pattern"`
-    Regular     string              `msgpack:"pegular"  json:"regular"`
+    Pattern     string              `msgpack:"pattern"      json:"pattern"`
+    Regular     string              `msgpack:"pegular"      json:"regular"`
+    GPattern    string              `msgpack:"gPattern"     json:"gPattern"`
 }
 
 type FileStatsResult struct {
