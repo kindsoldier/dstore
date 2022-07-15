@@ -120,7 +120,7 @@ func (store *Store) CheckUser(authLogin, login, passw string) (bool, error) {
     }
     userRole, err := store.getUserRole(authLogin)
     if authLogin != login && userRole != dsdescr.URoleAdmin {
-        err = fmt.Errorf("user %s has insufficient rights", authLogin)
+        err = fmt.Errorf("user %s have insufficient rights", authLogin)
         return ok, dserr.Err(err)
     }
     has, err := store.reg.HasUser(login)
@@ -153,7 +153,7 @@ func (store *Store) UpdateUser(authLogin string, user *dsdescr.User) error {
     }
     // Rigth control
     if  authLogin != user.Login && userRole != dsdescr.URoleAdmin {
-        err = fmt.Errorf("user %s has insufficient rights", authLogin)
+        err = fmt.Errorf("user %s have insufficient rights", authLogin)
         return dserr.Err(err)
     }
 
@@ -222,7 +222,7 @@ func (store *Store) ListUsers(authLogin string) ([]*dsdescr.User, error) {
     users := make([]*dsdescr.User, 0)
     userRole, err := store.getUserRole(authLogin)
     if userRole != dsdescr.URoleAdmin {
-        err = fmt.Errorf("user %s has insufficient rights", authLogin)
+        err = fmt.Errorf("user %s have insufficient rights", authLogin)
         return users, dserr.Err(err)
     }
     users, err = store.reg.ListUsers()
@@ -237,7 +237,7 @@ func (store *Store) DeleteUser(authLogin string, login string) error {
 
     userRole, err := store.getUserRole(authLogin)
     if authLogin != login && userRole != dsdescr.URoleAdmin {
-        err = fmt.Errorf("user %s has insufficient rights", authLogin)
+        err = fmt.Errorf("user %s have insufficient rights", authLogin)
         return dserr.Err(err)
     }
 
