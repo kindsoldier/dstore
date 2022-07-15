@@ -153,7 +153,7 @@ $ fstorecli -aLogin user -aPass user listFiles
 
 ### User operation
 
-##### Listing of users
+##### User listing 
 
 ```
 $ fstorecli -aLogin admin -aPass admin listUsers
