@@ -29,15 +29,15 @@ to be able to use the pseudo-directory listing
 
 ## Generic draft
 
-```
-![](/docs/toplev-draft1.svg "Draft")
-```
+
+![](/docs/draft01.svg "Draft")
+
 
 ## Comman line samples
 
 ### File operation
 
-#### Save file
+#### Saving file
 
 ```
 $ dd if=/dev/urandom of=/tmp/block.bin bs=1M count=1024
@@ -64,7 +64,7 @@ $ fstorecli -aLogin user -aPass user saveFile -local /tmp/block.bin -remote a/b/
 }
 ```
 
-#### List saved files
+#### File listing
 ```
 $ fstorecli -aLogin user -aPass user listFiles
 {
@@ -87,7 +87,7 @@ $ fstorecli -aLogin user -aPass user listFiles
 }
 ```
 
-#### Download file
+#### Downloading file
 
 ```
 $ fstorecli -aLogin user -aPass user loadFile -remote a/b/file1.bin -local /tmp/file1.bin
@@ -113,7 +113,7 @@ $ fstorecli -aLogin user -aPass user loadFile -remote a/b/file1.bin -local /tmp/
 3c9e98be6bb73cdf4c48f2f59da74033c730b8f5235c2088dc1d961c8979c43f  /tmp/file1.bin
 ```
 
-#### Delete file
+#### Deleting file
 
 ```
 $ fstorecli -aLogin user -aPass user deleteFile -path a/b/file1.bin
@@ -153,7 +153,7 @@ $ fstorecli -aLogin user -aPass user listFiles
 
 ### User operation
 
-##### List users
+##### User listing 
 
 ```
 $ fstorecli -aLogin admin -aPass admin listUsers
@@ -181,7 +181,7 @@ $ fstorecli -aLogin admin -aPass admin listUsers
   }
 }
 ```
-#### Create user
+#### Creating a user
 ```
 $ fstorecli -aLogin admin -aPass admin addUser -login user2 -pass 12345
 {
@@ -228,7 +228,7 @@ $ fstorecli -aLogin user2 -aPass 12345 saveFile -local ./configure -remote ./con
 
 ```
 
-#### User delete itself
+#### Deleting a user itself
 
 ```
 $ fstorecli -aLogin admin -aPass admin deleteUser -login user2
