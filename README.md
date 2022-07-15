@@ -5,6 +5,11 @@ This is a project for a decentralized data warehouse.
 
 ## Some rules and features
 
+### Generic
+
+- Data block services are required for full functionality. 
+- If there are none, the file will be saved only on file service.
+
 ### Users
 
 - The user name and password can be an random set of bytes
@@ -28,7 +33,6 @@ to be able to use the pseudo-directory listing
 - Each file after writing will have redundant data, based on which the lost blocks can be recovered
 
 ## Generic draft
-
 
 ![](/docs/draft01.svg "Draft")
 
