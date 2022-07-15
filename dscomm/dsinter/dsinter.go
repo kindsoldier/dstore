@@ -20,6 +20,7 @@ type DB interface {
 type Alloc interface {
     NewId() (int64, error)
     FreeId(id int64) error
+    JSON() ([]byte, error)
 }
 
 type Crate interface {

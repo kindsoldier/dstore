@@ -92,6 +92,17 @@ func (alloc *Alloc) FreeId(id int64) error {
     return err
 }
 
+func (alloc *Alloc) JSON() ([]byte, error) {
+    var err error
+    descr := alloc.toDescr()
+    descrBin, err := descr.Pack()
+    if err != nil {
+        return descrBin, err
+    }
+    return descrBin, err
+}
+
+
 func (alloc *Alloc) toDescr() *AllocDescr {
     descr := NewAllocDescr()
     descr.TopId     = alloc.topId

@@ -70,7 +70,7 @@ func LogWarning(message ...interface{}) {
 }
 
 func LogInfo(message ...interface{}) {
-        logrus.Info(message)
+    logrus.Info(message)
 }
 
 
