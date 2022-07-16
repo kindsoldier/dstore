@@ -50,7 +50,7 @@ func TestFile01(t *testing.T) {
     wrongLogin := "blabla"
 
     fileName := "/qwerty.txt"
-    err = store.SaveFile(goodLogin, fileName, reader, dataSize)
+    _, err = store.SaveFile(goodLogin, fileName, reader, dataSize)
     require.NoError(t, err)
 
     writer1 := bytes.NewBuffer(nil)

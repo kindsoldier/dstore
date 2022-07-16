@@ -51,10 +51,17 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
     if err != nil {
         return descr, dserr.Err(err)
     }
-    file, err := fsfile.NewFile(store.reg, store.dataDir, login, filePath, fileId, batchSize, blockSize)
+    file, err := fsfile.NewFile(store.dataDir, store.reg, login, filePath, fileId, batchSize, blockSize)
     if err != nil {
         return descr, dserr.Err(err)
     }
+
+    descr = file.Descr()
+    err = store.reg.PutFile(descr)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+
     wrSize, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
         return descr, dserr.Err(err)
@@ -66,6 +73,11 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
         return descr, dserr.Err(err)
     }
 
+    descr = file.Descr()
+    err = store.reg.PutFile(descr)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
     has, err = store.reg.HasFile(login, filePath)
     if err != nil {
         return descr, dserr.Err(err)
@@ -112,7 +124,11 @@ func (store *Store) LoadFile(login string, filePath string, fileWriter io.Writer
         err = fmt.Errorf("file %s not exist", filePath)
         return dserr.Err(err)
     }
-    file, err := fsfile.OpenFile(store.reg, store.dataDir, login, filePath)
+    descr, err := store.reg.GetFile(login, filePath)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    file, err := fsfile.OpenFile(store.dataDir, store.reg, descr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -228,8 +244,7 @@ func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, er
     if err != nil {
         return descr, dserr.Err(err)
     }
-
-    file, err := fsfile.ForceOpenFile(store.reg, store.dataDir, login, filePath)
+    file, err := fsfile.ForceOpenFile(store.dataDir, store.reg, descr)
     if err != nil {
         return descr, dserr.Err(err)
     }
@@ -237,6 +252,11 @@ func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, er
     if err != nil {
         return descr, dserr.Err(err)
     }
+    err = store.reg.DeleteFile(login, filePath)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+
     store.fileAlloc.FreeId(file.FileId())
     if err != nil {
         return descr, dserr.Err(err)

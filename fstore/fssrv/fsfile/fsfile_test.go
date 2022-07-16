@@ -33,9 +33,13 @@ func TestFile01(t *testing.T) {
     var blockSize   int64 = 1000 * 1000
     var batchCount  int64 = 10
 
-    file, err := NewFile(reg, dataDir, login, filePath,  fileId, batchSize, blockSize)
+    file, err := NewFile(dataDir, reg, login, filePath,  fileId, batchSize, blockSize)
     require.NoError(t, err)
     require.NotEqual(t, file, nil)
+
+    descr := file.Descr()
+    err = reg.PutFile(descr)
+    require.NoError(t, err)
 
     dataSize := batchCount * batchSize * blockSize
     origin := make([]byte, dataSize)
@@ -50,7 +54,11 @@ func TestFile01(t *testing.T) {
     _, err = reg.GetFile(login, filePath)
     require.NoError(t, err)
 
-    file, err = OpenFile(reg, dataDir, login, filePath)
+    return
+
+    descr = file.Descr()
+
+    file, err = OpenFile(dataDir, reg, descr)
     require.NoError(t, err)
     require.NotEqual(t, file, nil)
 

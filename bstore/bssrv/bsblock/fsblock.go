@@ -15,7 +15,6 @@ import (
 )
 
 type Block struct {
-    reg         dsinter.BStoreReg
     baseDir     string
     filePath    string
 
@@ -30,11 +29,10 @@ type Block struct {
     updatedAt   int64
 }
 
-func NewBlock(reg dsinter.BStoreReg, baseDir string, fileId, batchId, blockType, blockId, blockSize int64) (*Block, error) {
+func NewBlock(baseDir string, fileId, batchId, blockType, blockId, blockSize int64) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
-    block.reg       = reg
 
     block.fileId    = fileId
     block.batchId   = batchId
@@ -47,24 +45,13 @@ func NewBlock(reg dsinter.BStoreReg, baseDir string, fileId, batchId, blockType,
     block.createdAt = time.Now().Unix()
     block.updatedAt = block.createdAt
 
-    descr := block.toDescr()
-    err = reg.PutBlock(descr)
-    if err != nil {
-        return &block, dserr.Err(err)
-    }
     return &block, dserr.Err(err)
 }
 
-func OpenBlock(reg dsinter.BStoreReg, baseDir string, fileId, batchId, blockType, blockId int64) (*Block, error) {
+func OpenBlock(baseDir string, descr *dsdescr.Block) (*Block, error) {
     var err error
     var block Block
     block.baseDir   = baseDir
-    block.reg       = reg
-
-    descr, err := reg.GetBlock(fileId, batchId, blockType, blockId)
-    if err != nil {
-        return &block, dserr.Err(err)
-    }
 
     block.fileId    = descr.FileId
     block.batchId   = descr.BatchId
@@ -138,13 +125,6 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     if origin != nil {
         origin.Clean()
     }
-
-    descr := block.toDescr()
-    err = block.reg.PutBlock(descr)
-    if err != nil {
-        return wrSize, dserr.Err(err)
-    }
-
     return wrSize, dserr.Err(err)
 }
 
@@ -155,17 +135,6 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
     if dataSize < 1 {
         return readSize, dserr.Err(err)
     }
-    descr, err := block.reg.GetBlock(block.fileId, block.batchId, block.blockType, block.blockId)
-    if err != nil {
-        return readSize, dserr.Err(err)
-    }
-
-    block.blockSize = descr.BlockSize
-    block.dataSize  = descr.DataSize
-    block.filePath  = descr.FilePath
-
-    block.createdAt = descr.CreatedAt
-    block.updatedAt = descr.UpdatedAt
 
     reader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
     defer reader.Close()
@@ -185,7 +154,7 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
     return readSize, dserr.Err(err)
 }
 
-func (block *Block) toDescr() *dsdescr.Block {
+func (block *Block) Descr() *dsdescr.Block {
     descr := dsdescr.NewBlock()
 
     descr.FileId    = block.fileId
@@ -218,9 +187,5 @@ func (block *Block) Clean() error {
     block.dataSize = 0
     block.filePath = newFilePath()
 
-    err = block.reg.DeleteBlock(block.fileId, block.batchId, block.blockType, block.blockId)
-    if err != nil {
-        return dserr.Err(err)
-    }
     return dserr.Err(err)
 }

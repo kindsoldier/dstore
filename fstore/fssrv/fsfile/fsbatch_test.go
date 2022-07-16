@@ -33,7 +33,7 @@ func TestBatch01(t *testing.T) {
     var batchId int64 = 2
     var fileId  int64 = 3
 
-    batch, err := NewBatch(reg, dataDir, fileId, batchId, batchSize, blockSize)
+    batch, err := NewBatch(dataDir, reg, fileId, batchId, batchSize, blockSize)
     require.NoError(t, err)
     require.NotEqual(t, batch, nil)
 
@@ -47,7 +47,14 @@ func TestBatch01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, needSize, wrSize)
 
-    batch, err = OpenBatch(reg, dataDir, fileId, batchId)
+    descr := batch.Descr()
+    err = reg.PutBatch(descr)
+    require.NoError(t, err)
+
+    descr, err = reg.GetBatch(fileId, batchId)
+    require.NoError(t, err)
+
+    batch, err = OpenBatch(dataDir, reg, descr)
     require.NoError(t, err)
     require.NotEqual(t, batch, nil)
 

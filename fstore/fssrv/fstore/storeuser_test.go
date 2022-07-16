@@ -68,10 +68,10 @@ func TestUser01(t *testing.T) {
     err = store.DeleteUser(descr0.Login, descr0.Login)
     require.NoError(t, err)
 
-    _, err = store.ListUsers(wrongLogin)
+    _, err = store.ListUsers(wrongLogin, "")
     require.Error(t, err)
 
-    descrs, err := store.ListUsers(adminLogin)
+    descrs, err := store.ListUsers(adminLogin, "")
     require.NoError(t, err)
     require.Equal(t, len(descrs), 2)
 }

@@ -22,7 +22,11 @@ func (store *Store) SaveBlock(fileId, batchId, blockType, blockId, blockSize int
         return dserr.Err(err)
     }
     if has {
-        block, err := bsblock.OpenBlock(store.reg, store.dataDir, fileId, batchId, blockType, blockId)
+        descr, err := store.reg.GetBlock(fileId, batchId, blockType, blockId)
+        if err != nil {
+            return dserr.Err(err)
+        }
+        block, err := bsblock.OpenBlock(store.dataDir, descr)
         if err != nil {
             return dserr.Err(err)
         }
@@ -30,19 +34,36 @@ func (store *Store) SaveBlock(fileId, batchId, blockType, blockId, blockSize int
         if err != nil {
             return dserr.Err(err)
         }
+        descr = block.Descr()
+        err = store.reg.PutBlock(descr)
+        if err != nil  {
+            return dserr.Err(err)
+        }
     }
-    block, err := bsblock.NewBlock(store.reg, store.dataDir, fileId, batchId, blockType, blockId, blockSize)
+    block, err := bsblock.NewBlock(store.dataDir, fileId, batchId, blockType, blockId, blockSize)
     if err != nil {
         return dserr.Err(err)
     }
-    wrSize, err := block.Write(blockReader, dataSize)
-    if err == io.EOF {
-        return dserr.Err(err)
-    }
+    descr := block.Descr()
+    err = store.reg.PutBlock(descr)
     if err != nil  {
         return dserr.Err(err)
     }
+
+    wrSize, err := block.Write(blockReader, dataSize)
+    if err != nil  {
+        return dserr.Err(err)
+    }
+    if err == io.EOF {
+        return dserr.Err(err)
+    }
     if wrSize != dataSize {
+        return dserr.Err(err)
+    }
+
+    descr = block.Descr()
+    err = store.reg.PutBlock(descr)
+    if err != nil  {
         return dserr.Err(err)
     }
     return dserr.Err(err)
@@ -78,7 +99,12 @@ func (store *Store) LoadBlock(fileId, batchId, blockType, blockId int64, blockWr
         err = fmt.Errorf("block %d,%d,%d,%d not exist", fileId, batchId, blockType, blockId)
         return dserr.Err(err)
     }
-    block, err := bsblock.OpenBlock(store.reg, store.dataDir, fileId, batchId, blockType, blockId)
+    descr, err := store.reg.GetBlock(fileId, batchId, blockType, blockId)
+    if err != nil {
+        return dserr.Err(err)
+    }
+
+    block, err := bsblock.OpenBlock(store.dataDir, descr)
     if err != nil {
         return dserr.Err(err)
     }
@@ -109,7 +135,13 @@ func (store *Store) DeleteBlock(fileId, batchId, blockType, blockId int64) error
     if !has {
         return dserr.Err(err)
     }
-    block, err := bsblock.OpenBlock(store.reg, store.dataDir, fileId, batchId, blockType, blockId)
+
+    descr, err := store.reg.GetBlock(fileId, batchId, blockType, blockId)
+    if err != nil {
+        return dserr.Err(err)
+    }
+
+    block, err := bsblock.OpenBlock(store.dataDir, descr)
     if err != nil {
         return dserr.Err(err)
     }

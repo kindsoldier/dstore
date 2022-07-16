@@ -33,7 +33,7 @@ func TestBlock01(t *testing.T) {
     var blockId     int64 = 4
     var blockSize   int64 = 1024 * 1024 * 16
 
-    block, err := NewBlock(reg, dataDir, fileId, batchId, blockType, blockId, blockSize)
+    block, err := NewBlock(dataDir, fileId, batchId, blockType, blockId, blockSize)
     require.NoError(t, err)
     require.NotEqual(t, block, nil)
 
@@ -47,7 +47,9 @@ func TestBlock01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, wrSize, needSize)
 
-    block, err = OpenBlock(reg, dataDir, fileId, batchId, blockType, blockId)
+    descr := block.Descr()
+
+    block, err = OpenBlock(dataDir, descr)
     require.NoError(t, err)
     require.NotEqual(t, block, nil)
 
@@ -59,5 +61,8 @@ func TestBlock01(t *testing.T) {
     require.Equal(t, writer.Bytes(), buffer[0:wrSize])
 
     err = block.Clean()
+    require.NoError(t, err)
+
+    err = reg.DeleteBlock(block.fileId, block.batchId, block.blockType, block.blockId)
     require.NoError(t, err)
 }

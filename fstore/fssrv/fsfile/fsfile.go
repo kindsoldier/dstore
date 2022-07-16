@@ -26,7 +26,7 @@ type File struct {
     batchs          []*Batch
 }
 
-func NewFile(reg dsinter.FStoreReg, baseDir, login, filePath string, fileId, batchSize, blockSize int64) (*File, error) {
+func NewFile(baseDir string, reg dsinter.FStoreReg, login, filePath string, fileId, batchSize, blockSize int64) (*File, error) {
     var file File
     var err error
     file.reg        = reg
@@ -43,32 +43,22 @@ func NewFile(reg dsinter.FStoreReg, baseDir, login, filePath string, fileId, bat
     file.updatedAt  = file.createdAt
     file.batchs     = make([]*Batch, 0)
 
-    descr := file.toDescr()
-    err = reg.PutFile(descr)
-    if err != nil {
-        return &file, dserr.Err(err)
-    }
     return &file, dserr.Err(err)
 }
 
-func OpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
-    return openFile(false, reg, baseDir, login, filePath)
+func OpenFile(baseDir string, reg dsinter.FStoreReg, descr *dsdescr.File) (*File, error) {
+    return openFile(false, baseDir, reg, descr)
 }
 
-func ForceOpenFile(reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
-    return openFile(true, reg, baseDir, login, filePath)
+func ForceOpenFile(baseDir string, reg dsinter.FStoreReg, descr *dsdescr.File) (*File, error) {
+    return openFile(true, baseDir, reg, descr)
 }
 
-func openFile(force bool, reg dsinter.FStoreReg, baseDir, login, filePath string) (*File, error) {
+func openFile(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr.File) (*File, error) {
     var err error
     var file File
     file.reg        = reg
     file.baseDir    = baseDir
-
-    descr, err := reg.GetFile(login, filePath)
-    if err != nil {
-        return &file, dserr.Err(err)
-    }
 
     file.login      = descr.Login
     file.filePath   = descr.FilePath
@@ -83,15 +73,19 @@ func openFile(force bool, reg dsinter.FStoreReg, baseDir, login, filePath string
 
     file.batchs = make([]*Batch, file.batchCount)
     for i := int64(0); i < file.batchCount; i++ {
+        batchDescr, err := file.reg.GetBatch(file.fileId, i)
+        if err != nil {
+            return &file, dserr.Err(err)
+        }
         switch {
             case force == false:
-                batch, err := OpenBatch(reg, baseDir, i, file.fileId)
+                batch, err := OpenBatch(baseDir, reg, batchDescr)
                 if err != nil {
                     return &file, dserr.Err(err)
                 }
                 file.batchs[i] = batch
             default:
-                batch, batchErr := ForceOpenBatch(reg, baseDir, i, file.fileId)
+                batch, batchErr := ForceOpenBatch(baseDir, reg, batchDescr)
                 if batchErr == nil {
                     file.batchs[i] = batch
                 }
@@ -104,20 +98,21 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
     var err error
     var written int64
 
-    existFunc := func() {
-        if written > 0 {
-            descr := file.toDescr()
-            err = file.reg.PutFile(descr)
-        }
-    }
-    defer existFunc()
-
     for i := range file.batchs {
         if dataSize < 1 {
             return written, dserr.Err(err)
         }
         batchWritten, err := file.batchs[i].Write(reader, dataSize)
         written += batchWritten
+
+        if batchWritten > 0 {
+            batchDescr := file.batchs[i].Descr()
+            err = file.reg.PutBatch(batchDescr)
+            if err != nil {
+                return written, dserr.Err(err)
+            }
+        }
+
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -128,7 +123,12 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
             return written, dserr.Err(err)
         }
         batchNumber := file.batchCount
-        batch, err := NewBatch(file.reg, file.baseDir, batchNumber, file.fileId, file.batchSize, file.blockSize)
+        batch, err := NewBatch(file.baseDir, file.reg, file.fileId, batchNumber, file.batchSize, file.blockSize)
+        if err != nil {
+            return written, dserr.Err(err)
+        }
+        batchDescr := batch.Descr()
+        err = file.reg.PutBatch(batchDescr)
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -140,6 +140,16 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
         batchWritten, err := batch.Write(reader, dataSize)
         written += batchWritten
         file.dataSize += batchWritten
+
+        if batchWritten > 0 {
+            batchDescr := batch.Descr()
+
+            err = file.reg.PutBatch(batchDescr)
+            if err != nil {
+                return written, dserr.Err(err)
+            }
+        }
+
         if err != nil {
             return written, dserr.Err(err)
         }
@@ -185,10 +195,6 @@ func (file *File) Clean() error {
         }
     }
     file.dataSize = 0
-    err = file.reg.DeleteFile(file.login, file.filePath)
-    if err != nil {
-        return dserr.Err(err)
-    }
     return dserr.Err(err)
 }
 
@@ -201,10 +207,6 @@ func (file *File) DataSize() int64 {
 }
 
 func (file *File) Descr() *dsdescr.File {
-    return file.toDescr()
-}
-
-func (file *File) toDescr() *dsdescr.File {
     descr := dsdescr.NewFile()
     descr.Login         = file.login
     descr.FilePath      = file.filePath
