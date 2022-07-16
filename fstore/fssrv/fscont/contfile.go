@@ -169,3 +169,33 @@ func (contr *Contr) FileStatsHandler(context *dsrpc.Context) error {
     }
     return dserr.Err(err)
 }
+
+func (contr *Contr) EraseFilesHandler(context *dsrpc.Context) error {
+    var err error
+    params := fsapi.NewEraseFilesParams()
+    err = context.BindParams(params)
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    pattern     := params.Pattern
+    regular     := params.Regular
+    gPattern    := params.GPattern
+    erase       := params.Erase
+
+    login   := string(context.AuthIdent())
+
+    files, err := contr.store.EraseFiles(login, pattern, regular, gPattern, erase)
+    if err != nil {
+        context.SendError(err)
+        return dserr.Err(err)
+    }
+    result := fsapi.NewEraseFilesResult()
+    result.Files = files
+    err = context.SendResult(result, 0)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    return dserr.Err(err)
+}
+

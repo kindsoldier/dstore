@@ -50,6 +50,8 @@ type Util struct {
     Pattern     string
     GPattern    string
     Regular     string
+
+    Erase       bool
 }
 
 func NewUtil() *Util {
@@ -68,6 +70,7 @@ const loadFileCmd       string = "loadFile"
 const listFilesCmd      string = "listFiles"
 const fileStatsCmd      string = "fileStats"
 const deleteFileCmd     string = "deleteFile"
+const eraseFilesCmd     string = "eraseFiles"
 
 const addUserCmd        string = "addUser"
 const checkUserCmd      string = "checkUser"
@@ -98,7 +101,7 @@ func (util *Util) GetOpt() error {
         fmt.Printf("Usage: %s [option] command [command option]\n", exeName)
         fmt.Printf("\n")
         fmt.Printf("Command list: help, getStatus, \n")
-        fmt.Printf("    saveFile, loadFile, listFiles, fileStats, deleteFile \n")
+        fmt.Printf("    saveFile, loadFile, listFiles, fileStats, deleteFile, eraseFiles \n")
         fmt.Printf("    addUser, checkUser, updateUser, listUsers, deleteUser \n")
 //        fmt.Printf("    addBStore, checkBStore, updateBStore, listBStores, deleteBStore \n")
 
@@ -177,6 +180,23 @@ func (util *Util) GetOpt() error {
                 fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
                 fmt.Printf("\n")
                 fmt.Printf("The command options:\n")
+                flagSet.PrintDefaults()
+                fmt.Printf("\n")
+            }
+            flagSet.Parse(subArgs)
+            util.SubCmd = subCmd
+        case eraseFilesCmd:
+            flagSet := flag.NewFlagSet(eraseFilesCmd, flag.ExitOnError)
+            flagSet.StringVar(&util.Pattern, "patt", util.Pattern, "shell-like pattern")
+            flagSet.StringVar(&util.Regular, "regex", util.Regular, "regexp pattern")
+            flagSet.StringVar(&util.GPattern, "glob", util.GPattern, "glob pattern")
+            flagSet.BoolVar(&util.Erase, "erase", util.Erase, "erase")
+
+            flagSet.Usage = func() {
+                fmt.Printf("\n")
+                fmt.Printf("Usage: %s [global options] %s [command options]\n", exeName, subCmd)
+                fmt.Printf("\n")
+                fmt.Printf("The command options: none\n")
                 flagSet.PrintDefaults()
                 fmt.Printf("\n")
             }
@@ -318,6 +338,8 @@ func (util *Util) Exec() error {
             result, err = util.FileStatsCmd(auth)
         case deleteFileCmd:
             result, err = util.DeleteFileCmd(auth)
+        case eraseFilesCmd:
+            result, err = util.EraseFilesCmd(auth)
 
         case addUserCmd:
             result, err = util.AddUserCmd(auth)
@@ -444,6 +466,23 @@ func (util *Util) DeleteFileCmd(auth *dsrpc.Auth) (*fsapi.DeleteFileResult, erro
     }
     return result, err
 }
+
+func (util *Util) EraseFilesCmd(auth *dsrpc.Auth) (*fsapi.EraseFilesResult, error) {
+    var err error
+    params := fsapi.NewEraseFilesParams()
+    params.Pattern = util.Pattern
+    params.Regular = util.Regular
+    params.GPattern = util.GPattern
+    params.Erase    = util.Erase
+
+    result := fsapi.NewEraseFilesResult()
+    err = dsrpc.Exec(util.URI, fsapi.EraseFilesMethod, params, result, auth)
+    if err != nil {
+        return result, err
+    }
+    return result, err
+}
+
 
 func (util *Util) AddUserCmd(auth *dsrpc.Auth) (*fsapi.AddUserResult, error) {
     var err error

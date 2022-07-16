@@ -73,22 +73,27 @@ func openFile(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr.
 
     file.batchs = make([]*Batch, file.batchCount)
     for i := int64(0); i < file.batchCount; i++ {
-        batchDescr, err := file.reg.GetBatch(file.fileId, i)
-        if err != nil {
-            return &file, dserr.Err(err)
-        }
         switch {
             case force == false:
+                batchDescr, err := file.reg.GetBatch(file.fileId, i)
+                if err != nil {
+                    return &file, dserr.Err(err)
+                }
                 batch, err := OpenBatch(baseDir, reg, batchDescr)
                 if err != nil {
                     return &file, dserr.Err(err)
                 }
                 file.batchs[i] = batch
             default:
-                batch, batchErr := ForceOpenBatch(baseDir, reg, batchDescr)
-                if batchErr == nil {
-                    file.batchs[i] = batch
+                batchDescr, getErr := file.reg.GetBatch(file.fileId, i)
+                if getErr != nil {
+                    continue
                 }
+                batch, batchErr := ForceOpenBatch(baseDir, reg, batchDescr)
+                if batchErr != nil {
+                    continue
+                }
+                file.batchs[i] = batch
         }
     }
     return &file, dserr.Err(err)

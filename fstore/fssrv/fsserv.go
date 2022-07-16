@@ -483,12 +483,14 @@ func (server *Server) RunService() error {
     serv.Handler(fsapi.FileStatsMethod, contr.FileStatsHandler)
     serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
     serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
+    serv.Handler(fsapi.EraseFilesMethod, contr.EraseFilesHandler)
 
     serv.Handler(fsapi.AddUserMethod, contr.AddUserHandler)
     serv.Handler(fsapi.CheckUserMethod, contr.CheckUserHandler)
     serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
     serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
     serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
+
     serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
 
 

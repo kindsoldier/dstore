@@ -105,3 +105,27 @@ func NewFileStatsResult() *FileStatsResult {
 func NewFileStatsParams() *FileStatsParams {
     return &FileStatsParams{}
 }
+
+
+const EraseFilesMethod string = "eraseFiles"
+
+type EraseFilesParams struct {
+    Pattern     string              `msgpack:"pattern"  json:"pattern"`
+    Regular     string              `msgpack:"pegular"  json:"regular"`
+    GPattern    string              `msgpack:"gPattern" json:"gPattern"`
+    Erase       bool                `msgpack:"erase"    json:"erase"`
+}
+
+type EraseFilesResult struct {
+    Files   []*dsdescr.File         `msgpack:"files"    json:"files"`
+}
+
+func NewEraseFilesResult() *EraseFilesResult {
+    return &EraseFilesResult{}
+}
+
+func NewEraseFilesParams() *EraseFilesParams {
+    return &EraseFilesParams{}
+}
+
+

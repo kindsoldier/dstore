@@ -154,6 +154,43 @@ func (store *Store) FileStats(login, pattern, regular, gPattern string) (int64, 
     return count, usage, err
 }
 
+func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase bool) ([]*dsdescr.File, error) {
+    var err error
+
+    descrs, err := store.listFiles(login, pattern, regular, gPattern)
+    if !erase {
+        return descrs, dserr.Err(err)
+    }
+
+    resDescrs := make([]*dsdescr.File, 0)
+    for _, descr := range descrs {
+        file, err := fsfile.ForceOpenFile(store.dataDir, store.reg, descr)
+        if err != nil {
+            err = fmt.Errorf("cannot open file %s, err: %v", descr.FilePath, err)
+            return resDescrs, dserr.Err(err)
+        }
+        err = file.Clean()
+        if err != nil {
+            return resDescrs, dserr.Err(err)
+        }
+        err = store.reg.DeleteFile(descr.Login, descr.FilePath)
+        if err != nil {
+            err = fmt.Errorf("cannot delete file descr for %s, err: %v", descr.FilePath, err)
+            return resDescrs, dserr.Err(err)
+        }
+
+        store.fileAlloc.FreeId(file.FileId())
+        if err != nil {
+            return resDescrs, dserr.Err(err)
+        }
+        allocJSON, _ := store.fileAlloc.JSON()
+
+        dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+        resDescrs = append(resDescrs, descr)
+    }
+    return resDescrs, dserr.Err(err)
+}
+
 func (store *Store) ListFiles(login, pattern, regular, gPattern string) ([]*dsdescr.File, error) {
     return store.listFiles(login, pattern, regular, gPattern)
 }
