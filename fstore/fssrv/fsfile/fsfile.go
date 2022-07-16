@@ -200,6 +200,9 @@ func (file *File) DataSize() int64 {
     return file.dataSize
 }
 
+func (file *File) Descr() *dsdescr.File {
+    return file.toDescr()
+}
 
 func (file *File) toDescr() *dsdescr.File {
     descr := dsdescr.NewFile()
