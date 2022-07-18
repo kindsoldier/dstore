@@ -140,3 +140,34 @@ func (descr *Block) Pack() ([]byte, error) {
     descrBin, err := json.Marshal(descr)
     return descrBin, err
 }
+
+
+
+const BSStateEnabled     string  = "enabled"
+const BSStateDisabled    string  = "disabled"
+
+type BStore struct {
+    Address     string      `json:"login"`
+    Port        string      `json:"pass"`
+    State       string      `json:"state"`
+    CreatedAt   int64       `json:"updatedAt"`
+    UpdatedAt   int64       `json:"createdAt"`
+}
+
+func NewBStore() *BStore {
+    var descr BStore
+    return &descr
+}
+
+func UnpackBStore(descrBin []byte) (*BStore, error) {
+    var err error
+    var descr BStore
+    err = json.Unmarshal(descrBin, &descr)
+    return &descr, err
+}
+
+func (descr *BStore) Pack() ([]byte, error) {
+    var err error
+    descrBin, err := json.Marshal(descr)
+    return descrBin, err
+}

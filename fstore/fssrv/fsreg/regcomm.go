@@ -13,6 +13,7 @@ type Reg struct {
     blockBase   string
     batchBase   string
     fileBase    string
+    bstoreBase  string
 }
 
 func NewReg(db dsinter.DB) (*Reg, error) {
@@ -25,5 +26,6 @@ func NewReg(db dsinter.DB) (*Reg, error) {
     reg.blockBase   = "block"
     reg.batchBase   = "batch"
     reg.fileBase    = "file"
+    reg.bstoreBase  = "bstore"
     return &reg, err
 }
