@@ -15,7 +15,7 @@ import (
     "dstore/fstore/fssrv/fsfile"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsdescr"
-    "dstore/dscomm/dslog"
+    //"dstore/dscomm/dslog"
 )
 
 func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader, fileSize int64) (*dsdescr.File, error) {
@@ -183,9 +183,8 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
         if err != nil {
             return resDescrs, dserr.Err(err)
         }
-        allocJSON, _ := store.fileAlloc.JSON()
-
-        dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+        //allocJSON, _ := store.fileAlloc.JSON()
+        //dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
         resDescrs = append(resDescrs, descr)
     }
     return resDescrs, dserr.Err(err)
@@ -298,9 +297,8 @@ func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, er
     if err != nil {
         return descr, dserr.Err(err)
     }
-    allocJSON, _ := store.fileAlloc.JSON()
-
-    dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+    //allocJSON, _ := store.fileAlloc.JSON()
+    //dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
 
     return descr, dserr.Err(err)
 }
