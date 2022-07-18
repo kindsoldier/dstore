@@ -491,6 +491,13 @@ func (server *Server) RunService() error {
     serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
     serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
 
+    serv.Handler(fsapi.AddBStoreMethod, contr.AddBStoreHandler)
+    serv.Handler(fsapi.CheckBStoreMethod, contr.CheckBStoreHandler)
+    serv.Handler(fsapi.UpdateBStoreMethod, contr.UpdateBStoreHandler)
+    serv.Handler(fsapi.ListBStoresMethod, contr.ListBStoresHandler)
+    serv.Handler(fsapi.DeleteBStoreMethod, contr.DeleteBStoreHandler)
+
+
     serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
 
 

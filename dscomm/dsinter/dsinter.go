@@ -53,6 +53,13 @@ type FStoreReg interface {
     HasBlock(fileId, batchId, blockType, blockId int64) (bool, error)
     ListBlocks(fileId int64) ([]*dsdescr.Block, error)
     DeleteBlock(fileId, batchId, blockType, blockId int64) error
+
+
+    DeleteBStore(address, port string) error
+    GetBStore(address, port string) (*dsdescr.BStore, error)
+    HasBStore(address, port string) (bool, error)
+    ListBStores() ([]*dsdescr.BStore, error)
+    PutBStore(descr *dsdescr.BStore) error
 }
 
 type BStoreReg interface {

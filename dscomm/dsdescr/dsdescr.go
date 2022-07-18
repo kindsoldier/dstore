@@ -120,7 +120,9 @@ type Block struct {
 
     HasLocal    bool        `json:"hasLocal"`
     HasRemote   bool        `json:"hasRemote"`
-    BstoreId    int64       `json:"bstoreId"`
+
+    BStoreAddr  string      `json:"bstoreAddr"`
+    BStorePort  string      `json:"bstorePort"`
 }
 
 func NewBlock() *Block {
@@ -147,8 +149,10 @@ const BSStateEnabled     string  = "enabled"
 const BSStateDisabled    string  = "disabled"
 
 type BStore struct {
-    Address     string      `json:"login"`
-    Port        string      `json:"pass"`
+    Address     string      `json:"address"`
+    Port        string      `json:"port"`
+    Login       string      `json:"login"`
+    Pass        string      `json:"pass"`
     State       string      `json:"state"`
     CreatedAt   int64       `json:"updatedAt"`
     UpdatedAt   int64       `json:"createdAt"`
