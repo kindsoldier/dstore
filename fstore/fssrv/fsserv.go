@@ -462,6 +462,11 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
+    err = store.SeedBStores()
+    if err != nil {
+        return err
+    }
+
     contr, err := fscont.NewContr(store)
     if err != nil {
         return err

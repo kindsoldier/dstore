@@ -13,29 +13,28 @@ import (
     "dstore/dscomm/dserr"
 )
 
-const defaultBSAddress    string  = "localhost"
-const defaultBSPort       string  = "5301"
-const defaultBSLogin      string  = "user"
-const defaultBSPass       string  = "user"
-
 func (store *Store) SeedBStores() error {
     var err error
-    bstores, err := store.reg.ListBStores()
+
+    bStores, err := store.reg.ListBStores()
     if err != nil {
         return dserr.Err(err)
     }
-    if len(bstores) < 1 {
-        var bstore *dsdescr.BStore
-        bstore = dsdescr.NewBStore()
-        bstore.Address  = defaultBSAddress
-        bstore.Port     = defaultBSPort
-        bstore.Login    = defaultBSLogin
-        bstore.Pass     = defaultBSPass
-        bstore.State    = dsdescr.BSStateEnabled
-        bstore.CreatedAt = time.Now().Unix()
-        bstore.UpdatedAt = bstore.CreatedAt
+    if len(bStores) > 0 {
+        return dserr.Err(err)
+    }
+    ports := []string{ "5101", "5102", "5103", "5104", "5105", "5106", "5107" }
+    descr := dsdescr.NewBStore()
+    descr.Address  = "127.0.0.1"
+    descr.Login    = "admin"
+    descr.Pass     = "admin"
+    descr.State    = dsdescr.BSStateEnabled
+    descr.CreatedAt = time.Now().Unix()
+    descr.UpdatedAt = descr.CreatedAt
 
-        err = store.reg.PutBStore(bstore)
+    for _, port := range ports {
+        descr.Port = port
+        err = store.reg.PutBStore(descr)
         if err != nil {
             return dserr.Err(err)
         }
