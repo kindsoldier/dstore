@@ -125,6 +125,7 @@ func (alloc *Alloc) Syncer()  {
         time.Sleep(500 * time.Millisecond)
         select {
             case <- alloc.ctx.Done():
+                alloc.saveState()
                 dslog.LogInfo("alloc loop canceled")
                 alloc.wg.Done()
                 return
@@ -148,6 +149,22 @@ func (alloc *Alloc) Syncer()  {
         }
         lastDescr = descr
     }
+}
+
+func (alloc *Alloc) saveState() error  {
+    var err error
+    descr := alloc.toDescr()
+    descrBin, err := descr.Pack()
+    if err != nil {
+        dslog.LogErrorf("alloc loop pack error: %v", err)
+        return err
+    }
+    err = alloc.db.Put(alloc.key, descrBin)
+    if err != nil {
+        dslog.LogErrorf("alloc loop put error: %v", err)
+        return err
+    }
+    return err
 }
 
 type AllocDescr struct {
