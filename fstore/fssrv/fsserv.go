@@ -26,7 +26,7 @@ import (
     "dstore/dscomm/dsrpc"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsalloc"
-
+    "dstore/dscomm/dsinter"
 )
 
 const successExit   int = 0
@@ -49,6 +49,7 @@ func main() {
 type Server struct {
     Params  *Config
     Backgr  bool
+    fileIdAlloc dsinter.Alloc
 }
 
 func (server *Server) Execute() error {
@@ -386,7 +387,7 @@ func (server *Server) SetSHandler() error {
             dslog.LogInfo("received signal", sig.String())
 
             switch sig {
-                case syscall.SIGINT, syscall.SIGTERM, syscall.SIGSTOP:
+                case syscall.SIGINT, syscall.SIGTERM, syscall.SIGSTOP, syscall.SIGQUIT:
                     dslog.LogInfo("exit by signal", sig.String())
                     server.StopAll()
                     os.Exit(successExit)
@@ -412,12 +413,6 @@ func (server *Server) SetSHandler() error {
         }
     }
     go handler()
-    return err
-}
-
-func (server *Server) StopAll() error {
-    var err error
-    dslog.LogInfo("stop processes")
     return err
 }
 
@@ -447,14 +442,17 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
-    fileAlloc, err := dsalloc.OpenAlloc(db, []byte("fileIds"))
+    server.fileIdAlloc, err = dsalloc.OpenAlloc(db, []byte("fileIds"))
     if err != nil {
         return err
     }
-    store, err := fstore.NewStore(dataDir, reg, fileAlloc)
+    go server.fileIdAlloc.Syncer()
+
+    store, err := fstore.NewStore(dataDir, reg, server.fileIdAlloc)
     if err != nil {
         return err
     }
+
     store.SetFilePerm(filePerm)
     store.SetDirPerm(dirPerm)
 
@@ -502,9 +500,7 @@ func (server *Server) RunService() error {
     serv.Handler(fsapi.ListBStoresMethod, contr.ListBStoresHandler)
     serv.Handler(fsapi.DeleteBStoreMethod, contr.DeleteBStoreHandler)
 
-
     serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
-
 
     if debugMode || develMode {
         serv.PostMiddleware(dsrpc.LogResponse)
@@ -516,5 +512,12 @@ func (server *Server) RunService() error {
     if err != nil {
         return err
     }
+    return err
+}
+
+func (server *Server) StopAll() error {
+    var err error
+    dslog.LogInfo("stop processes")
+    server.fileIdAlloc.Stop()
     return err
 }

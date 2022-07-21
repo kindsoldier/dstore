@@ -7,7 +7,11 @@ package dsalloc
 import (
     "encoding/json"
     "sync"
+    "context"
+    "time"
+
     "dstore/dscomm/dsinter"
+    "dstore/dscomm/dslog"
 )
 
 type Alloc struct {
@@ -16,6 +20,10 @@ type Alloc struct {
     freeIds []int64
     key     []byte
     giantMtx      sync.Mutex
+
+    ctx     context.Context
+    cancel  context.CancelFunc
+    wg      sync.WaitGroup
 }
 
 func OpenAlloc(db dsinter.DB, key []byte) (*Alloc, error) {
@@ -26,6 +34,8 @@ func OpenAlloc(db dsinter.DB, key []byte) (*Alloc, error) {
     alloc.freeIds   = make([]int64, 0)
     alloc.key       = key
     alloc.topId     = 0
+
+    alloc.ctx, alloc.cancel = context.WithCancel(context.Background())
 
     has, err := alloc.db.Has(alloc.key)
     if err != nil {
@@ -61,12 +71,6 @@ func (alloc *Alloc) NewId() (int64, error) {
     }
 
     newId = alloc.topId + 1
-    err = alloc.storeState()
-    if err != nil {
-        alloc.freeIds = append(alloc.freeIds, newId)
-        newId = -1
-        return newId, err
-    }
     alloc.topId = newId
     return newId, err
 }
@@ -85,10 +89,6 @@ func (alloc *Alloc) FreeId(id int64) error {
         default:
             alloc.freeIds = append(alloc.freeIds, id)
     }
-    err = alloc.storeState()
-    if err != nil {
-        return err
-    }
     return err
 }
 
@@ -105,25 +105,50 @@ func (alloc *Alloc) JSON() ([]byte, error) {
 
 func (alloc *Alloc) toDescr() *AllocDescr {
     descr := NewAllocDescr()
+    alloc.giantMtx.Lock()
     descr.TopId     = alloc.topId
     descr.FreeIds   = alloc.freeIds
+    alloc.giantMtx.Unlock()
     return descr
 }
 
-func (alloc *Alloc) storeState() error {
-    var err error
-    descr := alloc.toDescr()
-    descrBin, err := descr.Pack()
-    if err != nil {
-        return err
-    }
-    err = alloc.db.Put(alloc.key, descrBin)
-    if err != nil {
-        return err
-    }
-    return err
+
+func (alloc *Alloc) Stop() {
+    alloc.cancel()
+    alloc.wg.Wait()
 }
 
+func (alloc *Alloc) Syncer()  {
+    alloc.wg.Add(1)
+    lastDescr := alloc.toDescr()
+    for {
+        time.Sleep(500 * time.Millisecond)
+        select {
+            case <- alloc.ctx.Done():
+                dslog.LogInfo("alloc loop canceled")
+                alloc.wg.Done()
+                return
+            default:
+        }
+        descr := alloc.toDescr()
+        if descr.TopId != lastDescr.TopId || len(descr.FreeIds) != len(lastDescr.FreeIds) {
+            begin := time.Now()
+            descrBin, err := descr.Pack()
+            if err != nil {
+                dslog.LogErrorf("alloc loop pack error: %v", err)
+                continue
+            }
+            err = alloc.db.Put(alloc.key, descrBin)
+            if err != nil {
+                dslog.LogErrorf("alloc loop put error: %v", err)
+                continue
+            }
+            used := time.Since(begin)
+            dslog.LogDebugf("alloc saving time: %v", used)
+        }
+        lastDescr = descr
+    }
+}
 
 type AllocDescr struct {
     TopId   int64           `json:"topId"`

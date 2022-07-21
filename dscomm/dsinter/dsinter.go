@@ -21,6 +21,8 @@ type Alloc interface {
     NewId() (int64, error)
     FreeId(id int64) error
     JSON() ([]byte, error)
+    Syncer()
+    Stop()
 }
 
 type Crate interface {
