@@ -19,5 +19,14 @@ load_rc_config ${name}
 
 : ${fstored_enable:="NO"}
 
+fstored_prestart() {
+    rundir="@srv_rundir@"
+    logdir="@srv_logdir@"
+    chown -R @srv_user@:@srv_group@ "${rundir}"
+    chown -R @srv_user@:@srv_group@ "${logdir}"
+}
+
+start_precmd="fstored_prestart"
+
 run_rc_command "$1"
 #EOF
