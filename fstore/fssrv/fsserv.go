@@ -77,10 +77,13 @@ func (server *Server) Execute() error {
         if err != nil {
             return err
         }
+
         err = server.ChangeUid()
         if err != nil {
             return err
         }
+
+
     }
 
     err = server.RedirLog()
@@ -151,6 +154,7 @@ func (server *Server) ForkCmd() error {
     var keyEnv string = "IMX0LTSELMRF8K"
     var err error
 
+
     _, isChild := os.LookupEnv(keyEnv)
     switch  {
         case !isChild:
@@ -192,7 +196,6 @@ func (server *Server) ChangeUid() error {
 
     currUid := syscall.Getuid()
     if currUid != 0 {
-        err = fmt.Errorf("impossible to change uid for non-root")
         return err
     }
 
@@ -247,6 +250,13 @@ func (server *Server) ChangeUid() error {
         err = fmt.Errorf("cannot change uid, err: %v", err)
         return err
     }
+
+    err = syscall.Seteuid(newUid)
+    if err != nil {
+        err = fmt.Errorf("cannot change euid, err: %v", err)
+        return err
+    }
+
 
     currUid = syscall.Getuid()
     if currUid != newUid {
@@ -401,6 +411,7 @@ func (server *Server) SetSHandler() error {
                             if err != nil {
                                 dslog.LogError("stop all error:", err)
                             }
+                            dslog.LogInfo("fork")
                             err = server.ForkCmd()
                             if err != nil {
                                 dslog.LogError("fork error:", err)
