@@ -7,7 +7,6 @@
 package dsrpc
 
 import (
-    "encoding/json"
     "context"
     "errors"
     "fmt"
@@ -15,6 +14,7 @@ import (
     "net"
     "sync"
     "time"
+    encoder "github.com/vmihailenco/msgpack/v5"
 )
 
 type HandlerFunc =  func(*Context) error
@@ -219,14 +219,14 @@ func (context *Context) ReadBin(writer io.Writer) error {
 
 func (context *Context) BindMethod() error {
     var err error
-    err = json.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
+    err = encoder.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
     return Err(err)
 }
 
 func (context *Context) BindParams(params any) error {
     var err error
     context.reqRPC.Params = params
-    err = json.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
+    err = encoder.Unmarshal(context.reqPacket.rcpPayload, context.reqRPC)
     if err != nil {
         return Err(err)
     }
