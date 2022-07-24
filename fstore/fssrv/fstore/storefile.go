@@ -15,7 +15,7 @@ import (
     "dstore/fstore/fssrv/fsfile"
     "dstore/dscomm/dserr"
     "dstore/dscomm/dsdescr"
-    //"dstore/dscomm/dslog"
+    "dstore/dscomm/dslog"
 )
 
 func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader, fileSize int64) (*dsdescr.File, error) {
@@ -46,6 +46,11 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
         bs := blockSize / rs
         blockSize = (bs + 1) * rs
     }
+
+    if fileSize < blockSize * batchSize {
+        batchSize = fileSize / blockSize + 1
+    }
+
 
     fileId, err := store.fileAlloc.NewId()
     if err != nil {
@@ -154,7 +159,7 @@ func (store *Store) FileStats(login, pattern, regular, gPattern string) (int64, 
     return count, usage, err
 }
 
-func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase bool) ([]*dsdescr.File, error) {
+func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase bool, reader io.Reader) ([]*dsdescr.File, error) {
     var err error
 
     descrs, err := store.listFiles(login, pattern, regular, gPattern)
@@ -162,8 +167,31 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
         return descrs, dserr.Err(err)
     }
 
+    notify := make(chan error, 16)
+
+    checker := func() {
+        buf := make([]byte, 1)
+        for {
+            _, err := reader.Read(buf)
+            if err != nil {
+                dslog.LogDebugf("user %s connection err: %s", login, err)
+                notify <- err
+                return
+            }
+        }
+    }
+    go checker()
+
     resDescrs := make([]*dsdescr.File, 0)
     for _, descr := range descrs {
+
+        select {
+            case err := <-notify:
+                err = fmt.Errorf("connection error: %s", err)
+                return resDescrs, dserr.Err(err)
+            default:
+        }
+
         file, err := fsfile.ForceOpenFile(store.dataDir, store.reg, descr)
         if err != nil {
             err = fmt.Errorf("cannot open file %s, err: %v", descr.FilePath, err)
@@ -183,6 +211,9 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
         if err != nil {
             return resDescrs, dserr.Err(err)
         }
+
+        dslog.LogDebugf("user %s file deleted: %s", login, descr.FilePath)
+
         //allocJSON, _ := store.fileAlloc.JSON()
         //dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
         resDescrs = append(resDescrs, descr)

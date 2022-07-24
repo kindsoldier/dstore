@@ -29,7 +29,7 @@ func newFilePath() (string) {
     hashHex := hex.EncodeToString(hashSum)
     fileName := hashHex + ".block"
     l1 := string(hashHex[0:1])
-    l2 := string(hashHex[1:3])
+    l2 := string(hashHex[1:2])
     l3 := string(hashHex[3:5])
     dirPath := filepath.Join(l1, l2, l3)
     filePath := filepath.Join(dirPath, fileName)

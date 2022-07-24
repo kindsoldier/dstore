@@ -74,7 +74,6 @@ func (server *Server) Execute() error {
         if err != nil {
             return err
         }
-
         err = server.ChangeUid()
         if err != nil {
             return err
@@ -190,7 +189,7 @@ func (server *Server) ChangeUid() error {
 
     currUid := syscall.Getuid()
     if currUid != 0 {
-        err = fmt.Errorf("impossible to change uid for non-root")
+        //err = fmt.Errorf("impossible to change uid for non-root")
         return err
     }
 

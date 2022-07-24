@@ -184,8 +184,9 @@ func (contr *Contr) EraseFilesHandler(context *dsrpc.Context) error {
     erase       := params.Erase
 
     login   := string(context.AuthIdent())
+    reader  := context.BinReader()
 
-    files, err := contr.store.EraseFiles(login, pattern, regular, gPattern, erase)
+    files, err := contr.store.EraseFiles(login, pattern, regular, gPattern, erase, reader)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -198,4 +199,3 @@ func (contr *Contr) EraseFilesHandler(context *dsrpc.Context) error {
     }
     return dserr.Err(err)
 }
-

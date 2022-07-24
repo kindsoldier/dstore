@@ -513,9 +513,9 @@ func (server *Server) RunService() error {
 
     serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
 
-    if debugMode || develMode {
-        serv.PostMiddleware(dsrpc.LogResponse)
-    }
+    //if debugMode || develMode {
+    //    serv.PostMiddleware(dsrpc.LogResponse)
+    //}
     serv.PostMiddleware(dsrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
