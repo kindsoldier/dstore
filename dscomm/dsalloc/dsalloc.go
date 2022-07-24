@@ -5,21 +5,23 @@
 package dsalloc
 
 import (
-    "encoding/json"
     "sync"
     "context"
     "time"
+
+    encoder "github.com/vmihailenco/msgpack/v5"
 
     "dstore/dscomm/dsinter"
     "dstore/dscomm/dslog"
 )
 
 type Alloc struct {
-    db      dsinter.DB
-    topId   int64
-    freeIds []int64
-    key     []byte
-    giantMtx      sync.Mutex
+    db          dsinter.DB
+    topId       int64
+    freeIds     []int64
+    key         []byte
+    clean       bool
+    giantMtx    sync.Mutex
 
     ctx     context.Context
     cancel  context.CancelFunc
@@ -50,8 +52,12 @@ func OpenAlloc(db dsinter.DB, key []byte) (*Alloc, error) {
         if err != nil {
             return &alloc, err
         }
-        alloc.freeIds = descr.FreeIds
-        alloc.topId   = descr.TopId
+        if !descr.Clean {
+            // todo: ?
+        }
+        alloc.freeIds  = descr.FreeIds
+        alloc.topId    = descr.TopId
+        alloc.clean    = false
     }
     return &alloc, err
 }
@@ -108,6 +114,7 @@ func (alloc *Alloc) toDescr() *AllocDescr {
     alloc.giantMtx.Lock()
     descr.TopId     = alloc.topId
     descr.FreeIds   = alloc.freeIds
+    descr.Clean     = alloc.clean
     alloc.giantMtx.Unlock()
     return descr
 }
@@ -122,7 +129,7 @@ func (alloc *Alloc) Syncer()  {
     alloc.wg.Add(1)
     lastDescr := alloc.toDescr()
     for {
-        time.Sleep(500 * time.Millisecond)
+        time.Sleep(1000 * time.Millisecond)
         select {
             case <- alloc.ctx.Done():
                 alloc.saveState()
@@ -154,6 +161,8 @@ func (alloc *Alloc) Syncer()  {
 func (alloc *Alloc) saveState() error  {
     var err error
     descr := alloc.toDescr()
+    alloc.giantMtx.Lock()           // todo: its rapid
+    descr.Clean = true
     descrBin, err := descr.Pack()
     if err != nil {
         dslog.LogErrorf("alloc loop pack error: %v", err)
@@ -168,8 +177,9 @@ func (alloc *Alloc) saveState() error  {
 }
 
 type AllocDescr struct {
-    TopId   int64           `json:"topId"`
-    FreeIds []int64         `json:"freeIds"`
+    TopId   int64           `json:"topId"	msgpack:"topId"`
+    FreeIds []int64         `json:"freeIds"	msgpack:"freeIds"`
+    Clean   bool            `json:"clean"	msgpack:"clean"`
 }
 
 func NewAllocDescr() *AllocDescr {
@@ -180,12 +190,12 @@ func NewAllocDescr() *AllocDescr {
 func UnpackAllocDescr(descrBin []byte) (*AllocDescr, error) {
     var err error
     var descr AllocDescr
-    err = json.Unmarshal(descrBin, &descr)
+    err = encoder.Unmarshal(descrBin, &descr)
     return &descr, err
 }
 
 func (descr *AllocDescr) Pack() ([]byte, error) {
     var err error
-    descrBin, err := json.Marshal(descr)
+    descrBin, err := encoder.Marshal(descr)
     return descrBin, err
 }
