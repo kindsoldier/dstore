@@ -50,6 +50,7 @@ type Server struct {
     Params  *Config
     Backgr  bool
     fileIdAlloc dsinter.Alloc
+    serv    *dsrpc.Service
 }
 
 func (server *Server) Execute() error {
@@ -486,41 +487,41 @@ func (server *Server) RunService() error {
     dslog.LogInfof("logDir is %s", server.Params.LogDir)
     dslog.LogInfof("runDir is %s", server.Params.RunDir)
 
-    serv := dsrpc.NewService()
+    server.serv = dsrpc.NewService()
 
     if debugMode || develMode {
-        serv.PreMiddleware(dsrpc.LogRequest)
+        server.serv.PreMiddleware(dsrpc.LogRequest)
     }
-    serv.PreMiddleware(contr.AuthMidware(debugMode))
+    server.serv.PreMiddleware(contr.AuthMidware(debugMode))
 
-    serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
-    serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
-    serv.Handler(fsapi.FileStatsMethod, contr.FileStatsHandler)
-    serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
-    serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
-    serv.Handler(fsapi.EraseFilesMethod, contr.EraseFilesHandler)
+    server.serv.Handler(fsapi.SaveFileMethod, contr.SaveFileHandler)
+    server.serv.Handler(fsapi.LoadFileMethod, contr.LoadFileHandler)
+    server.serv.Handler(fsapi.FileStatsMethod, contr.FileStatsHandler)
+    server.serv.Handler(fsapi.ListFilesMethod, contr.ListFilesHandler)
+    server.serv.Handler(fsapi.DeleteFileMethod, contr.DeleteFileHandler)
+    server.serv.Handler(fsapi.EraseFilesMethod, contr.EraseFilesHandler)
 
-    serv.Handler(fsapi.AddUserMethod, contr.AddUserHandler)
-    serv.Handler(fsapi.CheckUserMethod, contr.CheckUserHandler)
-    serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
-    serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
-    serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
+    server.serv.Handler(fsapi.AddUserMethod, contr.AddUserHandler)
+    server.serv.Handler(fsapi.CheckUserMethod, contr.CheckUserHandler)
+    server.serv.Handler(fsapi.UpdateUserMethod, contr.UpdateUserHandler)
+    server.serv.Handler(fsapi.ListUsersMethod, contr.ListUsersHandler)
+    server.serv.Handler(fsapi.DeleteUserMethod, contr.DeleteUserHandler)
 
-    serv.Handler(fsapi.AddBStoreMethod, contr.AddBStoreHandler)
-    serv.Handler(fsapi.CheckBStoreMethod, contr.CheckBStoreHandler)
-    serv.Handler(fsapi.UpdateBStoreMethod, contr.UpdateBStoreHandler)
-    serv.Handler(fsapi.ListBStoresMethod, contr.ListBStoresHandler)
-    serv.Handler(fsapi.DeleteBStoreMethod, contr.DeleteBStoreHandler)
+    server.serv.Handler(fsapi.AddBStoreMethod, contr.AddBStoreHandler)
+    server.serv.Handler(fsapi.CheckBStoreMethod, contr.CheckBStoreHandler)
+    server.serv.Handler(fsapi.UpdateBStoreMethod, contr.UpdateBStoreHandler)
+    server.serv.Handler(fsapi.ListBStoresMethod, contr.ListBStoresHandler)
+    server.serv.Handler(fsapi.DeleteBStoreMethod, contr.DeleteBStoreHandler)
 
-    serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
+    server.serv.Handler(fsapi.GetStatusMethod, contr.GetStatusHandler)
 
     //if debugMode || develMode {
-    //    serv.PostMiddleware(dsrpc.LogResponse)
+    //    server.serv.PostMiddleware(dsrpc.LogResponse)
     //}
-    serv.PostMiddleware(dsrpc.LogAccess)
+    server.serv.PostMiddleware(dsrpc.LogAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
-    err = serv.Listen(listenParam)
+    err = server.serv.Listen(listenParam)
     if err != nil {
         return err
     }
@@ -530,6 +531,11 @@ func (server *Server) RunService() error {
 func (server *Server) StopAll() error {
     var err error
     dslog.LogInfo("stop processes")
-    server.fileIdAlloc.Stop()
+    if server.fileIdAlloc != nil {
+        server.fileIdAlloc.Stop()
+    }
+    if server.serv != nil {
+        server.serv.Stop()
+    }
     return err
 }

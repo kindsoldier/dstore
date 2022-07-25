@@ -264,27 +264,27 @@ func (store *Store) loopFiles(login, pattern, regular, gPattern string, callback
     }
     g := glob.NewGlob(gPattern)
 
-    //errChan := make(chan error, 16)
-    //checker := func() {
-    //    buf := make([]byte, 1)
-    //    for {
-    //        _, err := reader.Read(buf)
-    //        if err != nil {
-    //            errChan <- err
-    //            return
-    //        }
-    //    }
-    //}
-    //go checker()
+    errChan := make(chan error, 16)
+    checker := func() {
+        buf := make([]byte, 1)
+        for {
+            _, err := reader.Read(buf)
+            if err != nil {
+                errChan <- err
+                return
+            }
+        }
+    }
+    go checker()
 
     for _, descr := range descrs {
 
-        //select {
-        //    case err := <-errChan:
-        //        err = fmt.Errorf("connection error: %s", err)
-        //        return resDescrs, dserr.Err(err)
-        //    default:
-        //}
+        select {
+            case err := <-errChan:
+                err = fmt.Errorf("connection error: %s", err)
+                return resDescrs, dserr.Err(err)
+            default:
+        }
 
         ok1 := false
         ok2 := false

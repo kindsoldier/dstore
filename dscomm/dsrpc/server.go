@@ -69,20 +69,20 @@ func (this *Service) Listen(address string) error {
         return err
     }
 
-    this.wg.Add(1)
     for {
-        select {
-            case <- this.ctx.Done():
-                this.wg.Done()
-                return err
-            default:
-        }
         conn, err := listener.AcceptTCP()
         if err != nil {
             logError("conn accept err:", err)
         }
-        go this.handleConn(conn)
+        select {
+            case <-this.ctx.Done():
+                return err
+            default:
+        }
+        this.wg.Add(1)
+        go this.handleConn(conn, this.wg)
     }
+    return err
 }
 
 func notFound(context *Context) error {
@@ -93,12 +93,16 @@ func notFound(context *Context) error {
 
 func (this *Service) Stop() error {
     var err error
+    // Disable new connection
+    logInfo("cancel rpc accept loop")
     this.cancel()
+    // Wait handlers
+    logInfo("wait rpc handlers")
     this.wg.Wait()
     return err
 }
 
-func (this *Service) handleConn(conn *net.TCPConn) {
+func (this *Service) handleConn(conn *net.TCPConn, wg *sync.WaitGroup) {
     var err error
 
     //err = conn.SetKeepAlive(true)
@@ -123,6 +127,7 @@ func (this *Service) handleConn(conn *net.TCPConn) {
 
     exitFunc := func() {
             conn.Close()
+            wg.Done()
             if err != nil {
                 logError("conn handler err:", err)
             }
