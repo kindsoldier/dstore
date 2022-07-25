@@ -53,54 +53,54 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
         batchSize = fileSize / blockSize + 1
     }
 
-
+    // Get file id
     fileId, err := store.fileAlloc.NewId()
     if err != nil {
         return descr, dserr.Err(err)
     }
 
+    // Create tmp name
     randBin := make([]byte, 16)
     rand.Read(randBin)
     randStr := hex.EncodeToString(randBin)
     tmpFilePath := filepath.Join("/.tmp/", randStr, filePath)
 
+    // Create file object
     file, err := fsfile.NewFile(store.dataDir, store.reg, login, tmpFilePath, fileId, batchSize, blockSize)
     if err != nil {
         return descr, dserr.Err(err)
     }
-
+    // Save file descr with tmp name
     descr = file.Descr()
     err = store.reg.PutFile(descr)
     if err != nil {
         return descr, dserr.Err(err)
     }
-    wrSize, err := file.Write(fileReader, fileSize)
+    _, eof, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
         err = nil
-        dslog.LogDebugf("EOF for %s", filePath)
+        eof = true
     }
     if err != nil   {
-        dslog.LogDebugf("write error for %s: %s", filePath, err)
-        file.SetFilePath(filePath)
-        descr = file.Descr()
-        store.reg.PutFile(descr)
-        return descr, dserr.Err(err)
+        dslog.LogDebugf("write error %s,%s: %v", login, filePath, err)
     }
-    if wrSize != fileSize {
-        fmt.Errorf("mismatch size for %s: %d instead %d", filePath, wrSize, fileSize)
+    if eof {
+        dslog.LogDebugf("eof for %s,%s", login, filePath)
     }
-
+    // Save descr with new name
     file.SetFilePath(filePath)
     descr = file.Descr()
+
     err = store.reg.PutFile(descr)
     if err != nil {
         return descr, dserr.Err(err)
     }
+    // Delete old descr with tmp name
     err = store.reg.DeleteFile(login, tmpFilePath)
     if err != nil {
         return descr, dserr.Err(err)
     }
-
+    // Check descr
     has, err = store.reg.HasFile(login, filePath)
     if err != nil {
         return descr, dserr.Err(err)
@@ -109,6 +109,7 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
         err = fmt.Errorf("file %s not saved", filePath)
         return descr, dserr.Err(err)
     }
+    // Return saved descr
     descr, err = store.reg.GetFile(login, filePath)
     if err != nil {
         return descr, dserr.Err(err)

@@ -30,43 +30,45 @@ func newFilePath() (string) {
     fileName := hashHex + ".block"
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[1:2])
-    //l3 := string(hashHex[3:5])
     dirPath := filepath.Join(l1, l2)
     filePath := filepath.Join(dirPath, fileName)
     return filePath
 }
 
-func copyData(reader io.Reader, writer io.Writer, size int64) (int64, error) {
+func copyData(reader io.Reader, writer io.Writer, size int64) (int64, bool, error) {
     var err error
     var bufSize int64 = 1024 * 16
     var total   int64 = 0
     var remains int64 = size
+    var eof     bool  = false
     buffer := make([]byte, bufSize)
 
     for {
         if remains == 0 {
-            return total, dserr.Err(err)
+            return total, eof,dserr.Err(err)
         }
         if remains < bufSize {
             bufSize = remains
         }
         received, err := reader.Read(buffer[0:bufSize])
         if err == io.EOF {
-            return total, dserr.Err(err)
+            eof = true
+            err = nil
+            return total, eof,dserr.Err(err)
         }
         if err != nil {
-            return total, dserr.Err(err)
+            return total, eof,dserr.Err(err)
         }
         written, err := writer.Write(buffer[0:received])
         if err != nil {
-            return total, dserr.Err(err)
+            return total, eof,dserr.Err(err)
         }
         if written != received {
             err = errors.New("write error")
-            return total, dserr.Err(err)
+            return total, eof,dserr.Err(err)
         }
         total += int64(written)
         remains -= int64(written)
     }
-    return total, dserr.Err(err)
+    return total, eof, dserr. Err(err)
 }

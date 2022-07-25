@@ -71,7 +71,7 @@ func openFile(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr.
     file.updatedAt  = descr.UpdatedAt
     file.batchCount = descr.BatchCount
 
-    file.batchs = make([]*Batch, file.batchCount)
+    file.batchs = make([]*Batch, file.batchCount + 1)
     for i := int64(0); i < file.batchCount; i++ {
         switch {
             case force == false:
@@ -99,15 +99,15 @@ func openFile(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr.
     return &file, dserr.Err(err)
 }
 
-func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
+func (file *File) Write(reader io.Reader, dataSize int64) (int64, bool, error) {
     var err error
     var written int64
-
+    var eof bool
     for i := range file.batchs {
         if dataSize < 1 {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
         }
-        batchWritten, err := file.batchs[i].Write(reader, dataSize)
+        batchWritten, eof, err := file.batchs[i].Write(reader, dataSize)
         written += batchWritten
 
         if batchWritten > 0 {
@@ -115,55 +115,54 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
 
             err = file.reg.PutBatch(batchDescr)
             if err != nil {
-                return written, dserr.Err(err)
+                return written, eof, dserr.Err(err)
             }
         }
 
         if err != nil {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
         }
         dataSize -= batchWritten
     }
+
     for {
         if dataSize < 1 {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
+        }
+        if eof {
+            return written, eof, dserr.Err(err)
         }
         batchNumber := file.batchCount
 
         batch, err := NewBatch(file.baseDir, file.reg, file.fileId, batchNumber, file.batchSize, file.blockSize)
         if err != nil {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
         }
-
         batchDescr := batch.Descr()
         err = file.reg.PutBatch(batchDescr)
         if err != nil {
-            return written, dserr.Err(err)
-        }
-        file.batchs = append(file.batchs, batch)
-        file.batchCount++
-        if err != nil {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
         }
 
-        batchWritten, err := batch.Write(reader, dataSize)
+        batchWritten, eof, err := batch.Write(reader, dataSize)
+        if err == io.EOF {
+            err = nil
+            eof = true
+        }
         written += batchWritten
         file.dataSize += batchWritten
-
-        if batchWritten > 0 {
-            batchDescr := batch.Descr()
-            err = file.reg.PutBatch(batchDescr)
-            if err != nil {
-                return written, dserr.Err(err)
-            }
-        }
-
+        batchDescr = batch.Descr()
+        err = file.reg.PutBatch(batchDescr)
         if err != nil {
-            return written, dserr.Err(err)
+            return written, eof, dserr.Err(err)
         }
         dataSize -= batchWritten
+        file.batchCount++
+        if eof {
+            return written, eof, dserr.Err(err)
+        }
     }
-    return written, dserr.Err(err)
+    return written, eof, dserr.Err(err)
 }
 
 func (file *File) Read(writer io.Writer) (int64, error) {
