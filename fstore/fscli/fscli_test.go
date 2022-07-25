@@ -25,6 +25,6 @@ func BenchmarkStatus(b *testing.B) {
             require.NoError(b, err)
         }
     }
-    b.SetParallelism(3000)
+    b.SetParallelism(10)
     b.RunParallel(pBench)
 }

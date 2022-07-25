@@ -107,16 +107,14 @@ func (batch *Batch) Write(reader io.Reader, reqSize int64) (int64, error) {
         }
         blockWrSize, err := batch.blocks[i].Write(reader, reqSize)
         wrSize += blockWrSize
+        if err == io.EOF {
+            blockDescr := batch.blocks[i].Descr()
+            batch.reg.PutBlock(blockDescr)
+            return wrSize, dserr.Err(err)
+        }
 
         blockDescr := batch.blocks[i].Descr()
         err = batch.reg.PutBlock(blockDescr)
-        if err != nil {
-            return wrSize, dserr.Err(err)
-        }
-
-        if err == io.EOF {
-            return wrSize, dserr.Err(err)
-        }
         if err != nil {
             return wrSize, dserr.Err(err)
         }

@@ -30,8 +30,8 @@ func newFilePath() (string) {
     fileName := hashHex + ".block"
     l1 := string(hashHex[0:1])
     l2 := string(hashHex[1:2])
-    l3 := string(hashHex[3:5])
-    dirPath := filepath.Join(l1, l2, l3)
+    //l3 := string(hashHex[3:5])
+    dirPath := filepath.Join(l1, l2)
     filePath := filepath.Join(dirPath, fileName)
     return filePath
 }
@@ -51,6 +51,9 @@ func copyData(reader io.Reader, writer io.Writer, size int64) (int64, error) {
             bufSize = remains
         }
         received, err := reader.Read(buffer[0:bufSize])
+        if err == io.EOF {
+            return total, dserr.Err(err)
+        }
         if err != nil {
             return total, dserr.Err(err)
         }

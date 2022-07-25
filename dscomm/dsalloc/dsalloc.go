@@ -73,11 +73,13 @@ func (alloc *Alloc) NewId() (int64, error) {
     if freeIds > 0 {
         newId = alloc.freeIds[freeIds - 1]
         alloc.freeIds = alloc.freeIds[0:freeIds - 1]
+        dslog.LogDebugf("alloc new id %d", newId)
         return newId, err
     }
 
     newId = alloc.topId + 1
     alloc.topId = newId
+    dslog.LogDebugf("alloc new id %d", newId)
     return newId, err
 }
 
@@ -86,6 +88,7 @@ func (alloc *Alloc) FreeId(id int64) error {
 
     alloc.giantMtx.Lock()
     defer alloc.giantMtx.Unlock()
+    defer dslog.LogDebugf("free id %d", id)
 
     switch {
         case id == alloc.topId:
@@ -129,6 +132,7 @@ func (alloc *Alloc) Syncer()  {
     alloc.wg.Add(1)
     lastDescr := alloc.toDescr()
     for {
+
         time.Sleep(1000 * time.Millisecond)
         select {
             case <- alloc.ctx.Done():
@@ -177,9 +181,9 @@ func (alloc *Alloc) saveState() error  {
 }
 
 type AllocDescr struct {
-    TopId   int64           `json:"topId"	msgpack:"topId"`
-    FreeIds []int64         `json:"freeIds"	msgpack:"freeIds"`
-    Clean   bool            `json:"clean"	msgpack:"clean"`
+    TopId   int64           `json:"topId"   msgpack:"topId"`
+    FreeIds []int64         `json:"freeIds" msgpack:"freeIds"`
+    Clean   bool            `json:"clean"   msgpack:"clean"`
 }
 
 func NewAllocDescr() *AllocDescr {

@@ -89,13 +89,19 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
     var origin dsinter.Crate
     if block.dataSize > 0 {
         var wrSize int64
-        reader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
-        defer reader.Close()
+        pReader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
+        defer pReader.Close()
+
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
             return wrSize, dserr.Err(err)
         }
-        wrSize, err = copyData(reader, writer, block.dataSize)
+
+        if err != nil {
+            err = fmt.Errorf("block recopy error: %s", err)
+            return wrSize, dserr.Err(err)
+        }
+        wrSize, err = copyData(pReader, writer, block.dataSize)
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
             return wrSize, dserr.Err(err)
@@ -104,9 +110,14 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, error) {
             err = fmt.Errorf("block recopy only %d", wrSize)
             return wrSize, dserr.Err(err)
         }
-        origin = reader
+        origin = pReader
     }
+
     wrSize, err = copyData(reader, writer, dataSize)
+    if err == io.EOF {
+        writer.Clean()
+        return wrSize, dserr.Err(err)
+    }
     if err != nil {
         writer.Clean()
         err = fmt.Errorf("block copy error: %s", err)
@@ -154,12 +165,7 @@ func (block *Block) Read(writer io.Writer, dataSize int64) (int64, error) {
 }
 
 func (block *Block) Descr() *dsdescr.Block {
-    return block.xxtoDescr()
-}
-
-func (block *Block) xxtoDescr() *dsdescr.Block {
     descr := dsdescr.NewBlock()
-
     descr.FileId    = block.fileId
     descr.BatchId   = block.batchId
     descr.BlockType = block.blockType

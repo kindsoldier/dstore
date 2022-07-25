@@ -112,6 +112,7 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
 
         if batchWritten > 0 {
             batchDescr := file.batchs[i].Descr()
+
             err = file.reg.PutBatch(batchDescr)
             if err != nil {
                 return written, dserr.Err(err)
@@ -128,10 +129,12 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
             return written, dserr.Err(err)
         }
         batchNumber := file.batchCount
+
         batch, err := NewBatch(file.baseDir, file.reg, file.fileId, batchNumber, file.batchSize, file.blockSize)
         if err != nil {
             return written, dserr.Err(err)
         }
+
         batchDescr := batch.Descr()
         err = file.reg.PutBatch(batchDescr)
         if err != nil {
@@ -142,13 +145,13 @@ func (file *File) Write(reader io.Reader, dataSize int64) (int64, error) {
         if err != nil {
             return written, dserr.Err(err)
         }
+
         batchWritten, err := batch.Write(reader, dataSize)
         written += batchWritten
         file.dataSize += batchWritten
 
         if batchWritten > 0 {
             batchDescr := batch.Descr()
-
             err = file.reg.PutBatch(batchDescr)
             if err != nil {
                 return written, dserr.Err(err)
@@ -210,6 +213,11 @@ func (file *File) FileId() int64 {
 func (file *File) DataSize() int64 {
     return file.dataSize
 }
+
+func (file *File) SetFilePath(filePath string) {
+    file.filePath = filePath
+}
+
 
 func (file *File) Descr() *dsdescr.File {
     descr := dsdescr.NewFile()

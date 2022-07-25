@@ -13,7 +13,7 @@ import (
     "io"
     "net"
     "sync"
-    "time"
+    //"time"
     encoder "github.com/vmihailenco/msgpack/v5"
 )
 
@@ -101,16 +101,16 @@ func (this *Service) Stop() error {
 func (this *Service) handleConn(conn *net.TCPConn) {
     var err error
 
-    err = conn.SetKeepAlive(true)
-    if err != nil {
-        err = fmt.Errorf("unable to set keepalive: %s", err)
-        return
-    }
-    err = conn.SetKeepAlivePeriod(1 * time.Second)
-    if err != nil {
-        err = fmt.Errorf("unable to set keepalive period: %s", err)
-        return
-    }
+    //err = conn.SetKeepAlive(true)
+    //if err != nil {
+    //    err = fmt.Errorf("unable to set keepalive: %s", err)
+    //    return
+    //}
+    //err = conn.SetKeepAlivePeriod(10 * time.Second)
+    //if err != nil {
+    //    err = fmt.Errorf("unable to set keepalive period: %s", err)
+    //    return
+    //}
 
     context := CreateContext(conn)
 

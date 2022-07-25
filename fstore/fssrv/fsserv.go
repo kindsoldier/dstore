@@ -82,8 +82,6 @@ func (server *Server) Execute() error {
         if err != nil {
             return err
         }
-
-
     }
 
     err = server.RedirLog()
@@ -433,6 +431,9 @@ func (server *Server) RunService() error {
     filePerm    := server.Params.FilePerm
     dirPerm     := server.Params.DirPerm
     dataDir     := server.Params.DataDir
+
+    //develMode   := false
+    //debugMode   := false
 
     develMode   := server.Params.DevelMode
     debugMode   := server.Params.DebugMode

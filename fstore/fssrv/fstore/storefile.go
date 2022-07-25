@@ -9,6 +9,8 @@ import (
     "io"
     "path/filepath"
     "regexp"
+    "math/rand"
+    "encoding/hex"
 
     "github.com/ganbarodigital/go_glob"
 
@@ -56,7 +58,13 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
     if err != nil {
         return descr, dserr.Err(err)
     }
-    file, err := fsfile.NewFile(store.dataDir, store.reg, login, filePath, fileId, batchSize, blockSize)
+
+    randBin := make([]byte, 16)
+    rand.Read(randBin)
+    randStr := hex.EncodeToString(randBin)
+    tmpFilePath := filepath.Join("/.tmp/", randStr, filePath)
+
+    file, err := fsfile.NewFile(store.dataDir, store.reg, login, tmpFilePath, fileId, batchSize, blockSize)
     if err != nil {
         return descr, dserr.Err(err)
     }
@@ -66,23 +74,33 @@ func (store *Store) SaveFile(login string, filePath string, fileReader io.Reader
     if err != nil {
         return descr, dserr.Err(err)
     }
-
     wrSize, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
-        return descr, dserr.Err(err)
+        err = nil
+        dslog.LogDebugf("EOF for %s", filePath)
     }
-    if err != nil  {
+    if err != nil   {
+        dslog.LogDebugf("write error for %s: %s", filePath, err)
+        file.SetFilePath(filePath)
+        descr = file.Descr()
+        store.reg.PutFile(descr)
         return descr, dserr.Err(err)
     }
     if wrSize != fileSize {
-        return descr, dserr.Err(err)
+        fmt.Errorf("mismatch size for %s: %d instead %d", filePath, wrSize, fileSize)
     }
 
+    file.SetFilePath(filePath)
     descr = file.Descr()
     err = store.reg.PutFile(descr)
     if err != nil {
         return descr, dserr.Err(err)
     }
+    err = store.reg.DeleteFile(login, tmpFilePath)
+    if err != nil {
+        return descr, dserr.Err(err)
+    }
+
     has, err = store.reg.HasFile(login, filePath)
     if err != nil {
         return descr, dserr.Err(err)
@@ -167,15 +185,15 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
         return descrs, dserr.Err(err)
     }
 
-    notify := make(chan error, 16)
+    errChan := make(chan error, 16)
 
     checker := func() {
         buf := make([]byte, 1)
         for {
             _, err := reader.Read(buf)
             if err != nil {
-                dslog.LogDebugf("user %s connection err: %s", login, err)
-                notify <- err
+                //dslog.LogDebugf("user %s connection err: %s", login, err)
+                errChan <- err
                 return
             }
         }
@@ -186,7 +204,7 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
     for _, descr := range descrs {
 
         select {
-            case err := <-notify:
+            case err := <-errChan:
                 err = fmt.Errorf("connection error: %s", err)
                 return resDescrs, dserr.Err(err)
             default:
