@@ -61,7 +61,7 @@ func (reg *Reg) DeleteBatch(fileId, batchId int64) error {
     return err
 }
 
-func (reg *Reg) ListBatchs() ([]*dsdescr.Batch, error) {
+func (reg *Reg) ListBatchs(fileId int64) ([]*dsdescr.Batch, error) {
     var err error
     descrs := make([]*dsdescr.Batch, 0)
     cb := func(key []byte, val []byte) (bool, error) {
@@ -74,7 +74,11 @@ func (reg *Reg) ListBatchs() ([]*dsdescr.Batch, error) {
         descrs = append(descrs, descr)
         return interr, err
     }
-    batchBaseBin := []byte(reg.batchBase + reg.sep)
+
+    fileIdStr := strconv.FormatInt(fileId, 10)
+    keyArr := []string{ reg.batchBase, fileIdStr }
+    batchBaseStr := strings.Join(keyArr, reg.sep)
+    batchBaseBin := []byte(batchBaseStr + reg.sep)
     err = reg.db.Iter(batchBaseBin, cb)
     if err != nil {
         return descrs, err

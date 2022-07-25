@@ -45,7 +45,7 @@ func TestBatch01(t *testing.T) {
     require.NoError(t, err)
     require.Equal(t, descr0, descr1)
 
-    descrs, err := reg.ListBatchs()
+    descrs, err := reg.ListBatchs(descr0.FileId)
     require.NoError(t, err)
     require.Equal(t, len(descrs), 1)
 

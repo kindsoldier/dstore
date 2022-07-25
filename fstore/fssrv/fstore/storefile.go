@@ -193,7 +193,6 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
         for {
             _, err := reader.Read(buf)
             if err != nil {
-                //dslog.LogDebugf("user %s connection err: %s", login, err)
                 errChan <- err
                 return
             }
@@ -202,7 +201,7 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
     go checker()
 
     resDescrs := make([]*dsdescr.File, 0)
-    for _, descr := range descrs {
+    for _, fileDescr := range descrs {
 
         select {
             case err := <-errChan:
@@ -211,31 +210,54 @@ func (store *Store) EraseFiles(login, pattern, regular, gPattern string, erase b
             default:
         }
 
-        file, err := fsfile.ForceOpenFile(store.dataDir, store.reg, descr)
-        if err != nil {
-            err = fmt.Errorf("cannot open file %s, err: %v", descr.FilePath, err)
-            return resDescrs, dserr.Err(err)
-        }
-        err = file.Clean()
+        blockDescrs, err := store.reg.ListBlocks(fileDescr.FileId)
         if err != nil {
             return resDescrs, dserr.Err(err)
         }
-        err = store.reg.DeleteFile(descr.Login, descr.FilePath)
+        cleanBlocks := true
+        for _, descr := range blockDescrs {
+            block, err := fsfile.OpenBlock(store.dataDir, descr)
+            if block == nil && err != nil {
+                cleanBlocks = false
+                continue
+            }
+            err = block.Clean()
+            if err != nil {
+                cleanBlocks = false
+                continue
+            }
+            err = store.reg.DeleteBlock(descr.FileId, descr.BatchId, descr.BlockType, descr.BlockId)
+            if err != nil {
+                cleanBlocks = false
+                continue
+            }
+        }
+        cleanBatchs := true
+        batchDescrs, err := store.reg.ListBatchs(fileDescr.FileId)
         if err != nil {
-            err = fmt.Errorf("cannot delete file descr for %s, err: %v", descr.FilePath, err)
             return resDescrs, dserr.Err(err)
         }
+        for _, descr := range batchDescrs {
+            err = store.reg.DeleteBatch(descr.FileId, descr.BatchId)
+            if err != nil {
+                cleanBatchs = false
+                continue
+            }
 
-        store.fileAlloc.FreeId(file.FileId())
-        if err != nil {
-            return resDescrs, dserr.Err(err)
         }
-
-        dslog.LogDebugf("user %s file deleted: %s", login, descr.FilePath)
-
-        //allocJSON, _ := store.fileAlloc.JSON()
-        //dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
-        resDescrs = append(resDescrs, descr)
+        if cleanBatchs && cleanBlocks {
+            err = store.reg.DeleteFile(fileDescr.Login, fileDescr.FilePath)
+            if err != nil {
+                err = fmt.Errorf("cannot delete file descr for %s, err: %v", fileDescr.FilePath, err)
+                return resDescrs, dserr.Err(err)
+            }
+            store.fileAlloc.FreeId(fileDescr.FileId)
+            if err != nil {
+                return resDescrs, dserr.Err(err)
+            }
+        }
+        dslog.LogDebugf("user %s file deleted: %s", login, fileDescr.FilePath)
+        resDescrs = append(resDescrs, fileDescr)
     }
     return resDescrs, dserr.Err(err)
 }
@@ -317,40 +339,70 @@ func (store *Store) listFiles(login, pattern, regular, gPattern string) ([]*dsde
 
 func (store *Store) DeleteFile(login string, filePath string) (*dsdescr.File, error) {
     var err error
-    var descr *dsdescr.File
+    var fileDescr *dsdescr.File
     filePath = cleanPath(filePath)
     has, err := store.reg.HasFile(login, filePath)
     if err != nil {
-        return descr, dserr.Err(err)
+        return fileDescr, dserr.Err(err)
     }
     if !has {
-        return descr, dserr.Err(err)
+        return fileDescr, dserr.Err(err)
     }
-    descr, err = store.reg.GetFile(login, filePath)
+    fileDescr, err = store.reg.GetFile(login, filePath)
     if err != nil {
-        return descr, dserr.Err(err)
-    }
-    file, err := fsfile.ForceOpenFile(store.dataDir, store.reg, descr)
-    if err != nil {
-        return descr, dserr.Err(err)
-    }
-    err = file.Clean()
-    if err != nil {
-        return descr, dserr.Err(err)
-    }
-    err = store.reg.DeleteFile(login, filePath)
-    if err != nil {
-        return descr, dserr.Err(err)
+        return fileDescr, dserr.Err(err)
     }
 
-    store.fileAlloc.FreeId(file.FileId())
+    blockDescrs, err := store.reg.ListBlocks(fileDescr.FileId)
     if err != nil {
-        return descr, dserr.Err(err)
+        return fileDescr, dserr.Err(err)
     }
-    //allocJSON, _ := store.fileAlloc.JSON()
-    //dslog.LogDebugf("file id alloc state: %s", string(allocJSON))
+    cleanBlocks := true
+    for _, descr := range blockDescrs {
+        //dslog.LogDebugf("block for delete %d,%d,%d,%s", descr.FileId, descr.BatchId, descr.BlockId, descr.FilePath)
+        block, err := fsfile.OpenBlock(store.dataDir, descr)
+        if block == nil && err != nil {
+            cleanBlocks = false
+            continue
+        }
+        err = block.Clean()
+        if err != nil {
+            cleanBlocks = false
+            continue
+        }
+        err = store.reg.DeleteBlock(descr.FileId, descr.BatchId, descr.BlockType, descr.BlockId)
+        if err != nil {
+            cleanBlocks = false
+            continue
+        }
+    }
+    cleanBatchs := true
+    batchDescrs, err := store.reg.ListBatchs(fileDescr.FileId)
+    if err != nil {
+        return fileDescr, dserr.Err(err)
+    }
+    for _, descr := range batchDescrs {
+        //dslog.LogDebugf("batch for delete %d,%d", descr.FileId, descr.BatchId)
+        err = store.reg.DeleteBatch(descr.FileId, descr.BatchId)
+        if err != nil {
+            cleanBatchs = false
+            continue
+        }
 
-    return descr, dserr.Err(err)
+    }
+    if cleanBatchs && cleanBlocks {
+        err = store.reg.DeleteFile(fileDescr.Login, fileDescr.FilePath)
+        if err != nil {
+            err = fmt.Errorf("cannot delete file descr for %s, err: %v", fileDescr.FilePath, err)
+            return fileDescr, dserr.Err(err)
+        }
+        store.fileAlloc.FreeId(fileDescr.FileId)
+        if err != nil {
+            return fileDescr, dserr.Err(err)
+        }
+    }
+
+    return fileDescr, dserr.Err(err)
 }
 
 func (store *Store) checkLogin(login string) error {

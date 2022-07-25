@@ -10,9 +10,7 @@ import (
     "time"
 
     "dstore/dscomm/dsdescr"
-    //"dstore/dscomm/dsinter"
     "dstore/dscomm/dserr"
-    "dstore/dscomm/dslog"
 )
 
 type Block struct {
@@ -84,7 +82,6 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, bool, error)
     newPath = fmt.Sprintf("%s--%05d-%04d-%03d", newPath, block.fileId, block.batchId, block.blockId)
 
     writer, err := OpenCrate(block.baseDir, newPath, WRONLY)
-    dslog.LogDebugf("open #1 crate %d,%d,%d,%s", block.fileId, block.batchId, block.blockId, newPath)
     defer writer.Close()
     if err != nil {
         err = fmt.Errorf("block write error: %s", err)
@@ -94,7 +91,6 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, bool, error)
     if block.dataSize > 0 {
         var wrSize int64
         pReader, err := OpenCrate(block.baseDir, block.filePath, RDONLY)
-        dslog.LogDebugf("open #2 crate %s", newPath)
         defer pReader.Close()
         if err != nil {
             err = fmt.Errorf("block recopy error: %s", err)
@@ -112,7 +108,6 @@ func (block *Block) Write(reader io.Reader, dataSize int64) (int64, bool, error)
     }
 
     wrSize, eof, err = copyData(reader, writer, dataSize)
-    dslog.LogDebugf("eof #0 for %d,%d,%d: %v", block.fileId, block.batchId, block.blockId, eof)
     if err == io.EOF {
         eof = true
         err = nil

@@ -10,7 +10,6 @@ import (
     "dstore/dscomm/dsinter"
     "dstore/dscomm/dsdescr"
     "dstore/dscomm/dserr"
-    "dstore/dscomm/dslog"
 )
 
 type Batch struct {
@@ -55,14 +54,6 @@ func NewBatch(baseDir string, reg dsinter.FStoreReg, fileId, batchId, batchSize,
 }
 
 func OpenBatch(baseDir string, reg dsinter.FStoreReg, descr *dsdescr.Batch) (*Batch, error) {
-    return openBatch(false, baseDir, reg, descr)
-}
-
-func ForceOpenBatch(baseDir string, reg dsinter.FStoreReg, descr *dsdescr.Batch) (*Batch, error) {
-    return openBatch(true, baseDir, reg, descr)
-}
-
-func openBatch(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr.Batch) (*Batch, error) {
     var err error
     var batch Batch
     batch.baseDir   = baseDir
@@ -77,33 +68,15 @@ func openBatch(force bool, baseDir string, reg dsinter.FStoreReg, descr *dsdescr
 
     batch.blocks = make([]*Block, batch.batchSize)
     for i := int64(0); i < batch.batchSize; i++ {
-        has, err := reg.HasBlock(batch.fileId, batch.batchId, dsdescr.BTData, i)
-        switch {
-            case force == false:
-                if err != nil {
-                    return &batch, dserr.Err(err)
-                }
-                blockDescr, err := reg.GetBlock(batch.fileId, batch.batchId, dsdescr.BTData, i)
-                if err != nil {
-                    return &batch, dserr.Err(err)
-                }
-                block, err := OpenBlock(baseDir, blockDescr)
-                if err != nil {
-                    return &batch, dserr.Err(err)
-                }
-                batch.blocks[i] = block
-            default:
-                if err != nil || !has {
-                    continue
-                }
-                blockDescr, err := reg.GetBlock(batch.fileId, batch.batchId, dsdescr.BTData, i)
-                if err == nil {
-                    block, blockErr := OpenBlock(baseDir, blockDescr)
-                    if blockErr == nil {
-                        batch.blocks[i] = block
-                    }
-                }
+        blockDescr, err := reg.GetBlock(batch.fileId, batch.batchId, dsdescr.BTData, i)
+        if err != nil {
+            return &batch, dserr.Err(err)
         }
+        block, err := OpenBlock(baseDir, blockDescr)
+        if err != nil {
+            return &batch, dserr.Err(err)
+        }
+        batch.blocks[i] = block
     }
     return &batch, dserr.Err(err)
 }
@@ -118,7 +91,6 @@ func (batch *Batch) Write(reader io.Reader, reqSize int64) (int64, bool, error) 
             return wrSize, eof, dserr.Err(err)
         }
         blockWrSize, eof, err := batch.blocks[i].Write(reader, reqSize)
-        dslog.LogDebugf("eof #2 for %d,%d,%d: %v", batch.fileId, batch.batchId, i, eof)
         if err == io.EOF {
             err = nil
             eof = true
@@ -162,7 +134,6 @@ func (batch *Batch) Clean() error {
             if err != nil {
                 return dserr.Err(err)
             }
-            dslog.LogDebugf("clean block %d,%d,%d", batch.fileId, batch.batchId, i)
             err = batch.reg.DeleteBlock(batch.fileId, batch.batchId, dsdescr.BTData, i)
             if err != nil {
                 return dserr.Err(err)
