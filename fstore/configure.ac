@@ -204,8 +204,8 @@ case $host_os in
     default_group="daemon"
         ;;
     *linux* )
-    default_user="www-data"
-    default_group="www-data"
+    default_user="daemon"
+    default_group="daemon"
         ;;
 esac
 

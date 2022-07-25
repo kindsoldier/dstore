@@ -126,8 +126,9 @@ func (contr *Contr) ListFilesHandler(context *dsrpc.Context) error {
     gPattern    := params.GPattern
 
     login   := string(context.AuthIdent())
+    reader  := context.BinReader()
 
-    files, err := contr.store.ListFiles(login, pattern, regular, gPattern)
+    files, err := contr.store.ListFiles(login, pattern, regular, gPattern, reader)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
@@ -153,9 +154,11 @@ func (contr *Contr) FileStatsHandler(context *dsrpc.Context) error {
     regular     := params.Regular
     gPattern    := params.GPattern
 
-    login   := string(context.AuthIdent())
 
-    count, usage, err := contr.store.FileStats(login, pattern, regular, gPattern)
+    login   := string(context.AuthIdent())
+    reader  := context.BinReader()
+
+    count, usage, err := contr.store.FileStats(login, pattern, regular, gPattern, reader)
     if err != nil {
         context.SendError(err)
         return dserr.Err(err)
