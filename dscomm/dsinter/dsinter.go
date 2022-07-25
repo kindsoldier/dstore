@@ -47,7 +47,7 @@ type FStoreReg interface {
     DeleteBatch(batchId, fileId int64) error
     GetBatch(batchId, fileId int64) (*dsdescr.Batch, error)
     HasBatch(batchId, fileId int64) (bool, error)
-    ListBatchs() ([]*dsdescr.Batch, error)
+    ListBatchs(fileId int64) ([]*dsdescr.Batch, error)
     PutBatch(descr *dsdescr.Batch) error
 
     PutBlock(descr *dsdescr.Block) error
