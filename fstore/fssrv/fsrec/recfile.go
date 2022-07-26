@@ -71,17 +71,17 @@ func (store *Store) SaveFile(userName string, filePath string, fileReader io.Rea
     written, err := file.Write(fileReader, fileSize)
     if err == io.EOF {
         dslog.LogDebugf("file %d write error is %v", fileId, err)
-        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
+        store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         return dserr.Err(err)
     }
     if err != nil  {
-        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
+        store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         return dserr.Err(err)
     }
     if written != fileSize {
-        //store.reg.EraseEntryDescr(userId, dirPath, fileName)
+        store.reg.EraseEntryDescr(userId, dirPath, fileName)
         file.Delete()
         err = fmt.Errorf("file %d size mismatch, file size %d, written %d ", fileId, fileSize, written)
         return dserr.Err(err)
@@ -217,39 +217,38 @@ func (store *Store) pushFileWC() {
 
 
 func (store *Store) StoredFileDistributing() {
+
+    distrFunc := func(wg *sync.WaitGroup, d *dscom.FileDescr) {
+        dslog.LogDebugf("distrubute file %d,%d", d.FileId, d.FileVer)
+        file, err := fsfile.OpenFile(store.reg, store.dataRoot, d.FileId)
+        defer file.Close()
+        if err != nil {
+            dslog.LogDebug("distribute file open err:", dserr.Err(err))
+            return
+        }
+        distr := NewFileDistr(store.dataRoot, store.reg)
+        distr.LoadPool()
+        err = file.Distribute(distr)
+        if err != nil {
+            dslog.LogDebug("distribute file err:", dserr.Err(err))
+        }
+        wg.Done()
+    }
     for {
-        count := 10
+        count := 1
         exists, descrs, err := store.reg.GetSetNotDistrFileDescr(count)
         //dslog.LogDebug("file disributor call", exists, len(descrs))
         if exists && err == nil {
             var wg sync.WaitGroup
             for _, descr := range descrs {
-
-                distrFunc := func(wg *sync.WaitGroup, d *dscom.FileDescr) {
-                    dslog.LogDebugf("distrubute file %d,%d", d.FileId, d.FileVer)
-                    file, err := fsfile.OpenFile(store.reg, store.dataRoot, d.FileId)
-                    defer file.Close()
-                    if err != nil {
-                        dslog.LogDebug("distribute file open err:", dserr.Err(err))
-                        return
-                    }
-                    distr := NewFileDistr(store.dataRoot, store.reg)
-                    distr.LoadPool()
-                    err = file.Distribute(distr)
-                    if err != nil {
-                        dslog.LogDebug("distribute file err:", dserr.Err(err))
-                    }
-                    wg.Done()
-                }
-
                 wg.Add(1)
-                go distrFunc(&wg, descr)
+                distrFunc(&wg, descr)
             }
             wg.Wait()
-            continue
+            //continue
         }
         select {
-            case <-store.fileWCChan:
+            //case <-store.fileWCChan:
             case <-time.After(time.Second * 3):
         }
     }
@@ -299,26 +298,30 @@ func (store *Store) WasteBatchCollecting() {
 }
 
 func (store *Store) WasteBlockCollecting() {
+    eraseFunc := func(wg *sync.WaitGroup, d *dscom.BlockDescr) {
+        dslog.LogDebugf("delete waste block %s", getBlockIdString(d))
+        if d != nil {
+            block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, d.FileId,
+                                                        d.BatchId, d.BlockId,
+                                                        d.BlockType, d.BlockVer)
+            if block != nil {
+                err = block.Erase()
+                if err != nil {
+                    dslog.LogDebug("delete block err:", dserr.Err(err))
+                }
+                block.Close()
+            }
+        }
+        wg.Done()
+    }
+
     for {
-        count := 10
+        count := 3
         exists, descrs, err := store.reg.GetSetUnusedBlockDescrs(count)
         //dslog.LogDebugf("block waste collecr call %t,%d", exists, len(descrs))
         if exists && err == nil {
             var wg sync.WaitGroup
             for _, descr := range descrs {
-
-                eraseFunc := func(wg *sync.WaitGroup, d *dscom.BlockDescr) {
-                    dslog.LogDebugf("delete waste block %s", getBlockIdString(d))
-                    block, err := fsfile.OpenSpecUnusedBlock(store.reg, store.dataRoot, d.FileId,
-                                                                d.BatchId, d.BlockId,
-                                                                d.BlockType, d.BlockVer)
-                    defer block.Close()
-                    err = block.Erase()
-                    if err != nil {
-                        dslog.LogDebug("delete block err:", dserr.Err(err))
-                    }
-                    wg.Done()
-                }
 
                 wg.Add(1)
                 go eraseFunc(&wg, descr)

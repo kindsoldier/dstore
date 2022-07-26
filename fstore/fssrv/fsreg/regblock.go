@@ -65,6 +65,52 @@ func (reg *Reg) AddNewBlockDescr(descr *dscom.BlockDescr) error {
     return dserr.Err(err)
 }
 
+
+func (reg *Reg) AddNewBlockDescrAndDec(descr *dscom.BlockDescr, oldVlockVer int64, count int) error {
+    var err error
+    tx, err := reg.db.Begin()
+    if err != nil {
+        return dserr.Err(err)
+    }
+    request1 := `
+        INSERT INTO fs_blocks(file_id, batch_id, block_id, block_type, block_ver, u_counter,
+                        block_size, data_size, file_path, hash_alg, hash_init, hash_sum,
+                        saved_loc, saved_rem, fstore_id, bstore_id, loc_updated,
+                                                        created_at, updated_at)
+
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19);`
+    _, err = tx.Exec(request1, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType,
+                                                                    descr.BlockVer, descr.UCounter,
+                                descr.BlockSize, descr.DataSize, descr.FilePath, descr.HashAlg,
+                                                                    descr.HashInit, descr.HashSum,
+                                descr.SavedLoc, descr.SavedRem, descr.FStoreId, descr.BStoreId,
+                                                                                descr.LocUpdated,
+                                                                descr.CreatedAt, descr.UpdatedAt)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    request2 := `
+        UPDATE fs_blocks SET
+            u_counter = u_counter - $1
+        WHERE file_id = $2
+            AND batch_id = $3
+            AND block_id = $4
+            AND block_type = $5
+            AND block_ver = $6
+            AND u_counter > 0;`
+    _, err = tx.Exec(request2, count, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, oldVlockVer)
+    if err != nil {
+        return dserr.Err(err)
+    }
+    err = tx.Commit()
+    if err != nil {
+        return dserr.Err(err)
+    }
+
+    return dserr.Err(err)
+}
+
+
 func (reg *Reg) GetNewestBlockDescr(fileId, batchId, blockId int64, blockType string) (bool, *dscom.BlockDescr, error) {
     var err error
     var exists bool

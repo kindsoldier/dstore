@@ -73,6 +73,7 @@ type IBlockReg interface {
 
     GetBStoreDescrById(bstoreId int64) (bool, *BStoreDescr, error)
     GetSetUnusedBlockDescrs(count int) (bool, []*BlockDescr, error)
+    AddNewBlockDescrAndDec(descr *BlockDescr, oldVlockVer int64, count int) error
 }
 
 

@@ -304,15 +304,15 @@ func (block *Block) Write(reader io.Reader, need int64) (int64, error) {
     block.updatedAt  = time.Now().Unix()
     newDescr := block.toDescr()
     newDescr.UCounter = 2
-    err = block.reg.AddNewBlockDescr(newDescr)
+    err = block.reg.AddNewBlockDescrAndDec(newDescr, descr.BlockVer, 2)
     if err != nil {
             return written, dserr.Err(err)
     }
     // Descreate usage old block descr
-    err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
-    if err != nil {
-            return written, dserr.Err(err)
-    }
+    //err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    //if err != nil {
+    //        return written, dserr.Err(err)
+    //}
     return written, dserr.Err(err)
 }
 
@@ -536,10 +536,12 @@ func (block *Block) Distribute(distr dscom.IFileDistr) (bool, error) {
         if err != nil {
                 return blockIsDistibuted, dserr.Err(err)
         }
-        removeErr := os.Remove(oldFullFilePath)
-        if removeErr == nil {
-            savedLoc = false
-        }
+        os.Remove(oldFullFilePath)
+        savedLoc = false
+        //removeErr := os.Remove(oldFullFilePath)
+        //if removeErr == nil {
+        //    savedLoc = false
+        //}
     }
     // Add new version of block descr
     block.filePath  = newFilePath
@@ -549,16 +551,16 @@ func (block *Block) Distribute(distr dscom.IFileDistr) (bool, error) {
     block.blockVer  = newBlockVer
     newDescr := block.toDescr()
     newDescr.UCounter = 2
-    err = block.reg.AddNewBlockDescr(newDescr)
+    err = block.reg.AddNewBlockDescrAndDec(newDescr, descr.BlockVer, 2)
     if err != nil {
         return blockIsDistibuted, dserr.Err(err)
     }
     // Decrease usage old block descr
-    err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
-    if err != nil {
-        return blockIsDistibuted, dserr.Err(err)
-
-    }
+    //err = block.reg.DecSpecBlockDescrUC(2, descr.FileId, descr.BatchId, descr.BlockId, descr.BlockType, descr.BlockVer)
+    //if err != nil {
+    //    return blockIsDistibuted, dserr.Err(err)
+    //
+    //}
     //dslog.LogDebugf("block %s,%s save to store %d ", block.getIdString(), block.filePath, bstoreId)
     if len(newFullFilePath) > 0 {
         os.Remove(newFullFilePath)
@@ -601,14 +603,16 @@ func (block *Block) Erase() error {
         }
         block.blockIsOpen = false
     }
+
     if block.savedLoc && block.dataSize > 0 {
         // Remove underline file
         if len(block.filePath) > 0 {
             fullFilePath := filepath.Join(block.baseDir, block.filePath)
-            err = removeFile(fullFilePath)
-            if err != nil {
-                    return dserr.Err(err)
-            }
+            removeFile(fullFilePath)
+            //err = removeFile(fullFilePath)
+            //if err != nil {
+            //        return dserr.Err(err)
+            //}
         }
     }
     if block.savedRem && block.dataSize > 0 {

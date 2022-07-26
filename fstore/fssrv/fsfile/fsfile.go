@@ -290,13 +290,13 @@ func (file *File) Delete() error {
 func (file *File) Erase() error {
     var err error
     // The same as close file
-    if file.fileIsOpen {
-        err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
-        if err != nil {
-                return dserr.Err(err)
-        }
-        file.fileIsOpen = false
-    }
+    //if file.fileIsOpen {
+    //    err = file.reg.DecSpecFileDescrUC(1, file.fileId, file.fileVer)
+    //    if err != nil {
+    //            return dserr.Err(err)
+    //    }
+    //    file.fileIsOpen = false
+    //}
     // Do nothing if yet erased
     if file.fileIsDeleted {
         return dserr.Err(err)
@@ -307,6 +307,7 @@ func (file *File) Erase() error {
     if err != nil {
         return dserr.Err(err)
     }
+    file.fileIsOpen = false
     file.fileIsDeleted = true
     return dserr.Err(err)
 }

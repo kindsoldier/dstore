@@ -332,18 +332,19 @@ func (batch *Batch) Delete() error {
 func (batch *Batch) Erase() error {
     var err error
     // Close block
-    if batch.batchIsOpen {
-        err = batch.reg.DecSpecBatchDescrUC(1, batch.fileId, batch.batchId, batch.batchVer)
-        if err != nil {
-                return dserr.Err(err)
-        }
-        batch.batchIsOpen = false
-    }
+    //if batch.batchIsOpen {
+    //    err = batch.reg.DecSpecBatchDescrUC(1, batch.fileId, batch.batchId, batch.batchVer)
+    //    if err != nil {
+    //            return dserr.Err(err)
+    //    }
+    //    batch.batchIsOpen = false
+    //}
     // Descrease usage counter of the batch descr
     err = batch.reg.EraseSpecBatchDescr(batch.fileId, batch.batchId, batch.batchVer)
     if err != nil {
             return dserr.Err(err)
     }
+    batch.batchIsOpen = false
     batch.batchIsDeleted = true
     return dserr.Err(err)
 }
