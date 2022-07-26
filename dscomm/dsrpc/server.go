@@ -1,7 +1,5 @@
 /*
- *
  * Copyright 2022 Oleg Borodin  <borodin@unix7.org>
- *
  */
 
 package dsrpc
@@ -13,19 +11,23 @@ import (
     "io"
     "net"
     "sync"
-    //"time"
+    "time"
+
     encoder "github.com/vmihailenco/msgpack/v5"
 )
 
 type HandlerFunc =  func(*Context) error
 
 type Service struct {
-    handlers map[string]HandlerFunc
-    ctx     context.Context
-    cancel  context.CancelFunc
-    wg      *sync.WaitGroup
-    preMw   []HandlerFunc
-    postMw  []HandlerFunc
+    handlers    map[string]HandlerFunc
+    ctx         context.Context
+    cancel      context.CancelFunc
+    wg          *sync.WaitGroup
+    preMw       []HandlerFunc
+    postMw      []HandlerFunc
+    keepalive   bool
+    kaTime      time.Duration
+    kaMtx       sync.Mutex
 }
 
 func NewService() *Service {
@@ -42,19 +44,31 @@ func NewService() *Service {
     return rdrpc
 }
 
-func (this *Service) PreMiddleware(mw HandlerFunc) {
-    this.preMw = append(this.preMw, mw)
+func (svc *Service) PreMiddleware(mw HandlerFunc) {
+    svc.preMw = append(svc.preMw, mw)
 }
 
-func (this *Service) PostMiddleware(mw HandlerFunc) {
-    this.postMw = append(this.postMw, mw)
+func (svc *Service) PostMiddleware(mw HandlerFunc) {
+    svc.postMw = append(svc.postMw, mw)
 }
 
-func (this *Service) Handler(method string, handler HandlerFunc) {
-    this.handlers[method] = handler
+func (svc *Service) Handler(method string, handler HandlerFunc) {
+    svc.handlers[method] = handler
 }
 
-func (this *Service) Listen(address string) error {
+func (svc *Service) SetKeepAlive(flag bool) {
+    svc.kaMtx.Lock()
+    defer svc.kaMtx.Unlock()
+    svc.keepalive = true
+}
+
+func (svc *Service) SetKeepAlivePeriod(interval time.Duration) {
+    svc.kaMtx.Lock()
+    defer svc.kaMtx.Unlock()
+    svc.kaTime = interval
+}
+
+func (svc *Service) Listen(address string) error {
     var err error
     logInfo("server listen:", address)
 
@@ -75,12 +89,12 @@ func (this *Service) Listen(address string) error {
             logError("conn accept err:", err)
         }
         select {
-            case <-this.ctx.Done():
+            case <-svc.ctx.Done():
                 return err
             default:
         }
-        this.wg.Add(1)
-        go this.handleConn(conn, this.wg)
+        svc.wg.Add(1)
+        go svc.handleConn(conn, svc.wg)
     }
     return err
 }
@@ -91,31 +105,34 @@ func notFound(context *Context) error {
     return err
 }
 
-func (this *Service) Stop() error {
+func (svc *Service) Stop() error {
     var err error
     // Disable new connection
     logInfo("cancel rpc accept loop")
-    this.cancel()
+    svc.cancel()
     // Wait handlers
     logInfo("wait rpc handlers")
-    this.wg.Wait()
+    svc.wg.Wait()
     return err
 }
 
-func (this *Service) handleConn(conn *net.TCPConn, wg *sync.WaitGroup) {
+func (svc *Service) handleConn(conn *net.TCPConn, wg *sync.WaitGroup) {
     var err error
 
-    //err = conn.SetKeepAlive(true)
-    //if err != nil {
-    //    err = fmt.Errorf("unable to set keepalive: %s", err)
-    //    return
-    //}
-    //err = conn.SetKeepAlivePeriod(10 * time.Second)
-    //if err != nil {
-    //    err = fmt.Errorf("unable to set keepalive period: %s", err)
-    //    return
-    //}
-
+    if svc.keepalive {
+        err = conn.SetKeepAlive(true)
+        if err != nil {
+            err = fmt.Errorf("unable to set keepalive: %s", err)
+            return
+        }
+        if svc.kaTime > 0 {
+            err = conn.SetKeepAlivePeriod(svc.kaTime)
+            if err != nil {
+                err = fmt.Errorf("unable to set keepalive period: %s", err)
+                return
+            }
+        }
+    }
     context := CreateContext(conn)
 
     remoteAddr := conn.RemoteAddr().String()
@@ -153,19 +170,19 @@ func (this *Service) handleConn(conn *net.TCPConn, wg *sync.WaitGroup) {
         err = Err(err)
         return
     }
-    for _, mw := range this.preMw {
+    for _, mw := range svc.preMw {
         err = mw(context)
         if err != nil {
             err = Err(err)
             return
         }
     }
-    err = this.Route(context)
+    err = svc.Route(context)
     if err != nil {
         err = Err(err)
         return
     }
-    for _, mw := range this.postMw {
+    for _, mw := range svc.postMw {
         err = mw(context)
         if err != nil {
             err = Err(err)
@@ -175,8 +192,8 @@ func (this *Service) handleConn(conn *net.TCPConn, wg *sync.WaitGroup) {
     return
 }
 
-func (this *Service) Route(context *Context) error {
-    handler, ok := this.handlers[context.reqRPC.Method]
+func (svc *Service) Route(context *Context) error {
+    handler, ok := svc.handlers[context.reqRPC.Method]
     if ok {
         return Err(handler(context))
     }
