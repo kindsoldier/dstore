@@ -55,6 +55,7 @@ func (reg *Reg) DeleteFile(login, filePath string) error {
 func (reg *Reg) ListFiles(login string) ([]*dsdescr.File, error) {
     var err error
     descrs := make([]*dsdescr.File, 0)
+
     cb := func(key []byte, val []byte) (bool, error) {
         var err error
         var interr bool
@@ -65,10 +66,39 @@ func (reg *Reg) ListFiles(login string) ([]*dsdescr.File, error) {
         descrs = append(descrs, descr)
         return interr, err
     }
+
+
     keyArr := []string{ reg.fileBase, login }
     keyStr := strings.Join(keyArr, reg.sep)
     fileBaseBin := []byte(keyStr + reg.sep)
     err = reg.db.Iter(fileBaseBin, cb)
+    if err != nil {
+        return descrs, err
+    }
+    return descrs, err
+}
+
+type FileFunc = func(fileDescr *dsdescr.File) (bool, error)
+
+func (reg *Reg) ProcFiles(login string, fileCb FileFunc) ([]*dsdescr.File, error) {
+    var err error
+    descrs := make([]*dsdescr.File, 0)
+
+    iterCb := func(key []byte, val []byte) (bool, error) {
+        var err error
+        var interr bool
+        descr, err := dsdescr.UnpackFile(val)
+        if err != nil {
+            return interr, err
+        }
+        interr, err = fileCb(descr)
+        return interr, err
+    }
+
+    keyArr := []string{ reg.fileBase, login }
+    keyStr := strings.Join(keyArr, reg.sep)
+    fileBaseBin := []byte(keyStr + reg.sep)
+    err = reg.db.Iter(fileBaseBin, iterCb)
     if err != nil {
         return descrs, err
     }
