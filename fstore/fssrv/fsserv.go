@@ -15,6 +15,7 @@ import (
     "strconv"
     "syscall"
     "io"
+    "time"
 
     "dstore/fstore/fsapi"
     "dstore/fstore/fssrv/fscont"
@@ -518,7 +519,20 @@ func (server *Server) RunService() error {
     //if debugMode || develMode {
     //    server.serv.PostMiddleware(dsrpc.LogResponse)
     //}
-    server.serv.PostMiddleware(dsrpc.LogAccess)
+
+
+    logAccess := func(context *dsrpc.Context) error {
+        var err error
+        execTime := time.Since(context.Start())
+        login := string(context.AuthIdent())
+        dslog.LogInfo(context.RemoteHost(), login, context.Method(),
+                            context.ReqRpcSize(), context.ReqBinSize(),
+                            context.ResRpcSize(), context.ResBinSize(),
+                            execTime)
+        return err
+    }
+
+    server.serv.PostMiddleware(logAccess)
 
     listenParam := fmt.Sprintf(":%s", server.Params.Port)
     err = server.serv.Listen(listenParam)
