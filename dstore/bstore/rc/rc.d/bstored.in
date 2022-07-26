@@ -1,0 +1,94 @@
+#!/bin/sh
+#
+# $Id$
+#
+# PROVIDE: bstored
+# REQUIRE: DAEMON
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="bstored"
+rcvar="bstored_enable"
+
+command="@prefix@/sbin/${name}"
+command_args=""
+
+load_rc_config ${name}
+
+extra_commands="list"
+
+start_cmd="bstored_start"
+stop_cmd="bstored_stop"
+restart_cmd="bstored_restart"
+reload_cmd="bstored_reload"
+list_cmd="bstored_list"
+
+bstored_list() {
+    echo -n "$1 "
+}
+
+bstored_start() {
+    serv="$1"
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
+    command="@prefix@/sbin/${name}"
+    command_args="-daemon -port $serv -logDir $logdir -runDir $rundir -dataDir $datadir"
+    echo "Start bstored $serv."
+    $command $command_args
+}
+
+bstored_stop() { 
+    serv="$1"
+    pidfile="@srv_rundir@"/${serv}/bstored.pid
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
+    command="@prefix@/sbin/${name}"
+    command_args="-daemon -port $serv -logDir $logdir -runDir $rundir -dataDir $datadir"
+    pid=$(check_pidfile $pidfile $command)
+    test ! -z "$pid" && ( kill "$pid"; echo "Stopping bstored $serv.")
+    wait_for_pids $pid && rm -f "$pidfile"
+}
+
+bstored_restart() {
+    serv="$1"
+    bstored_stop $serv
+    bstored_start $serv
+}
+
+bstored_reload() {
+    serv="$1"
+    pidfile="@srv_rundir@"/${serv}/bstored.pid
+    rundir="@srv_rundir@/$serv"
+    datadir="@srv_datadir@/$serv"
+    logdir="@srv_logdir@/$serv"
+    command="@prefix@/sbin/${name}"
+    command_args="-daemon -port $serv -logDir $logdir -runDir $rundir -dataDir $datadir"
+    pid=$(check_pidfile $pidfile $command)
+    test ! -z "$pid" && ( kill -HUP "$pid")
+}
+
+load_rc_config $name
+
+: ${bstored_enable=NO}
+: ${bstored_samples="5101 5102 5103 5104 5105 5106 5107"}
+
+rc_command=$1
+
+test ! -z "$bstored_samples" && servlist="$bstored_samples"
+test ! -z "$2" && shift && servlist="$@"
+
+
+case $rc_command in 
+    *restart|*start|*stop|*status|*list|*reload)
+        for serv in $servlist; do 
+            run_rc_command "$rc_command" "$serv"
+        done
+        ;;
+#    *)
+#        run_rc_command "$rc_command"
+#        ;;
+esac
+#EOF

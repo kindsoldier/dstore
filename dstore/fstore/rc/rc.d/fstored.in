@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# $Id$
+#
+# PROVIDE: fstored
+# REQUIRE: DAEMON
+
+. /etc/rc.subr
+
+name="fstored"
+rcvar="fstored_enable"
+
+pidfile="@srv_rundir@"/fstored.pid
+command="@prefix@/sbin/${name}"
+command_args="-daemon"
+procname="@prefix@/sbin/${name}"
+
+load_rc_config ${name}
+
+: ${fstored_enable:="NO"}
+
+fstored_prestart() {
+    rundir="@srv_rundir@"
+    logdir="@srv_logdir@"
+    chown -R @srv_user@:@srv_group@ "${rundir}"
+    chown -R @srv_user@:@srv_group@ "${logdir}"
+}
+
+start_precmd="fstored_prestart"
+
+run_rc_command "$1"
+#EOF

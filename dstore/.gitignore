@@ -1,0 +1,15 @@
+*.geany
+*~
+*.png
+*.jpg
+*.gif
+*.bin
+*.log
+*.db
+tmp.*
+autom4te.cache
+Makefile
+config.status
+works/
+vendor/
+
