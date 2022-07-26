@@ -7,7 +7,7 @@ This is a project for a decentralized data warehouse.
 
 ### Generic
 
-- Data block services are required for full functionality. 
+- Data block services are required for full functionality.
 - If there are none, the file will be saved only on file service.
 
 ### Users
@@ -39,6 +39,8 @@ to be able to use the pseudo-directory listing
 
 ## Comman line samples
 
+All subcommand have appropriate service API.
+
 ### File operation
 
 #### Saving file
@@ -68,7 +70,8 @@ $ fstorecli -aLogin user -aPass user saveFile -local /tmp/block.bin -remote a/b/
 }
 ```
 
-#### File listing
+#### File listing, all or with filters
+
 ```
 $ fstorecli -aLogin user -aPass user listFiles
 {
@@ -89,6 +92,102 @@ $ fstorecli -aLogin user -aPass user listFiles
     ]
   }
 }
+```
+
+#### File stats, all or with filters
+
+```
+$ fstorecli fileStats
+{
+  "error": false,
+  "result": {
+    "count": 324372,
+    "usage": 14747643654
+  }
+}
+```
+
+#### File erase, all or with filters
+
+```
+# fstorecli -aLogin user -aPass user eraseFiles -erase -glob '/*/test.txt'
+{
+  "error": false,
+  "result": {
+    "files": [
+      {
+        "filePath": "/b/foo/bar/test.txt",
+        "login": "user",
+        "fileId": 294367,
+        "batchCount": 1,
+        "batchSize": 1,
+        "blockSize": 16384,
+        "dataSize": 289,
+        "createdAt": 1658841733,
+        "updatedAt": 1658841733
+      },
+      {
+        "filePath": "/b/some/bare/alloc/test.txt",
+        "login": "user",
+        "fileId": 164256,
+        "batchCount": 1,
+        "batchSize": 1,
+        "blockSize": 16384,
+        "dataSize": 289,
+        "createdAt": 1658841759,
+        "updatedAt": 1658841759
+      }
+    ]
+  }
+}
+
+```
+
+
+#### File listing, stats or erasing with filters
+
+
+```
+$ fstorecli fileStats -help
+
+Usage: fstorecli [global options] fileStats [command options]
+
+The command options: none
+  -glob string
+        glob pattern
+  -patt string
+        shell-like pattern
+  -regex string
+        regexp pattern
+```
+Where:
+
+* glob: pattern where `/*.c` get all files in any depth with cuffix ".c"
+* regex: POSIX regexp for names
+* patt: Unix shell-like pattern with '/' as directory separator
+
+The filter combinate with logic AND
+
+
+```
+$ fstorecli -aLogin user -aPass user fileStats -glob '/*.c'
+{
+  "error": false,
+  "result": {
+    "count": 11680,
+    "usage": 101218570
+  }
+}
+
+$ fstorecli -aLogin user -aPass user  fileStats -regex '.tar.gz$'
+{
+  "error": false,
+  "result": {
+    "count": 32,
+    "usage": 228998036
+  }
+}
+
 ```
 
 #### Downloading file
@@ -157,7 +256,7 @@ $ fstorecli -aLogin user -aPass user listFiles
 
 ### User operation
 
-##### User listing 
+##### User listing
 
 ```
 $ fstorecli -aLogin admin -aPass admin listUsers
