@@ -1,6 +1,22 @@
 # DStore - Distributed Store
 
-This is a project for a decentralized data warehouse.
+This is a project for a decentralized data warehouse with some resistance to failure.
+
+### Status / Статус
+
+- The project is implemented in experimental version 1.
+- The development of version 2 has been started, the file storage service and the block storage service have been implemented.
+- Suspended for now in search of better or optimal solutions for synchronization of shared objects.
+
+- Проект реализован в экспериментальной версии 1.
+- Начата разработка версии 2, реализованы сервис хранения файлов и сервис хранения блоков.
+- Пока приостановлен в поисках лучших или оптимальных решений для синхронизации разделяемых объектов и "сборки мусора".
+
+
+### In progress in search of an optimal solution:
+
+- Each file, once written, will be distributed to a number of block servers
+- Each file after writing will have redundant data, based on which the lost blocks can be recovered
 
 
 ## Some rules and features
@@ -27,10 +43,6 @@ to be able to use the pseudo-directory listing
 - The file upload can be interrupted, the received amount will be saved
 - The listing can be made using a pattern
 
-### In progress in search of an optimal solution:
-
-- Each file, once written, will be distributed to a number of block servers
-- Each file after writing will have redundant data, based on which the lost blocks can be recovered
 
 ## Generic draft
 
