@@ -8,6 +8,7 @@ This is a project for a decentralized data warehouse with some resistance to fai
 - The development of version 2 has been started, the file storage service and the block storage service have been implemented.
 - Suspended for now in search of better or optimal solutions for synchronization of shared objects.
 
+###№ Статус
 - Проект реализован в экспериментальной версии 1.
 - Начата разработка версии 2, реализованы сервис хранения файлов и сервис хранения блоков.
 - Пока приостановлен в поисках лучших или оптимальных решений для синхронизации разделяемых объектов и "сборки мусора".
